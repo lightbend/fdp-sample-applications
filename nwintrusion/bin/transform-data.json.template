@@ -1,0 +1,27 @@
+{
+  "id": {TRANSFORM_DATA_APP_ID},
+  "container":{
+    "docker":{
+      "forcePullImage":true,
+      "image":{TRANSFORM_DATA_IMAGE},
+      "network":"BRIDGE",
+      "parameters":[
+
+      ],
+      "privileged":false
+    },
+    "type":"DOCKER",
+    "volumes":[
+
+    ]
+  },
+  "cpus":1,
+  "mem":2048,
+  "env":{
+    "KAFKA_BROKERS":{KAFKA_BROKERS},
+    "KAFKA_FROM_TOPIC":{KAFKA_FROM_TOPIC},
+    "KAFKA_TO_TOPIC":{KAFKA_TO_TOPIC},
+    "KAFKA_ERROR_TOPIC":{KAFKA_ERROR_TOPIC},
+    "ZOOKEEPER_URL":{KAFKA_ZOOKEEPER_URL}
+  }
+}

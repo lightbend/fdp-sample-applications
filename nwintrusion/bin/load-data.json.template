@@ -1,0 +1,29 @@
+{
+  "id": {LOAD_DATA_APP_ID},
+  "container":{
+    "docker":{
+      "forcePullImage":true,
+      "image":{LOAD_DATA_IMAGE},
+      "network":"BRIDGE",
+      "parameters":[
+
+      ],
+      "privileged":false
+    },
+    "type":"DOCKER",
+    "volumes":[
+
+    ]
+  },
+  "cpus":1,
+  "mem":2048,
+  "env":{
+    "AWS_ACCESS_KEY_ID":{AWS_ACCESS_KEY_ID},
+    "AWS_SECRET_ACCESS_KEY":{AWS_SECRET_ACCESS_KEY},
+    "KAFKA_BROKERS":{KAFKA_BROKERS},
+    "KAFKA_FROM_TOPIC":{KAFKA_FROM_TOPIC},
+    "ZOOKEEPER_URL":{KAFKA_ZOOKEEPER_URL},
+    "WITH_IAM_ROLE":{WITH_IAM_ROLE}
+  }
+}
+

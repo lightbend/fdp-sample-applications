@@ -1,0 +1,5 @@
+bin/
+docs/
+source/
+LICENSE
+README.md
