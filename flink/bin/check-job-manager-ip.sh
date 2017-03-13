@@ -9,39 +9,34 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 
 . "$DIR/../../bin/common.sh"
 
+
 # Used by show_help
-function usage {
-  cat >&2 << EOF
+HELP_MESSAGE="Checks that the job manager IP address routing is set correctly in the /etc/hosts
+  file for a master node."
+HELP_EXAMPLE_OPTIONS="ip-10-10-1-115"
 
-  Checks that the job manager IP address routing is set correctly in the  /etc/hosts
-  file for a master node.
+ARGS="job_manager-address"
+OPTIONAL_ARGS="[fdp-ssh_options]"
 
-  Usage: $SCRIPT job_manager_address [options] [fdp-ssh_options]
-
-  eg: ./$SCRIPT ip-10-10-1-115
-  eg: ./$SCRIPT 10.10.1.115
-
-  Where:
+# The ')' must be on the line AFTER the EOF!
+HELP_OPTIONS=$(cat <<EOF
   job_manager_address   is either the value shown in the Flink DC/OS web UI for
                         the property "jobmanager.rpc.address" or the corresponding
                         IP address, as shown in the examples (see the README for
                         this application for details on how to access this UI).
                         This argument must be first.
-
-  -h | --help           Show help.
-  -n | --no-exec        Just show the commands, but do not actually run them.
   fdp-ssh_options       Any option supported by \$FDP_INSTALLER_HOME/bin/fdp-ssh.sh.
 
   If you have more than one cluster or more than one master, you will be prompted
   to choose.
 EOF
-}
+)
 
 while [ $# -gt 0 ]
 do
   case $1 in
     -h|--help)
-      usage
+      show_help
       exit 0
       ;;
     -n|--no-exec)

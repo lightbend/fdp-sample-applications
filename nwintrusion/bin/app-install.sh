@@ -4,7 +4,7 @@ set -e
 SCRIPT=`basename ${BASH_SOURCE[0]}`
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 
-. "$DIR/common.sh"
+. "$DIR/utils.sh"
 
 # Used by show_help
 HELP_MESSAGE="Installs the network intrusion app. Assumes DC/OS authentication was successful
@@ -141,22 +141,6 @@ function load_visualize_data_job {
   $NOEXEC update_json_field VIS_DATA_APP_ID "$VIS_DATA_APP_ID" "$APP_METADATA_FILE"
 }
 
-function install_jq {
-  echo "Install the 'jq' tool:"
-  case $(uname) in
-    Linux*)
-    $NOEXEC sudo apt-get -y jq
-    ;;
-    Darwin*)
-    $NOEXEC brew install jq
-    ;;
-    *)
-    echo "Unrecognized OS (output of uname = $(uname)). Please install jq."
-    exit 1
-    ;;
-  esac
-}
-
 function parse_arguments {
 
   while :; do
@@ -226,10 +210,6 @@ function yes_or_no {
   else
     echo "no"
   fi
-}
-
-function header {
-  printf "\n=== $@"
 }
 
 keyval() {

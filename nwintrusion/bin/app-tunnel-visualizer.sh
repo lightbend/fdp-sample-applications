@@ -4,37 +4,24 @@ set -e
 SCRIPT=`basename ${BASH_SOURCE[0]}`
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 
-function show_help {
-  cat<< EOF
+. "$DIR/../../bin/common.sh"
 
-  Uses ssh to connect to the node running the visualizer.
+# Used by show_help
+HELP_MESSAGE="Uses ssh to connect to the node running the visualizer."
+HELP_EXAMPLE_OPTIONS="-i ~/.ssh/foo.pem 55.10.200.1"
+ARGS="public-address"
 
-  Usage: $SCRIPT public_address [-i ec2_key_pair_file]
-
-  eg: ./$SCRIPT -i ~/.ssh/foo.pem 55.10.200.1
-
-  Arguments:
+# The ')' must be on the line AFTER the EOF!
+HELP_OPTIONS=$(cat <<EOF
   public_address        The public IP address or DNS name of the node running
                         the visualizer app (required - see documentation).
   -i ec2_key_pair_file  The AWS-generated pem file. By default, it will
                         look for the definition of EC2_KEYPAIR_FILE in
                         your environment or $HOME/.ssh/aws.sh.
-  -n | --no-exec        Do not actually run commands, just print them (for debugging).
-  -h | --help           Print this message.
 EOF
-}
-
-
-function error {
-  echo >&2
-  echo "ERROR: $@" >&2
-  echo >&2
-  show_help
-  exit 1
-}
+)
 
 address=
-NOEXEC=
 function parse_arguments {
 
   while [ $# -ne 0 ]

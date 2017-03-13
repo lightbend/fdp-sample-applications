@@ -4,109 +4,69 @@ set -e
 SCRIPT=`basename ${BASH_SOURCE[0]}`
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 
+. "$DIR/../../bin/common.sh"
+
 # You could override these definitions with environment variables.
 : ${S3_BUCKET:="fdp-sample-bigdl-vgg"}
 : ${JAR:="bigdlsample-assembly-0.0.1.jar"}
 : ${BIGDL_JAR:="bigdl-0.1.0-SNAPSHOT-jar-with-dependencies.jar"}
 : ${AWS_ENV_FILE:=$HOME/.ssh/aws.sh}
 
-function install_aws_cli {
-  curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"
-  unzip awscli-bundle.zip
-  sudo ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
-}
+# Used by show_help
+HELP_MESSAGE="Builds and pushes all artifacts of this app to S3."
+HELP_EXAMPLE_OPTIONS=
 
-function install_python {
-  case $(uname) in
-    Linux*)
-    sudo apt-get install python
-    ;;
-    Darwin*)
-    brew install python
-    ;;
-  *)
-  echo "Unrecognized OS (output of uname = $(uname)). Please install unzip."
-  exit 1
-  ;;
-  esac
-}
-
-function install_sbt {
-  case $(uname) in
-    Linux*)
-    echo "deb https://dl.bintray.com/sbt/debian /" | sudo tee -a /etc/apt/sources.list.d/sbt.list
-    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2EE0EA64E40A89B84B2DF73499E82A75642AC823
-    sudo apt-get update
-    sudo apt-get install sbt
-    ;;
-    Darwin*)
-    brew install sbt
-    ;;
-  *)
-  echo "Unrecognized OS (output of uname = $(uname)). Please install sbt."
-  exit 1
-  ;;
-  esac
-}
-
-function install_unzip {
-  case $(uname) in
-    Linux*)
-    sudo apt-get install unzip
-    ;;
-    Darwin*)
-    brew install unzip
-    ;;
-  *)
-  echo "Unrecognized OS (output of uname = $(uname)). Please install unzip."
-  exit 1
-  ;;
-  esac
-}
-
-function install_curl {
-  case $(uname) in
-    Linux*)
-    sudo apt-get install curl
-    ;;
-    Darwin*)
-    brew install curl
-    ;;
-  *)
-  echo "Unrecognized OS (output of uname = $(uname)). Please install curl."
-  exit 1
-  ;;
-  esac
+function parse_arguments {
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      -h|--help)   # Call a "show_help" function to display a synopsis, then exit.
+      show_help
+      exit 0
+      ;;
+      -n|--no-exec)   # Don't actually run the installation commands; just print (for debugging)
+      NOEXEC="echo running: "
+      ;;
+      --stop-at)      # for testing
+        shift
+        stop_point=$1
+      ;;
+      --)          # End of all options.
+      shift
+      break
+      ;;
+      '')          # End of all options.
+      break
+      ;;
+      *)
+      error "The option is not valid: $1"
+      ;;
+    esac
+    shift
+  done
 }
 
 function upload_app_jar {
   cd "$DIR"
   echo "Building jar..."
-  sbt clean clean-files
+  $NOEXEC sbt clean clean-files
 
   # check if unmanaged dependency exists - the BigDL jar
   # if not then download the jar from S3
 
   if [ ! -d "$DIR/lib" ]; then
     echo "$DIR/lib" does not exist .. creating
-    mkdir "$DIR/lib"
+    $NOEXEC mkdir "$DIR/lib"
   fi
 
   if [ ! -f "$DIR/lib/bigdl-0.1.0-SNAPSHOT-jar-with-dependencies.jar" ]; then
     echo BigDL jar does not exist .. Downloading from S3
     # It's actually staged in the region shown:
-    aws s3 cp "s3://$S3_BUCKET/$BIGDL_JAR" "$DIR/lib" --region "ap-south-1"
+    $NOEXEC aws s3 cp "s3://$S3_BUCKET/$BIGDL_JAR" "$DIR/lib" --region "ap-south-1"
   fi
 
-  sbt assembly
+  $NOEXEC sbt assembly
   echo "Uploading jar $JAR to S3 bucket $S3_BUCKET..."
-  aws s3 cp "$DIR/target/scala-2.11/$JAR" "s3://$S3_BUCKET/$JAR" --acl public-read --region "$AWS_DEFAULT_REGION"
-}
-
-function error {
-  echo "ERROR: $@"
-  echo ""
-  exit 1
+  $NOEXEC aws s3 cp "$DIR/target/scala-2.11/$JAR" "s3://$S3_BUCKET/$JAR" --acl public-read --region "$AWS_DEFAULT_REGION"
 }
 
 function check_required_utils {
@@ -184,6 +144,7 @@ function check_required_vars {
 }
 
 function main {
+  parse_arguments "$@"
   check_required_utils
   check_required_vars
 

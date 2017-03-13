@@ -4,7 +4,7 @@ set -e
 SCRIPT=`basename ${BASH_SOURCE[0]}`
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 
-. "$DIR/common.sh"
+. "$DIR/utils.sh"
 
 # Used by show_help
 HELP_MESSAGE="Runs the anomaly detection app that uses Spark Streaming."

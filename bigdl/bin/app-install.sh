@@ -6,8 +6,42 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 
 . "$DIR/../../bin/common.sh"
 
+HELP_MESSAGE="Installs the BigDL sample app. Assumes DC/OS authentication was successful
+  using the DC/OS CLI."
+HELP_EXAMPLE_OPTIONS=
+
 : ${S3_BUCKET:=fdp-sample-bigdl-vgg}
 
+function parse_arguments {
+
+  while :; do
+    case "$1" in
+      -h|--help)   # Call a "show_help" function to display a synopsis, then exit.
+      show_help
+      exit 0
+      ;;
+      -n|--no-exec)   # Don't actually run the installation commands; just print (for debugging)
+      NOEXEC="echo running: "
+      ;;
+      --stop-at)      # for testing
+        shift
+        stop_point=$1
+      ;;
+      --)              # End of all options.
+      shift
+      break
+      ;;
+      '')              # End of all options.
+      break
+      ;;
+      *)
+      error "The option is not valid: $1"
+      ;;
+    esac
+    shift
+  done
+
+}
 function generate_app_uninstall_metadata {
 declare METADATA=$(cat <<EOF
 {
@@ -26,14 +60,16 @@ function run_bigdl_vgg_job {
   local ARGS="--core $core_number_per_node --node $node_number --env spark -f cifar-10-batches-bin -b 16"
   local SPARK_VGG_APP_JAR="bigdlsample-assembly-0.0.1.jar"
   local SPARK_APP_JAR_URL="http://$S3_BUCKET.s3.amazonaws.com/$SPARK_VGG_APP_JAR"
-  local SUBMIT="$(dcos spark run --submit-args="$SPARK_CONF --class $SPARK_APP_CLASS $SPARK_APP_JAR_URL $ARGS")"
+  local SUBMIT="$($NOEXEC dcos spark run --submit-args="$SPARK_CONF --class $SPARK_APP_CLASS $SPARK_APP_JAR_URL $ARGS")"
 
   BIGDL_VGG_SPARK_DRIVER_SUBMIT_ID="$(echo `expr "$SUBMIT" : '.*\(driver-.*\)'`)"
-  update_json_field BIGDL_VGG_SPARK_DRIVER_SUBMIT_ID "$BIGDL_VGG_SPARK_DRIVER_SUBMIT_ID" "$APP_METADATA_FILE"
+  $NOEXEC update_json_field BIGDL_VGG_SPARK_DRIVER_SUBMIT_ID "$BIGDL_VGG_SPARK_DRIVER_SUBMIT_ID" "$APP_METADATA_FILE"
   show_submission_message "$BIGDL_VGG_SPARK_DRIVER_SUBMIT_ID"
 }
 
 function main {
+
+  parse_arguments "$@"
 
   # remove metadata file
   $NOEXEC rm -f "$APP_METADATA_FILE"

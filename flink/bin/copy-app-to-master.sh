@@ -9,32 +9,31 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 . "$DIR/../../bin/common.sh"
 . "$HOME/.ssh/aws.sh"
 
+
 # Used by show_help
-function usage {
-  cat >&2 << EOF
-
-  Copy the Flink sample app to the master node. Requires your EC2 key-pair file
+HELP_MESSAGE="Copy the Flink sample app to the master node. Requires your EC2 key-pair file
   name and file to be defined as environment variables in your \$HOME/.ssh/aws.sh,
-  as used by "fdp-installer".
+  as used by fdp-installer."
 
-  Usage: $SCRIPT [options] [fdp-ssh_options]
+HELP_EXAMPLE_OPTIONS=
 
-  Where:
+ARGS=
+OPTIONAL_ARGS="[fdp-ssh_options]"
 
-  -h | --help           Show help.
-  -n | --no-exec        Just show the commands, but do not actually run them.
+# The ')' must be on the line AFTER the EOF!
+HELP_OPTIONS=$(cat <<EOF
   fdp-ssh_options       Any option supported by \$FDP_INSTALLER_HOME/bin/fdp-ssh.sh.
 
   If you have more than one cluster or more than one master, you will be prompted
   to choose.
 EOF
-}
+)
 
 while [ $# -gt 0 ]
 do
   case $1 in
     -h|--help)
-      usage
+      show_help
       exit 0
       ;;
     -n|--no-exec)

@@ -13,7 +13,7 @@ function show_help {
 
   $HELP_MESSAGE
 
-  Usage: $SCRIPT  [OPTIONS]
+  Usage: $SCRIPT  $ARGS [options] $OPTIONAL_ARGS
 
   eg: ./$SCRIPT $HELP_EXAMPLE_OPTIONS
 
@@ -39,7 +39,7 @@ function error {
     shift
   done
   echo >&2
-  usage
+  show_help
   exit 1
 }
 
@@ -64,8 +64,8 @@ function env_error {
 }
 
 function gather_kafka_connection_info {
-  KAFKA_CONN_INFO="$(dcos $KAFKA_DCOS_PACKAGE connection)"
-  KAFKA_BROKERS="$(echo $KAFKA_CONN_INFO | jq -r '.dns[0]')"
+  KAFKA_CONN_INFO="$($NOEXEC dcos $KAFKA_DCOS_PACKAGE connection)"
+  KAFKA_BROKERS="$(echo $KAFKA_CONN_INFO | $NOEXEC jq -r '.dns[0]')"
 }
 
 function update_json_field {
@@ -153,6 +153,75 @@ function install_jq {
     echo "Unsupported or unrecognized OS (output of uname = $(uname)). Please install jq."
     exit 1
     ;;
+  esac
+}
+
+function install_aws_cli {
+  curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"
+  unzip awscli-bundle.zip
+  sudo ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
+}
+
+function install_python {
+  case $(uname) in
+    Linux*)
+    sudo apt-get install python
+    ;;
+    Darwin*)
+    brew install python
+    ;;
+  *)
+  echo "Unrecognized OS (output of uname = $(uname)). Please install unzip."
+  exit 1
+  ;;
+  esac
+}
+
+function install_sbt {
+  case $(uname) in
+    Linux*)
+    echo "deb https://dl.bintray.com/sbt/debian /" | sudo tee -a /etc/apt/sources.list.d/sbt.list
+    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2EE0EA64E40A89B84B2DF73499E82A75642AC823
+    sudo apt-get update
+    sudo apt-get install sbt
+    ;;
+    Darwin*)
+    brew install sbt
+    ;;
+  *)
+  echo "Unrecognized OS (output of uname = $(uname)). Please install sbt."
+  exit 1
+  ;;
+  esac
+}
+
+function install_unzip {
+  case $(uname) in
+    Linux*)
+    sudo apt-get install unzip
+    ;;
+    Darwin*)
+    brew install unzip
+    ;;
+  *)
+  echo "Unrecognized OS (output of uname = $(uname)). Please install unzip."
+  exit 1
+  ;;
+  esac
+}
+
+function install_curl {
+  case $(uname) in
+    Linux*)
+    sudo apt-get install curl
+    ;;
+    Darwin*)
+    brew install curl
+    ;;
+  *)
+  echo "Unrecognized OS (output of uname = $(uname)). Please install curl."
+  exit 1
+  ;;
   esac
 }
 

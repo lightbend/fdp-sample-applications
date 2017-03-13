@@ -5,112 +5,43 @@ set -e
 SCRIPT=`basename ${BASH_SOURCE[0]}`
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 
+. "$DIR/../../bin/common.sh"
+
 # You could override these definitions with environment variables.
 : ${S3_BUCKET:="fdp-kdd-network-intrusion"}
 : ${JAR:="fdp-nw-intrusion-assembly-0.1.jar"}
 : ${AWS_ENV_FILE:=$HOME/.ssh/aws.sh}
 
-function install_aws_cli {
-  curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"
-  unzip awscli-bundle.zip
-  sudo ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
-}
-
-function install_python {
-  case $(uname) in
-    Linux*)
-    sudo apt-get install python
-    ;;
-    Darwin*)
-    brew install python
-    ;;
-  *)
-  echo "Unrecognized OS (output of uname = $(uname)). Please install unzip."
-  exit 1
-  ;;
-  esac
-}
-
-function install_sbt {
-  case $(uname) in
-    Linux*)
-    echo "deb https://dl.bintray.com/sbt/debian /" | sudo tee -a /etc/apt/sources.list.d/sbt.list
-    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2EE0EA64E40A89B84B2DF73499E82A75642AC823
-    sudo apt-get update
-    sudo apt-get install sbt
-    ;;
-    Darwin*)
-    brew install sbt
-    ;;
-  *)
-  echo "Unrecognized OS (output of uname = $(uname)). Please install sbt."
-  exit 1
-  ;;
-  esac
-}
-
-function install_unzip {
-  case $(uname) in
-    Linux*)
-    sudo apt-get install unzip
-    ;;
-    Darwin*)
-    brew install unzip
-    ;;
-  *)
-  echo "Unrecognized OS (output of uname = $(uname)). Please install unzip."
-  exit 1
-  ;;
-  esac
-}
-
-function install_curl {
-  case $(uname) in
-    Linux*)
-    sudo apt-get install curl
-    ;;
-    Darwin*)
-    brew install curl
-    ;;
-  *)
-  echo "Unrecognized OS (output of uname = $(uname)). Please install curl."
-  exit 1
-  ;;
-  esac
-}
-
 function upload_app_jar {
   CDIR="$(pwd)"
   cd "$DIR/core"
   echo "Building jar..."
-  sbt clean clean-files
-  sbt assembly
+  $NOEXEC sbt clean clean-files
+  $NOEXEC sbt assembly
   cd "$CDIR"
   echo "Uploading jar $JAR to S3 bucket $S3_BUCKET..."
-  aws s3 cp "$DIR/core/target/scala-2.11/$JAR" "s3://$S3_BUCKET/$JAR" --acl public-read
+  $NOEXEC aws s3 cp "$DIR/core/target/scala-2.11/$JAR" "s3://$S3_BUCKET/$JAR" --acl public-read
 }
 
 function build_and_push_images {
   declare ARGS="--docker-username $DOCKER_USERNAME --docker-password $DOCKER_PASSWORD"
 
   # build and push data load image
-  # $DIR/docker/load-intrusion-data/build-image.sh $ARGS
+  $NOEXEC $DIR/docker/load-intrusion-data/build-image.sh $ARGS
 
   # build data and push transformation image
-  # $DIR/docker/transform-intrusion-data/build-image.sh $ARGS
+  $NOEXEC $DIR/docker/transform-intrusion-data/build-image.sh $ARGS
 
   # build data and push the visualization image
-  $DIR/docker/visualize-intrusion-data/build-image.sh $ARGS
+  $NOEXEC $DIR/docker/visualize-intrusion-data/build-image.sh $ARGS
 }
 
-function show_help {
-cat<< EOF
-  Builds and pushes all artifacts of this app to Docker Hub.
-  Usage: $SCRIPT  [Options]
+# Used by show_help
+HELP_MESSAGE="Builds and pushes all artifacts of this app to Docker Hub."
+HELP_EXAMPLE_OPTIONS="--docker-username <user> --docker-password <password>"
 
-  eg: ./$SCRIPT --option-file /path/to/options_file
-
-  Options:
+# The ')' must be on the line AFTER the EOF!
+HELP_OPTIONS=$(cat <<EOF
   --du | --docker-username name   Username on Docker Hub. Part of the repo format.
                                   <hub-user>/<repo-name>:<tag>
   --dp | --docker-password pwd    Password for the account on Docker Hub.
@@ -124,21 +55,13 @@ cat<< EOF
                                     DOCKER_USERNAME=...
                                     DOCKER_PASSWORD=...
                                     S3_BUCKET=...
-  -h, --help                      prints this message.
 
 The Docker user name and password are required. They can be specified one of three ways:
 1. Define the environment variables DOCKER_USERNAME and DOCKER_PASSWORD in advance.
 2. Specify both the --docker-username and --docker-password options.
 3. Specify the --option-file option.
 EOF
-}
-
-function error {
-  echo "ERROR: $@"
-  echo ""
-  show_help
-  exit 1
-}
+)
 
 function parse_arguments {
   while [ $# -gt 0 ]; do
@@ -191,6 +114,9 @@ function parse_arguments {
       else
         error '"--s3-bucket" requires a non-empty option argument.'
       fi
+      ;;
+      -n|--no-exec)   # Don't actually run the installation commands; just print (for debugging)
+      NOEXEC="echo running: "
       ;;
       -h|--help)   # Call a "show_help" function to display a synopsis, then exit.
       show_help

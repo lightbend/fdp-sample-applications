@@ -4,7 +4,8 @@ set -e
 SCRIPT=`basename ${BASH_SOURCE[0]}`
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 
-APP_METADATA_FILE="$DIR/app.metadata.json"
+. "$DIR/../../bin/common.sh"
+
 ANOMALY_DETECTION_SPARK_DRIVER_SUBMIT_ID="$(jq -r '.ANOMALY_DETECTION_SPARK_DRIVER_SUBMIT_ID' $APP_METADATA_FILE)"
 BATCH_KMEANS_SPARK_DRIVER_SUBMIT_ID="$(jq -r '.BATCH_KMEANS_SPARK_DRIVER_SUBMIT_ID' $APP_METADATA_FILE)"
 TRANSFORM_DATA_APP_ID="$(jq -r '.TRANSFORM_DATA_APP_ID' $APP_METADATA_FILE)"
@@ -13,18 +14,15 @@ VIS_DATA_APP_ID="$(jq -r '.VIS_DATA_APP_ID' $APP_METADATA_FILE)"
 KAFKA_DCOS_PACKAGE="$(jq -r '.KAFKA_DCOS_PACKAGE' $APP_METADATA_FILE)"
 topics="$(jq -r '.TOPICS[]' $APP_METADATA_FILE)"
 
-function show_help {
-  cat<< EOF
-  Removes the network intrusion app from the current cluster.
-  Usage: $SCRIPT  [OPTIONS]
+# Used by show_help
+HELP_MESSAGE="Removes the network intrusion app from the current cluster."
+HELP_EXAMPLE_OPTIONS=
 
-  eg: ./$SCRIPT
-
-  Options:
+# The ')' must be on the line AFTER the EOF!
+HELP_OPTIONS=$(cat <<EOF
   --skip-delete-topics        Skip deleting the topics.
-  -h | --help                 Prints this message.
 EOF
-}
+)
 
 function parse_arguments {
 
@@ -38,6 +36,9 @@ function parse_arguments {
       -h|--help)   # Call a "show_help" function to display a synopsis, then exit.
       show_help
       exit
+      ;;
+      -n|--no-exec)   # Don't actually run the installation commands; just print (for debugging)
+      NOEXEC="echo running: "
       ;;
       --)              # End of all options.
       shift
@@ -67,35 +68,35 @@ function main {
 
   if [ -n "$ANOMALY_DETECTION_SPARK_DRIVER_SUBMIT_ID" ]; then
     echo "Deleting spark driver with id: $ANOMALY_DETECTION_SPARK_DRIVER_SUBMIT_ID"
-    dcos spark kill $ANOMALY_DETECTION_SPARK_DRIVER_SUBMIT_ID
+    $NOEXEC dcos spark kill $ANOMALY_DETECTION_SPARK_DRIVER_SUBMIT_ID
   else
     echo "No Spark Driver ID for anomaly detection is available. Skipping delete.."
   fi
 
   if [ -n "$BATCH_KMEANS_SPARK_DRIVER_SUBMIT_ID" ]; then
     echo "Deleting spark driver with id: $BATCH_KMEANS_SPARK_DRIVER_SUBMIT_ID"
-    dcos spark kill $BATCH_KMEANS_SPARK_DRIVER_SUBMIT_ID
+    $NOEXEC dcos spark kill $BATCH_KMEANS_SPARK_DRIVER_SUBMIT_ID
   else
     echo "No Spark Driver ID for batch kmeans is available. Skipping delete.."
   fi
 
   if [ -n "$TRANSFORM_DATA_APP_ID" ]; then
     echo "Deleting app with id: $TRANSFORM_DATA_APP_ID"
-    dcos marathon app remove --force $TRANSFORM_DATA_APP_ID
+    $NOEXEC dcos marathon app remove --force $TRANSFORM_DATA_APP_ID
   else
     echo "No INGESTION APP ID is available. Skipping delete.."
   fi
 
   if [ -n "$LOAD_DATA_APP_ID" ]; then
     echo "Deleting app with id: $LOAD_DATA_APP_ID"
-    dcos marathon app remove --force $LOAD_DATA_APP_ID
+    $NOEXEC dcos marathon app remove --force $LOAD_DATA_APP_ID
   else
     echo "No LOAD APP ID is available. Skipping delete.."
   fi
 
   if [ -n "$VIS_DATA_APP_ID" ]; then
     echo "Deleting app with id: $VIS_DATA_APP_ID"
-    dcos marathon app remove --force $VIS_DATA_APP_ID
+    $NOEXEC dcos marathon app remove --force $VIS_DATA_APP_ID
   else
     echo "No VISUALIZATION APP ID is available. Skipping delete.."
   fi
@@ -105,7 +106,7 @@ function main {
       for elem in $topics
       do
         echo "Deleting topic $elem..."
-        dcos $KAFKA_DCOS_PACKAGE topic delete $elem
+        $NOEXEC dcos $KAFKA_DCOS_PACKAGE topic delete $elem
       done
     else
       echo "KAFKA_DCOS_PACKAGE is not defined in $APP_METADATA_FILE. Skipping topic deletion.."
