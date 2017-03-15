@@ -1,0 +1,6 @@
+bin/
+bigdl/
+flink/
+kafka/
+LICENSE
+README.md

@@ -1,0 +1,36 @@
+{
+  "id": {VIS_DATA_APP_ID},
+  "container":{
+    "docker":{
+      "forcePullImage":true,
+      "image":{VIS_DATA_IMAGE},
+      "network":"BRIDGE",
+      "portMappings": [
+       { "containerPort": 3000, "hostPort": 3000 },
+       { "containerPort": 8888, "hostPort": 8888 }
+      ],
+      "parameters":[
+
+      ],
+      "privileged":false
+    },
+    "type":"DOCKER",
+    "volumes":[
+
+    ]
+  },
+  "healthChecks": [
+  {
+    "protocol": "HTTP",
+    "portIndex": 0,
+    "path": "/",
+    "gracePeriodSeconds": 5,
+    "intervalSeconds": 20,
+    "maxConsecutiveFailures": 3
+  }
+],
+  "cpus":1,
+  "mem":2048,
+  "env":{
+  }
+}

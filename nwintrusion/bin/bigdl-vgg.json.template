@@ -1,0 +1,27 @@
+{
+  "id": {BIGDL_VGG_APP_ID},
+  "container":{
+    "docker":{
+      "forcePullImage":true,
+      "image":{BIGDL_VGG_IMAGE},
+      "network":"BRIDGE",
+      "parameters":[
+
+      ],
+      "privileged":false
+    },
+    "type":"DOCKER",
+    "volumes":[
+
+    ]
+  },
+  "cpus":1,
+  "mem":4096,
+  "env":{
+    "OMP_NUM_THREADS:{OMP_NUM_THREADS},
+    "KMP_BLOCKTIME:{KMP_BLOCKTIME},
+    "OMP_WAIT_POLICY:{OMP_WAIT_POLICY},
+    "DL_ENGINE_TYPE:{DL_ENGINE_TYPE}
+  }
+}
+
