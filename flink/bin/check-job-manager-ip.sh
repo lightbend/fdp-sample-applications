@@ -60,16 +60,11 @@ done
 
 [ -z "$FDP_INSTALLER_HOME" ] && error "Must define FDP_INSTALLER_HOME to point to the directory where the 'fdp-installer' is located."
 
-$NOEXEC $FDP_INSTALLER_HOME/bin/fdp-ssh.sh "${ssh_ops[@]}" --master --command "grep $address /etc/hosts"
-
-if [ $? -ne 0 ]
+if $NOEXEC $FDP_INSTALLER_HOME/bin/fdp-ssh.sh "${ssh_ops[@]}" --master --command "grep $address /etc/hosts"
 then
+  echo "Successful! The /etc/hosts file has the required entry for $address."
+else
   warn "The /etc/hosts doesn't contain the required entry for $address" \
        "Run the following command to edit the file as discussed in the README:" \
        "  $FDP_INSTALLER_HOME/bin/fdp-ssh.sh --master"
-else
-  echo "Successful! The /etc/hosts file has the required entry for $address."
 fi
-
-
-
