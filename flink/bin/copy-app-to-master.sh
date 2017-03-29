@@ -24,8 +24,6 @@ OPTIONAL_ARGS="[fdp-ssh_options]"
 HELP_OPTIONS=$(cat <<EOF
   fdp-ssh_options       Any option supported by \$FDP_INSTALLER_HOME/bin/fdp-ssh.sh.
 
-  If you have more than one cluster or more than one master, you will be prompted
-  to choose.
 EOF
 )
 
@@ -69,11 +67,22 @@ cp $jar $appdir
 jar2=$(basename $jar)
 
 echo "$FDP_INSTALLER_HOME/bin/fdp-print-addresses.sh --quiet --master"
-# For some weird reason, it exits silently unless I use the the while loop:
-address=$($FDP_INSTALLER_HOME/bin/fdp-print-addresses.sh --quiet --master | while read a; do echo "$a"; done)
+
+addresses=( $($FDP_INSTALLER_HOME/bin/fdp-print-addresses.sh --quiet --master | while read a; do printf "%s " $a; done) )
+case ${#addresses[@]} in
+  0)
+    error "No addresses found by the command: $DIR/fdp-print-addresses.sh --quiet --master"
+    ;;
+  1)
+    address=${addresses[0]}
+    ;;
+  *)
+    address=$(prompt_for_choice "address" "${addresses[@]}")
+    ;;
+esac
 
 echo "Using address: $address"
-$NOEXEC scp -i "$EC2_KEYPAIR_FILE" "${ssh_ops[@]}" -r $appdir "ubuntu@$address:"
+$NOEXEC scp -i "$EC2_KEYPAIR_FILE" "${ssh_ops[@]}" -r $appdir "ubuntu@$address:~"
 
 rm -rf $appdir
 

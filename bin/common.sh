@@ -252,3 +252,42 @@ function show_submission_message {
   echo "To tail the logs, run this DC/OS CLI command:"
   echo "  dcos spark log $1 --follow"
 }
+
+# Prompts the user to choose one item from an array. The items are printed one
+# per line with a number in front. The user selects the number. The first item
+# is treated as the default, if the user just hits "return".
+#
+# $1 - Name of the thing being chosen for a leading message.
+# $2..$# items to be chosen from.
+function prompt_for_choice {
+  name_of_item=$1
+  shift
+  vals=("$@")
+
+  echo2 "Enter a number and <return> to select the $name_of_item to use:"
+  for i in "${!vals[@]}"
+  do
+    let i1=i+1
+    default=
+    [ $i -eq 0 ] && default="(default)"
+    printf2 "%2d: %s %s\n" $i1 ${vals[$i]} "$default"
+  done
+  read i2
+  [ -z "$i2" ] && let i2=1
+  if [ $i2 -le 0 -o $i2 -gt ${#vals[@]} ]
+  then
+    error "Must specify a number between 1 and ${#vals[@]}"
+  fi
+  let i21=i2-1
+  echo "${vals[$i21]}"
+}
+
+# Echo the input to stderr instead of stdout
+function echo2 {
+  echo "$@" >&2
+}
+
+# Print the input to stderr instead of stdout
+function printf2 {
+  printf "$@" >&2
+}
