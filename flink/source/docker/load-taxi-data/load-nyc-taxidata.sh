@@ -3,10 +3,23 @@
 # for debug
 # set -e
 
-SCRIPT=`basename ${BASH_SOURCE[0]}`
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
-
-. "$DIR/../../../../bin/common.sh"
+# For multi-line output, define an array of strings, e.g.,
+#   msg=("line one" "line two")
+# and pass the array as follows:
+#   error ${msg[@]}
+# Using `error $msg` won't print properly!
+function error {
+  echo >&2
+  echo "ERROR: " >&2
+  for s in "$@"
+  do
+    echo "  $s" >&2
+    shift
+  done
+  echo >&2
+  usage()
+  exit 1
+}
 
 usage() {
   cat <<EOF
@@ -87,7 +100,7 @@ fi
 rm -rf $TMP_FOLDER
 mkdir -p $TMP_FOLDER
 
-S3_BUCKET_URL="http://fdp-sample-flink-taxirides.s3.amazonaws.com"
+S3_BUCKET_URL="http://fdp-sample-flink-taxirides-new.s3.amazonaws.com"
 S3_FILE_NAME="nycTaxiRides.csv.gz"
 if curl --output /dev/null --silent --head --fail "$S3_BUCKET_URL/$S3_FILE_NAME"; then
   echo "Got file: $S3_FILE_NAME"
