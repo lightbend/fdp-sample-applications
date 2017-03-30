@@ -68,6 +68,7 @@ function modify_data_loader_template {
     "KAFKA_FROM_TOPIC"
     "KAFKA_TO_TOPIC"
     "KAFKA_ZOOKEEPER_URL"
+    "S3_BUCKET_URL"
     "WITH_IAM_ROLE"
     )
 
@@ -151,6 +152,11 @@ keyval() {
         SKIP_CREATE_TOPICS=$value
       fi
 
+      if [ "$key" == "s3-bucket-url" ]
+      then
+        S3_BUCKET_URL=$value
+      fi
+
       if [ "$key" == "with-iam-role" ]
       then
 	if [ "$value" != true ]
@@ -181,6 +187,10 @@ keyval() {
     if [ -z $SKIP_CREATE_TOPICS ]
     then
       SKIP_CREATE_TOPICS=false
+    fi
+    if [ -z $S3_BUCKET_URL ]
+    then
+      error 's3-bucket-url requires a non-empty argument.'
     fi
   else
     echo "$filename not found."

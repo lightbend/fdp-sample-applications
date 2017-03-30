@@ -2,4 +2,4 @@
 set -e
 
 # ingest data to Kafka topic from the data file
-/bin/load-intrusion-data.sh --broker-list $KAFKA_BROKERS --topic $KAFKA_FROM_TOPIC --zookeeper $ZOOKEEPER_URL
+/bin/load-intrusion-data.sh --broker-list $KAFKA_BROKERS --topic $KAFKA_FROM_TOPIC --zookeeper $ZOOKEEPER_URL --s3-bucket-url $S3_BUCKET_URL

@@ -102,6 +102,7 @@ function modify_data_loader_template {
     "KAFKA_BROKERS"
     "KAFKA_FROM_TOPIC"
     "KAFKA_ZOOKEEPER_URL"
+    "S3_BUCKET_URL"
     "WITH_IAM_ROLE"
     )
 
@@ -245,9 +246,9 @@ keyval() {
         SKIP_CREATE_TOPICS=$value
       fi
 
-      if [ "$key" == "spark-job-s3-bucket" ]
+      if [ "$key" == "s3-bucket-url" ]
       then
-        SPARK_JOB_S3_BUCKET=$value
+        S3_BUCKET_URL=$value
       fi
 
       if [ "$key" == "with-iam-role" ]
@@ -281,9 +282,9 @@ keyval() {
     then
       SKIP_CREATE_TOPICS=false
     fi
-    if [ -z $SPARK_JOB_S3_BUCKET ]
+    if [ -z $S3_BUCKET_URL ]
     then
-      error 'spark-job-s3-bucket requires a non-empty argument.'
+      error 's3-bucket-url requires a non-empty argument.'
     fi
   else
     echo "$filename not found."
@@ -383,7 +384,7 @@ function main {
     run_anomaly_detection_spark_job \
       $DEFAULT_NO_OF_CLUSTERS \
       $DEFAULT_CLUSTERING_MICRO_BATCH_DURATION \
-      $SPARK_JOB_S3_BUCKET
+      $S3_BUCKET_URL
   else
     echo "skipped"
   fi
@@ -400,7 +401,7 @@ function main {
       $DEFAULT_OPTIMAL_K_TO_CLUSTER_COUNT \
       $DEFAULT_OPTIMAL_K_INCREMENT \
       $DEFAULT_OPTIMAL_K_CLUSTERING_MICRO_BATCH_DURATION \
-      $SPARK_JOB_S3_BUCKET
+      $S3_BUCKET_URL
   else
     echo "skipped"
   fi
