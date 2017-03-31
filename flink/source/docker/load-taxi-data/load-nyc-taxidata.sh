@@ -27,6 +27,7 @@ usage() {
     -b | --broker-list   Kafka Brokers (e.g. "10.10.1.161:9092,10.10.1.159:9092,10.10.1.160:9092")
     -t | --topic         Kafka Topic (e.g. githublog)
     -z | --zookeeper     Zookeeper URL (e.g. 10.10.1.161:2181/kafka)
+    -s | --s3-bucket-url S3 Bucket name (e.g. fdp-sample-flink-taxirides.s3.amazonaws.com)
 
 EOF
   exit 1
@@ -56,6 +57,10 @@ while [[ $# -gt 1 ]]
       KAFKA_TOPIC="$2"
       shift # past argument
       ;;
+      -s|--s3-bucket-url)
+      S3_BUCKET_URL="$2"
+      shift # past argument
+      ;;
       --default)
       DEFAULT=YES
       ;;
@@ -69,6 +74,7 @@ done
 echo $KAFKA_BROKERS
 echo $ZOOKEEPER
 echo $KAFKA_TOPIC
+echo $S3_BUCKET_URL
 
 # properties with defaults. Can be overwritten if needed.
 
@@ -100,7 +106,7 @@ fi
 rm -rf $TMP_FOLDER
 mkdir -p $TMP_FOLDER
 
-S3_BUCKET_URL="http://fdp-sample-flink-taxirides-new.s3.amazonaws.com"
+# S3_BUCKET_URL="http://fdp-sample-flink-taxirides.s3.amazonaws.com"
 S3_FILE_NAME="nycTaxiRides.csv.gz"
 if curl --output /dev/null --silent --head --fail "$S3_BUCKET_URL/$S3_FILE_NAME"; then
   echo "Got file: $S3_FILE_NAME"
@@ -111,6 +117,3 @@ fi
 cd $TMP_FOLDER
 
 curl "$S3_BUCKET_URL/$S3_FILE_NAME" | gunzip | $KAFKA_PRODUCER_CMD --broker-list "$KAFKA_BROKERS" --topic "$KAFKA_TOPIC"
-# cat "$S3_FILE_NAME" | gunzip | $KAFKA_PRODUCER_CMD --broker-list "$KAFKA_BROKERS" --topic "$KAFKA_TOPIC"
-
-

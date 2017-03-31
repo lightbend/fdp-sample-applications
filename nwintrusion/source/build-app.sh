@@ -224,7 +224,7 @@ function main {
     error "A docker password must be provided..."
   fi
 
-  # upload_app_jar
+  upload_app_jar
   build_and_push_images
   echo "Artifacts built and pushed sucessfully!"
 }

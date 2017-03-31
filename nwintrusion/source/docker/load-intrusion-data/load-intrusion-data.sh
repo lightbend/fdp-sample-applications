@@ -14,6 +14,7 @@ usage() {
     -b | --broker-list   Kafka Brokers (e.g. "10.10.1.161:9092,10.10.1.159:9092,10.10.1.160:9092")
     -t | --topic         Kafka Topic (e.g. githublog)
     -z | --zookeeper     Zookeeper URL (e.g. 10.10.1.161:2181/kafka)
+    -s | --s3-bucket-url S3 Bucket name (e.g. fdp-kdd-network-intrusion.s3.amazonaws.com)
 
 EOF
   exit 1
@@ -38,7 +39,7 @@ function error {
 }
 
 # parameters from command line
-if [[ $# != 6 ]]
+if [[ $# != 8 ]]
 then
   error "Invalid number of parameters"
 fi
@@ -61,6 +62,10 @@ while [[ $# -gt 1 ]]
       KAFKA_TOPIC="$2"
       shift # past argument
       ;;
+      -s|--s3-bucket-url)
+      S3_BUCKET_URL="$2"
+      shift # past argument
+      ;;
       --default)
       DEFAULT=YES
       ;;
@@ -74,6 +79,7 @@ done
 echo $KAFKA_BROKERS
 echo $ZOOKEEPER
 echo $KAFKA_TOPIC
+echo $S3_BUCKET_URL
 
 # properties with defaults. Can be overwritten if needed.
 
@@ -105,7 +111,7 @@ fi
 rm -rf $TMP_FOLDER
 mkdir -p $TMP_FOLDER
 
-S3_BUCKET_URL="http://fdp-kdd-network-intrusion.s3.amazonaws.com"
+# S3_BUCKET_URL="http://$S3_BUCKET.s3.amazonaws.com"
 S3_FILE_NAME="kdd_cup_data.csv"
 if curl --output /dev/null --silent --head --fail "$S3_BUCKET_URL/$S3_FILE_NAME"; then
   echo "Got file: $S3_FILE_NAME"
