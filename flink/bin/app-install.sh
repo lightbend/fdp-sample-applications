@@ -209,6 +209,7 @@ function require_templates {
 
 function main {
 
+  DOCKER_USERNAME=lightbend
   parse_arguments "$@"
 
   if [ ! -f $config_file ]
@@ -242,6 +243,10 @@ function main {
   header "Generating metadata for subsequent uninstalls...\n"
 
   generate_app_uninstall_metadata
+
+  echo $APP_METADATA_FILE
+
+  [ "$stop_point" = "metadata_file" ] && exit 0
 
   header "Creating Kafka topics..."
 

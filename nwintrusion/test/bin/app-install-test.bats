@@ -14,14 +14,14 @@ normal_properties="${test_support}/normal.app-install.properties"
   [[ "${lines[1]}" =~ "i-dont-exist.properties not found" ]]
 }
 
-@test "fail if spark-job-s3-bucket is not set in configuration properties" {
+@test "fail if s3-bucket-url is not set in configuration properties" {
   run bin/app-install.sh --config-file $fake_properties --stop-at config_file
 
   [ $status -eq 1 ]
 
   [[ "${lines[0]}" =~ "$fake_properties found" ]]
   [[ "${lines[1]}" =~ "ERROR" ]]
-  [[ "${lines[2]}" =~ "spark-job-s3-bucket requires a non-empty argument" ]]
+  [[ "${lines[2]}" =~ "s3-bucket-url requires a non-empty argument" ]]
 }
 
 @test "fail if docker-username set to empty in configuration properties" {
