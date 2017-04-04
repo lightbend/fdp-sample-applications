@@ -209,6 +209,7 @@ function require_templates {
 
 function main {
 
+  DOCKER_USERNAME=lightbend
   parse_arguments "$@"
 
   if [ ! -f $config_file ]
