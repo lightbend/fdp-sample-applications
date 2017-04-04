@@ -34,14 +34,3 @@ normal_properties="${test_support}/normal.app-install.properties"
   [[ "${lines[2]}" =~ "docker-username requires a non-empty argument" ]]
 }
 
-@test "fail if proper file not generated for uninstall metadata" {
-  run bin/app-install.sh --config-file $normal_properties --stop-at metadata_file
-
-  [ $status -eq 0 ]
-
-  [[ "${lines[0]}" =~ "$normal_properties found" ]]
-  [[ $(wc -l "${lines[3]}") =~ "5" ]]
-  [[ $(sed -n -e "2,2p" "${lines[3]}" | cut -d: -f1) =~ "LOAD_DATA_APP_ID" ]]
-  [[ $(sed -n -e "3,3p" "${lines[3]}" | cut -d: -f1) =~ "TOPICS" ]]
-  [[ $(sed -n -e "4,4p" "${lines[3]}" | cut -d: -f1) =~ "KAFKA_DCOS_PACKAGE" ]]
-}

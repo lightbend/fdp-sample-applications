@@ -244,10 +244,6 @@ function main {
 
   generate_app_uninstall_metadata
 
-  echo $APP_METADATA_FILE
-
-  [ "$stop_point" = "metadata_file" ] && exit 0
-
   header "Creating Kafka topics..."
 
   if [ "$SKIP_CREATE_TOPICS" = false ]; then
