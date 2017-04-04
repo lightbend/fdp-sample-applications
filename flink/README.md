@@ -17,16 +17,16 @@ The main components of running the Flink sample application are:
 > **Note:** The DC/OS CLI plugin for Flink is not yet available. Hence, we need to run the application manually.
 
 ## Deploy the Data Loading Application
-1. `$ git clone https://github.com/typesafehub/fdp-system-tests.git`
-2. `$ cd fdp-system-tests`
+1. `$ git clone https://github.com/typesafehub/fdp-sample-apps.git`
+2. `$ cd fdp-sample-apps`
 3. `$ cd flink/source`
 4. `$ ./build-app.sh --docker-username <docker-user-name> --docker-password <docker-password>`. **This needs to be done only once if you want to build the application and upload the data and the application jar to a docker repository and S3**. Try `.build-app.sh --help` for more options.
-5. Change directory to `fdp-system-tests/flink/bin`
+5. Change directory to `fdp-sample-apps/flink/bin`
 6. `$ ./app-install.sh`. This reads from a properties file `app-install.properties`. Please edit the settings in this properties file before running. You can also supply your own properties file. (Try `./app-install.sh --help` for details).
 
 ## Run the Sample Application
 
-The `fdp-installer` installs a private Mesosphere Universe with the appropriate version of Flink (i.e., built with Scala 2.11 support). At this time, the DC/OS CLI for Flink is not yet released. Therefore, we will need to `ssh` into the appropriate cluster node to run the Flink app. (This tedious process will no longer be necessary once the DC/OS CLI is available.)
+At this time, the DC/OS CLI for Flink is not yet released. Therefore, we will need to `ssh` into the appropriate cluster node to run the Flink app. (This tedious process will no longer be necessary once the DC/OS CLI is available.)
 
 We'll use some convenience tools that come with `fdp-installer`, so begin by defining an environment variable that points to the root directory of that package. Call it `FDP_INSTALLER_HOME`. We'll use scripts in `$FDP_INSTALLER_HOME/bin`. So, for example, if it's in `$HOME/fdp-installer`, use the following in a terminal window:
 

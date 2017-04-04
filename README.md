@@ -1,10 +1,10 @@
-# fdp-system-tests
+# FDP Sample Applications
 
-Contains system wide tests and sample applications for Lightbend Fast Data Platform (FDP).
+Contains sample applications for Lightbend Fast Data Platform (FDP).
 
-The tests/samples are organized in subdirectories. For details, see the corresponding READMEs:
+The applications are organized in subdirectories. For details, see the corresponding READMEs:
 
-* kafka/README.md
-* bigdl/README.md
-* flink/README.md
+* [nwintrusion/README.md](https://github.com/typesafehub/fdp-sample-apps/blob/master/nwintrusion/README.md)
+* [bigdl/README.md](https://github.com/typesafehub/fdp-sample-apps/blob/master/bigdl/README.md)
+* [flink/README.md](https://github.com/typesafehub/fdp-sample-apps/blob/master/flink/README.md)
 
