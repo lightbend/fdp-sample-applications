@@ -64,6 +64,13 @@ function run_anomaly_detection_spark_job {
   local SPARK_APP_JAR_URL="$APP_S3_URL/$SPARK_APP_JAR"
   local SUBMIT="$($NOEXEC dcos spark run --submit-args="$SPARK_CONF --class $SPARK_APP_CLASS $SPARK_APP_JAR_URL $ARGS")"
 
+  printf "\nIf you want to try out this app in Zeppelin, set the following parameters in the Zeppelin notebook 'FDP Sample Apps/SparkClustering'
+val noOfClusters = $NO_OF_CLUSTERS
+val topicToReadFrom = Array(\"$KAFKA_TO_TOPIC\")
+val broker = \"$KAFKA_BROKERS\"
+val clusterTopic = \"$KAFKA_CLUSTERS_TOPIC\"
+val duration = Seconds($CLUSTERING_MICRO_BATCH_DURATION)\n"
+
   if [ -z "$NOEXEC" ]
   then
     ANOMALY_DETECTION_SPARK_DRIVER_SUBMIT_ID="$(echo `expr "$SUBMIT" : '.*\(driver-.*\)'`)"
@@ -85,6 +92,14 @@ function run_batch_kmeans_spark_job {
   local ARGS="$KAFKA_TO_TOPIC $KAFKA_BROKERS $CLUSTERING_MICRO_BATCH_DURATION $FROM_CLUSTER_COUNT $TO_CLUSTER_COUNT $INCREMENT"
   local SPARK_APP_JAR_URL="$APP_S3_URL/$SPARK_APP_JAR"
   local SUBMIT="$($NOEXEC dcos spark run --submit-args="$SPARK_CONF --class $SPARK_APP_CLASS $SPARK_APP_JAR_URL $ARGS")"
+
+  printf "\nIf you want to try out this app in Zeppelin, set the following parameters in the Zeppelin notebook 'FDP Sample Apps/BatchKMeans'
+val topicToReadFrom = Array(\"$KAFKA_TO_TOPIC\")
+val broker = \"$KAFKA_BROKERS\"
+val microbatchDuration = Seconds($CLUSTERING_MICRO_BATCH_DURATION)
+val fromClusterCount = $FROM_CLUSTER_COUNT
+val toClusterCount = $TO_CLUSTER_COUNT
+val increment = $INCREMENT\n"
 
   if [ -z "$NOEXEC" ]
   then
