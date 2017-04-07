@@ -411,8 +411,8 @@ function main {
       $DEFAULT_OPTIMAL_K_TO_CLUSTER_COUNT \
       $DEFAULT_OPTIMAL_K_INCREMENT \
       $DEFAULT_OPTIMAL_K_CLUSTERING_MICRO_BATCH_DURATION \
+      $S3_BUCKET_URL \
       $ZEPPELIN \
-      $S3_BUCKET_URL
   else
     echo "Skipped running the Spark application for optimizing K for K-Means."
   fi
