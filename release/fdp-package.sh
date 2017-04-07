@@ -45,15 +45,18 @@ then
   exit 1
 fi
 
-OUTPUT_FILE=fdp-sample-apps-${VERSION}.tar.gz
+OUTPUT_FILE_ROOT=fdp-sample-apps-${VERSION}
+OUTPUT_FILE=${OUTPUT_FILE_ROOT}.tar.gz
 
 staging=$DIR/staging
 rm -rf $staging
 mkdir -p $staging
-for f in ${CONTENT}; do cp -r $f $staging/$f; done
-cd $staging
-echo running: tar -czf ${OUTPUT_FILE} ${CONTENT}
-tar -czf ${OUTPUT_FILE} ${CONTENT}
 
-for f in ${CONTENT}; do rm -rf $f; done
+mkdir -p $staging/$OUTPUT_FILE_ROOT
+for f in ${CONTENT}; do cp -r $f $staging/$OUTPUT_FILE_ROOT/$f; done
+cd $staging
+echo running: tar -czf ${OUTPUT_FILE} ${OUTPUT_FILE_ROOT}
+tar -czf ${OUTPUT_FILE} ${OUTPUT_FILE_ROOT}
+
+rm -rf ${OUTPUT_FILE_ROOT}
 
