@@ -24,6 +24,9 @@ HELP_OPTIONS=$(cat <<EOF
                                 visualizer          Run the Jupyter-based visualization.
                               Repeat the option to run more than one.
                               Default: runs all of them. See also --start-none.
+  --use-zeppelin              If specified, only data loader and transformer will be deployed.
+                              Parameters that need to be set in Zeppelin notebooks are printed
+                              to the console.
 EOF
 )
 
@@ -33,6 +36,7 @@ export run_transform_data=
 export run_batch_k_means=
 export run_anomaly_detection=
 export run_visualizer=
+export zeppelin_flag_set=no
 apps_selected=
 config_file="./app-install.properties"
 
@@ -168,6 +172,13 @@ function parse_arguments {
         visualizer)         run_visualizer=yes         ;;
         *) error "Unrecognized value for --start-only: $1" ;;
       esac
+      ;;
+      --use-zeppelin)
+      zeppelin_flag_set=yes
+      run_data_loader=yes
+      run_transform_data=yes
+      run_batch_k_means=yes
+      run_anomaly_detection=yes
       ;;
       -h|--help)   # Call a "show_help" function to display a synopsis, then exit.
       show_help
@@ -305,6 +316,10 @@ function main {
 
   [ "$stop_point" = "config_file" ] && exit 0
 
+  if [[ "$zeppelin_flag_set" == yes ]]; then
+    run_visualizer=
+  fi
+
   echo "Running:"
   echo "Data Loader?       $(yes_or_no $run_data_loader)"
   echo "Transform Data?    $(yes_or_no $run_transform_data)"
@@ -339,13 +354,12 @@ function main {
 
   generate_app_uninstall_metadata
 
-  header "Creating Kafka topics..."
-
   if [ "$SKIP_CREATE_TOPICS" = false ]; then
+    header "Creating Kafka topics..."
     echo
     create_topics
   else
-    echo "skipped"
+    echo "Skipped creating Kafka topics"
     # fill in topics we know
     declare -a arr=(
       "KAFKA_FROM_TOPIC"
@@ -365,65 +379,62 @@ function main {
 
   gather_kafka_connection_info
 
-  header "Installing data transformation application... "
   if [ -n "$run_transform_data" ]
   then
+    header "Installing data transformation application... "
     echo
     modify_transform_data_template
     load_transform_data_job
   else
-    echo "skipped"
+    echo "Skipped installing the data transformation application."
   fi
 
-  header "Running the spark application for anomaly detection... "
   if [ -n "$run_anomaly_detection" ]
   then
+    header "Running the Spark application for anomaly detection... "
     echo
-    echo "  k = $DEFAULT_NO_OF_CLUSTERS"
-    echo "  micro batch duration = $DEFAULT_CLUSTERING_MICRO_BATCH_DURATION seconds"
     run_anomaly_detection_spark_job \
       $DEFAULT_NO_OF_CLUSTERS \
       $DEFAULT_CLUSTERING_MICRO_BATCH_DURATION \
-      $S3_BUCKET_URL
+      $S3_BUCKET_URL \
+      $zeppelin_flag_set \
   else
-    echo "skipped"
+    echo "Skipped running the Spark application for anomaly detection."
   fi
 
-  header "Running the spark application for optimizing K for K-Means... "
   if [ -n "$run_batch_k_means" ]
   then
+    header "Running the Spark application for optimizing K for K-Means... "
     echo
-    echo "  micro batch duration = $DEFAULT_OPTIMAL_K_CLUSTERING_MICRO_BATCH_DURATION"
-    echo "  Trying K between $DEFAULT_OPTIMAL_K_FROM_CLUSTER_COUNT and $DEFAULT_OPTIMAL_K_TO_CLUSTER_COUNT (inclusive)"
-    echo "  Delta between K values = $DEFAULT_OPTIMAL_K_INCREMENT"
     run_batch_kmeans_spark_job \
       $DEFAULT_OPTIMAL_K_FROM_CLUSTER_COUNT \
       $DEFAULT_OPTIMAL_K_TO_CLUSTER_COUNT \
       $DEFAULT_OPTIMAL_K_INCREMENT \
       $DEFAULT_OPTIMAL_K_CLUSTERING_MICRO_BATCH_DURATION \
-      $S3_BUCKET_URL
+      $S3_BUCKET_URL \
+      $zeppelin_flag_set \
   else
-    echo "skipped"
+    echo "Skipped running the Spark application for optimizing K for K-Means."
   fi
 
-  header "Running the data loading application... "
   if [ -n "$run_data_loader" ]
   then
+    header "Running the data loading application... "
     echo
     modify_data_loader_template
     load_data_loader_job
   else
-    echo "skipped"
+    echo "Skipped running the data loading application."
   fi
 
-  header "Running the data visualization application... "
   if [ -n "$run_visualizer" ]
   then
+    header "Installing the data visualization application... "
     echo
     modify_vis_data_template
     load_visualize_data_job
   else
-    echo "skipped"
+    echo "Skipped installing data visualization application."
   fi
 
   echo
