@@ -174,6 +174,10 @@ function parse_arguments {
       ;;
       --use-zeppelin)
       ZEPPELIN="--use-zeppelin"
+      run_data_loader=yes
+      run_transform_data=yes
+      run_batch_k_means=yes
+      run_anomaly_detection=yes
       ;;
       -h|--help)   # Call a "show_help" function to display a synopsis, then exit.
       show_help
@@ -345,13 +349,12 @@ function main {
 
   generate_app_uninstall_metadata
 
-  header "Creating Kafka topics..."
-
   if [ "$SKIP_CREATE_TOPICS" = false ]; then
+    header "Creating Kafka topics..."
     echo
     create_topics
   else
-    echo "skipped"
+    echo "Skipped creating Kafka topics"
     # fill in topics we know
     declare -a arr=(
       "KAFKA_FROM_TOPIC"
@@ -371,19 +374,19 @@ function main {
 
   gather_kafka_connection_info
 
-  header "Installing data transformation application... "
   if [ -n "$run_transform_data" ]
   then
+    header "Installing data transformation application... "
     echo
     modify_transform_data_template
     load_transform_data_job
   else
-    echo "skipped"
+    echo "Skipped installing the data transformation application."
   fi
 
-  header "Running the spark application for anomaly detection... "
   if [ -n "$run_anomaly_detection" ]
   then
+    header "Running the Spark application for anomaly detection... "
     echo
     echo "  k = $DEFAULT_NO_OF_CLUSTERS"
     echo "  micro batch duration = $DEFAULT_CLUSTERING_MICRO_BATCH_DURATION seconds"
@@ -393,12 +396,12 @@ function main {
       $S3_BUCKET_URL \
       $ZEPPELIN \
   else
-    echo "skipped"
+    echo "Skipped running the Spark application for anomaly detection."
   fi
 
-  header "Running the spark application for optimizing K for K-Means... "
   if [ -n "$run_batch_k_means" ]
   then
+    header "Running the Spark application for optimizing K for K-Means... "
     echo
     echo "  micro batch duration = $DEFAULT_OPTIMAL_K_CLUSTERING_MICRO_BATCH_DURATION"
     echo "  Trying K between $DEFAULT_OPTIMAL_K_FROM_CLUSTER_COUNT and $DEFAULT_OPTIMAL_K_TO_CLUSTER_COUNT (inclusive)"
@@ -411,28 +414,28 @@ function main {
       $ZEPPELIN \
       $S3_BUCKET_URL
   else
-    echo "skipped"
+    echo "Skipped running the Spark application for optimizing K for K-Means."
   fi
 
-  header "Running the data loading application... "
   if [ -n "$run_data_loader" ]
   then
+    header "Running the data loading application... "
     echo
     modify_data_loader_template
     load_data_loader_job
   else
-    echo "skipped"
+    echo "Skipped running the data loading application."
   fi
 
   if [[ -z "$ZEPPELIN" ]]; then
-      header "Running the data visualization application... "
       if [ -n "$run_visualizer" ]
       then
+        header "Installing the data visualization application... "
         echo
         modify_vis_data_template
         load_visualize_data_job
       else
-        echo "skipped"
+        echo "Skipped installing data visualization application."
       fi
   fi
 
