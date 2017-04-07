@@ -24,6 +24,9 @@ HELP_OPTIONS=$(cat <<EOF
                                 visualizer          Run the Jupyter-based visualization.
                               Repeat the option to run more than one.
                               Default: runs all of them. See also --start-none.
+  --use-zeppelin              If specified, only data loader and transformer will be deployed.
+                              Parameters that need to be set in Zeppelin notebooks are printed
+                              to the console.
 EOF
 )
 
@@ -168,6 +171,9 @@ function parse_arguments {
         visualizer)         run_visualizer=yes         ;;
         *) error "Unrecognized value for --start-only: $1" ;;
       esac
+      ;;
+      --use-zeppelin)
+      ZEPPELIN="--use-zeppelin"
       ;;
       -h|--help)   # Call a "show_help" function to display a synopsis, then exit.
       show_help
@@ -384,7 +390,8 @@ function main {
     run_anomaly_detection_spark_job \
       $DEFAULT_NO_OF_CLUSTERS \
       $DEFAULT_CLUSTERING_MICRO_BATCH_DURATION \
-      $S3_BUCKET_URL
+      $S3_BUCKET_URL \
+      $ZEPPELIN \
   else
     echo "skipped"
   fi
@@ -401,6 +408,7 @@ function main {
       $DEFAULT_OPTIMAL_K_TO_CLUSTER_COUNT \
       $DEFAULT_OPTIMAL_K_INCREMENT \
       $DEFAULT_OPTIMAL_K_CLUSTERING_MICRO_BATCH_DURATION \
+      $ZEPPELIN \
       $S3_BUCKET_URL
   else
     echo "skipped"
@@ -416,14 +424,16 @@ function main {
     echo "skipped"
   fi
 
-  header "Running the data visualization application... "
-  if [ -n "$run_visualizer" ]
-  then
-    echo
-    modify_vis_data_template
-    load_visualize_data_job
-  else
-    echo "skipped"
+  if [[ -z "$ZEPPELIN" ]]; then
+      header "Running the data visualization application... "
+      if [ -n "$run_visualizer" ]
+      then
+        echo
+        modify_vis_data_template
+        load_visualize_data_job
+      else
+        echo "skipped"
+      fi
   fi
 
   echo
