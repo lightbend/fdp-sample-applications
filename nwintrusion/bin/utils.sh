@@ -63,16 +63,19 @@ function run_anomaly_detection_spark_job {
   local SPARK_CONF="--conf spark.cores.max=2 --conf spark.streaming.kafka.consumer.poll.ms=10000"
   local ARGS="$KAFKA_TO_TOPIC $KAFKA_BROKERS $KAFKA_CLUSTERS_TOPIC $CLUSTERING_MICRO_BATCH_DURATION $NO_OF_CLUSTERS"
   local SPARK_APP_JAR_URL="$APP_S3_URL/$SPARK_APP_JAR"
-  local SUBMIT="$($NOEXEC dcos spark run --submit-args="$SPARK_CONF --class $SPARK_APP_CLASS $SPARK_APP_JAR_URL $ARGS")"
 
-  if [[ -n "$ZEPPELIN" ]]; then
-  printf "\nIf you want to try out the anomaly detection app in Zeppelin, set the following parameters in the Zeppelin notebook 'FDP Sample Apps/SparkClustering'
+  if [[ "$ZEPPELIN" == yes ]]; then
+    printf "\nIf you want to try out the anomaly detection app in Zeppelin, set the following parameters in the Zeppelin notebook 'FDP Sample Apps/SparkClustering'
 val noOfClusters = $NO_OF_CLUSTERS
 val topicToReadFrom = Array(\"$KAFKA_TO_TOPIC\")
 val broker = \"$KAFKA_BROKERS\"
 val clusterTopic = \"$KAFKA_CLUSTERS_TOPIC\"
 val duration = Seconds($CLUSTERING_MICRO_BATCH_DURATION)\n"
   else
+      echo "  k = $DEFAULT_NO_OF_CLUSTERS"
+      echo "  micro batch duration = $DEFAULT_CLUSTERING_MICRO_BATCH_DURATION seconds"
+
+      local SUBMIT="$($NOEXEC dcos spark run --submit-args="$SPARK_CONF --class $SPARK_APP_CLASS $SPARK_APP_JAR_URL $ARGS")"
       if [ -z "$NOEXEC" ]
       then
         ANOMALY_DETECTION_SPARK_DRIVER_SUBMIT_ID="$(echo `expr "$SUBMIT" : '.*\(driver-.*\)'`)"
@@ -95,9 +98,8 @@ function run_batch_kmeans_spark_job {
   local SPARK_CONF="--conf spark.cores.max=2 --conf spark.streaming.kafka.consumer.poll.ms=10000 --driver-memory 8G"
   local ARGS="$KAFKA_TO_TOPIC $KAFKA_BROKERS $CLUSTERING_MICRO_BATCH_DURATION $FROM_CLUSTER_COUNT $TO_CLUSTER_COUNT $INCREMENT"
   local SPARK_APP_JAR_URL="$APP_S3_URL/$SPARK_APP_JAR"
-  local SUBMIT="$($NOEXEC dcos spark run --submit-args="$SPARK_CONF --class $SPARK_APP_CLASS $SPARK_APP_JAR_URL $ARGS")"
 
-  if [[ -n "$ZEPPELIN" ]]; then
+  if [[ "$ZEPPELIN" == yes ]]; then
     printf "\nIf you want to try out the Batch K-Means app in Zeppelin, set the following parameters in the Zeppelin notebook 'FDP Sample Apps/BatchKMeans'
 val topicToReadFrom = Array(\"$KAFKA_TO_TOPIC\")
 val broker = \"$KAFKA_BROKERS\"
@@ -106,6 +108,10 @@ val fromClusterCount = $FROM_CLUSTER_COUNT
 val toClusterCount = $TO_CLUSTER_COUNT
 val increment = $INCREMENT\n"
   else
+      echo "  micro batch duration = $DEFAULT_OPTIMAL_K_CLUSTERING_MICRO_BATCH_DURATION"
+      echo "  Trying K between $DEFAULT_OPTIMAL_K_FROM_CLUSTER_COUNT and $DEFAULT_OPTIMAL_K_TO_CLUSTER_COUNT (inclusive)"
+      echo "  Delta between K values = $DEFAULT_OPTIMAL_K_INCREMENT"
+      local SUBMIT="$($NOEXEC dcos spark run --submit-args="$SPARK_CONF --class $SPARK_APP_CLASS $SPARK_APP_JAR_URL $ARGS")"
       if [ -z "$NOEXEC" ]
       then
         BATCH_KMEANS_SPARK_DRIVER_SUBMIT_ID="$(echo `expr "$SUBMIT" : '.*\(driver-.*\)'`)"

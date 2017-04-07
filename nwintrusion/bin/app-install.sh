@@ -36,6 +36,7 @@ export run_transform_data=
 export run_batch_k_means=
 export run_anomaly_detection=
 export run_visualizer=
+export zeppelin_flag_set=no
 apps_selected=
 config_file="./app-install.properties"
 
@@ -173,7 +174,7 @@ function parse_arguments {
       esac
       ;;
       --use-zeppelin)
-      ZEPPELIN="--use-zeppelin"
+      zeppelin_flag_set=yes
       run_data_loader=yes
       run_transform_data=yes
       run_batch_k_means=yes
@@ -315,6 +316,10 @@ function main {
 
   [ "$stop_point" = "config_file" ] && exit 0
 
+  if [[ "$zeppelin_flag_set" == yes ]]; then
+    run_visualizer=
+  fi
+
   echo "Running:"
   echo "Data Loader?       $(yes_or_no $run_data_loader)"
   echo "Transform Data?    $(yes_or_no $run_transform_data)"
@@ -388,13 +393,11 @@ function main {
   then
     header "Running the Spark application for anomaly detection... "
     echo
-    echo "  k = $DEFAULT_NO_OF_CLUSTERS"
-    echo "  micro batch duration = $DEFAULT_CLUSTERING_MICRO_BATCH_DURATION seconds"
     run_anomaly_detection_spark_job \
       $DEFAULT_NO_OF_CLUSTERS \
       $DEFAULT_CLUSTERING_MICRO_BATCH_DURATION \
       $S3_BUCKET_URL \
-      $ZEPPELIN \
+      $zeppelin_flag_set \
   else
     echo "Skipped running the Spark application for anomaly detection."
   fi
@@ -403,16 +406,13 @@ function main {
   then
     header "Running the Spark application for optimizing K for K-Means... "
     echo
-    echo "  micro batch duration = $DEFAULT_OPTIMAL_K_CLUSTERING_MICRO_BATCH_DURATION"
-    echo "  Trying K between $DEFAULT_OPTIMAL_K_FROM_CLUSTER_COUNT and $DEFAULT_OPTIMAL_K_TO_CLUSTER_COUNT (inclusive)"
-    echo "  Delta between K values = $DEFAULT_OPTIMAL_K_INCREMENT"
     run_batch_kmeans_spark_job \
       $DEFAULT_OPTIMAL_K_FROM_CLUSTER_COUNT \
       $DEFAULT_OPTIMAL_K_TO_CLUSTER_COUNT \
       $DEFAULT_OPTIMAL_K_INCREMENT \
       $DEFAULT_OPTIMAL_K_CLUSTERING_MICRO_BATCH_DURATION \
       $S3_BUCKET_URL \
-      $ZEPPELIN \
+      $zeppelin_flag_set \
   else
     echo "Skipped running the Spark application for optimizing K for K-Means."
   fi
@@ -427,16 +427,14 @@ function main {
     echo "Skipped running the data loading application."
   fi
 
-  if [[ -z "$ZEPPELIN" ]]; then
-      if [ -n "$run_visualizer" ]
-      then
-        header "Installing the data visualization application... "
-        echo
-        modify_vis_data_template
-        load_visualize_data_job
-      else
-        echo "Skipped installing data visualization application."
-      fi
+  if [ -n "$run_visualizer" ]
+  then
+    header "Installing the data visualization application... "
+    echo
+    modify_vis_data_template
+    load_visualize_data_job
+  else
+    echo "Skipped installing data visualization application."
   fi
 
   echo
