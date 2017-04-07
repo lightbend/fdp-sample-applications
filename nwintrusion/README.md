@@ -242,3 +242,17 @@ The visualization should look something like this:
 Cluster centroids are shown in blue, while data points are shown in green and outliers in red. You can zoom in and zoom out to explore points of interest.
 
 If you encounter problems, try re-starting the Jupyter kernel using the _Kernel_ menu.
+
+## Access the Sample Apps from Zeppelin
+Instead of deploying the sample apps using the procedure outlined above, you can also try them out in a notebook environment. FDP bundles a custom build of Apache Zeppelin that contains source code for these sample apps adapted to notebooks formats. To access these notebooks, from the FDP installer, run `bin/fdp-start-base.sh --with-zeppelin`. Then from under this project, run the following commands:
+```bash
+cd bin
+./app-install.sh --use-zeppelin
+```
+Note the output of these commands. They will be useful later.
+
+Then open Zeppelin UI from DC/OS. You should be able to see a folder "FDP Sample Apps" that contains two notebooks: SparkClustering and BatchKMeans. Open any one of them. If this is the first time you start Zeppelin, you will be prompted to save your interpreter settings. You can go with the default settings. Simply press the "Save" button. After you open a notebook, the first paragraph contains some information about the contents of the notebook. In the second paragraph, you will be asked to copy part of the output you obtained previously by running `app-install.sh` to the cell. Hit `Shift + Return` to run a paragraph when done. You are free to change the parameters in the notebook. 
+
+There are currently a few limitations with Zeppelin compared to running the sample apps by deploying them to DC/OS.
+1. Only one Spark streaming context can be running at a time, meaning you cannot start streaming contexts in both SparkClustering and BatchKMeans notebooks. 
+2. Zeppelin does not support stopping a started streaming context that is still running. To test the other notebook after starting streaming context in one notebook, you need to restart Zeppelin service from the DC/OS UI.
