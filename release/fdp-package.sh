@@ -6,27 +6,57 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 ROOT_DIR="${DIR}/.."
 
 CONTENT_FILE=${DIR}/content.txt
-VERSION_FILE=${DIR}/version.txt
-
 CONTENT=$(cat $CONTENT_FILE)
-VERSION=$(cat $VERSION_FILE)
 
-OUTPUT_FILE=fdp-system-tests-${VERSION}.tar.gz
-
-function show_help {
+function usage {
   cat<< EOF
-  This script packages the system tests project into $OUTPUT_FILE in the project root directory.
-  Usage: $SCRIPT  [OPTIONS]
-  (There are no command line options)
+  This script packages the sample applications into fdp-sample-apps-<version>.tar.gz
+  in the project root directory.
+  Usage: $SCRIPT VERSION [-h | --help]
+
+  VERSION       E.g., 0.3.0. Required
+  -h | --help   This message.
 EOF
 }
 
-case $1 in
-  -h|--help)
-    show_help
-    exit 0
-   ;;
-esac
+while [ $# -ne 0 ]
+do
+  case $1 in
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    -*)
+      echo "$0: ERROR: Unrecognized argument $1"
+      usage
+      exit 1
+      ;;
+    *)
+      VERSION=$1
+      ;;
+  esac
+  shift
+done
 
-tar -C ${ROOT_DIR} -cf ${ROOT_DIR}/${OUTPUT_FILE} ${CONTENT}
+if [[ -z "$VERSION" ]]
+then
+  echo "$0: ERROR: The version argument is required."
+  usage
+  exit 1
+fi
+
+OUTPUT_FILE_ROOT=fdp-sample-apps-${VERSION}
+OUTPUT_FILE=${OUTPUT_FILE_ROOT}.tar.gz
+
+staging=$DIR/staging
+rm -rf $staging
+mkdir -p $staging
+
+mkdir -p $staging/$OUTPUT_FILE_ROOT
+for f in ${CONTENT}; do cp -r $f $staging/$OUTPUT_FILE_ROOT/$f; done
+cd $staging
+echo running: tar -czf ${OUTPUT_FILE} ${OUTPUT_FILE_ROOT}
+tar -czf ${OUTPUT_FILE} ${OUTPUT_FILE_ROOT}
+
+rm -rf ${OUTPUT_FILE_ROOT}
 

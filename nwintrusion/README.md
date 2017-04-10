@@ -21,11 +21,8 @@ In order to deploy and run the sample application, the following prerequisites h
 
 1. Mac OS X or Linux host. The scripts for this application require `bash`, related *NIX tools, and Docker. Although these tools are available on Windows through various options, running this application on Windows has not been tested.
 2. An FDP DC/OS cluster is up and running.
-3. The DC/OS CLI is installed on the machine where you intend to run the scripts that install and run this application, either locally or on the "bootstrap" node of the cluster. The FDP installer installs the CLI on the bootstrap node by default. See the [DC/OS CLI page](https://docs.mesosphere.com/latest/usage/cli/install/) for the installation instructions if you want to install the CLI on your local machine. If you decide to use the cluster master node (e.g., because your local machine is a Windows machine), then copy this whole application to a working directory on the master node.
-4. Packages for `kafka` and `spark` have to be pre-installed. The recommended package for kafka installation is `kafka`. Both are also installed by default by the FDP installer.
-5. The following environment variables are set (for example, in a `$HOME/.ssh/aws.sh` file used to install the FDP cluster):
-	* `AWS_ACCESS_KEY_ID` pointing to the AWS access key and
-	* `AWS_SECRET_ACCESS_KEY` pointing to AWS password
+3. The DC/OS CLI is installed and authenticated on the machine where you intend to run the scripts that install and run this application, either locally or on the "bootstrap" node of the cluster. The FDP installer installs the CLI on the bootstrap node by default. See the section in the Installation Guide on [installing the DC/OS CLI](http://developer.lightbend.com/docs/fast-data-platform/latest/installation/index.html#install-dcos-cli-on-your-local-computer) for more information.
+5. An AWS-installed FDP cluster is required. You'll also need the `$HOME/.ssh/aws.sh` file that was created during the installation, which contains required AWS and EC2 environment variables.
 6. Appropriate ports (3000, 8888) must be open on the relevant instances on EC2 to access the visualization components from a client machine. This can be done by changing the inbounds rules of the FDP cluster's security group.
 
 We'll discuss these requirements in more detail as we proceed.
@@ -34,27 +31,7 @@ We'll discuss these requirements in more detail as we proceed.
 
 The application uses the dataset from [KDD Cup 1999](https://kdd.ics.uci.edu/databases/kddcup99/kddcup99.html), which asked competitors to develop a network intrusion detector. The reason for using this data set is that it makes a good case study for clustering and intrusion detection is a common use for streaming platforms like FDP.
 
-## Deployment in DC/OS
-
-The following scripts assume that you have authenticated with the DC/OS cli against your cluster. For example, if you run `dcos node` (which lists the running nodes) from a terminal prompt on the machine where installed the CLI, it will print the following the very first time you use the DC/OS CLI:
-
-```
-Please go to the following link in your browser:
-
-    http://<public_ip>/login?redirect_uri=urn:ietf:wg:oauth:2.0:oob
-
-Enter OpenID Connect ID Token:
-```
-
-The `<public_ip>` value should be filled in with the correct public IP address of your master node.
-
-See the [FDP installation documentation](https://developer.lightbend.com/docs/fast-data-platform/0.1.0/installation/index.html#installing-dc-os-services) for more details.
-
-Once you login (e.g., using a GMail account), a dialog will be shown with this long token. Copy and paste it to the terminal window and the command will be completed. This is a one-time operation. Note that the token will also be written to your CLI configuration file, `$HOME/.dcos/dcos.toml` file.
-
-If you don't use IAM roles, you will also need to define environment variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` variables before performing the following steps. If you installed the FDP cluster yourself, you should already have these definitions in a `~/.ssh/aws.sh` file, which will be "sourced" in the scripts below, if needed. See the [FDP installation instructions](https://developer.lightbend.com/docs/fast-data-platform/0.1.0/installation/index.html) for more information.
-
-### Installing the app
+## Installing the application
 
 Start by using the `bin` scripts. Using the default options and assuming the DC/OS CLI is on your local machine, run these commands:
 
@@ -94,10 +71,7 @@ There is also an `bin/app-package.sh` script that creates a tar file `nwin-app.t
 
 #### Troubleshooting Tips
 
-Here are a few possible failures you might see.
-
-* _dcos `something` subcommand is required but it's not installed,_ where `something` is `spark`, `kafka`, etc. This is most likely to happen when using the CLI locally. Run the corresonding CLI command to install the corresponding CLI subcommand, e.g., for Spark, use `dcos package install --cli spark`.
-* _Unable to install CLI subcommand. Missing required program 'virtualenv'._ This is most likely to occur if you run the `dcos package install --cli something` command in the previous bullet point. It means your Python environment needs `virtualenv`. The error message also gives you a link for more information, but if you already have the Python `pip` tool installed, then run `pip install virtualenv`.
+For problems related to DC/OS commands, see the [Troubleshooting](http://developer.lightbend.com/docs/fast-data-platform/latest/user-guide/troubleshooting/index.html) section of the [User Guide](http://developer.lightbend.com/docs/fast-data-platform/latest/user-guide/index.html).
 
 ### Installation Steps that Were Performed
 
@@ -115,11 +89,9 @@ It also has a `--help` option to show available command-line options. For exampl
 
 ## Building the App
 
-If you want to build your own version and upload it to your own docker account, use the following steps. First, the build script, `build-app.sh` (discussed below), will need several environment variables, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_DEFAULT_REGION`, and `AWS_DEFAULT_OUTPUT`, which are required by the AWS CLI, which is used by the build script. For the meaning of these variables, see https://github.com/aws/aws-cli.
+If you want to build your own version and upload it to your own docker account, you'll use the `build-app.sh` script. It will stage build artifacts in an S3 bucket, which you'll need to create. In order to do this, `build-app.sh` will need to source your `$HOME/.ssh/aws.sh` to get information about your AWS account. Recall that this file was created when you installed the cluster.
 
-You can define and export these variables in advance. If you don't, `build-app.sh` will source `$HOME/.ssh/aws.sh`, which was created when you installed the cluster, and see if all of them are defined afterwards. The `EC2_AZ_REGION` from that file will be used for `AWS_DEFAULT_REGION` and `AWS_DEFAULT_OUTPUT` will default to `json`, unless overridden. If any variables are still undefined, follow the printed instructions.
-
-You'll also need a [Docker Hub](https://hub.docker.com/) account, where the application Docker image will be uploaded, and an S3 bucket used to stage the application jar file.
+You'll also need a [Docker Hub](https://hub.docker.com/) account, where the application Docker image will be uploaded.
 
 Next, change to the `source` directory:
 ```
@@ -244,15 +216,19 @@ Cluster centroids are shown in blue, while data points are shown in green and ou
 If you encounter problems, try re-starting the Jupyter kernel using the _Kernel_ menu.
 
 ## Access the Sample Apps from Zeppelin
-Instead of deploying the sample apps using the procedure outlined above, you can also try them out in a notebook environment. FDP bundles a custom build of Apache Zeppelin that contains source code for these sample apps adapted to notebooks formats. To access these notebooks, from the FDP installer, run `bin/fdp-start-base.sh --with-zeppelin`. Then from under this project, run the following commands:
+Instead of deploying the sample apps using the procedure outlined above, you can also try them out in a notebook environment. FDP bundles a custom build of Apache Zeppelin that contains source code for these sample apps adapted to notebooks formats.
+
+If you didn't already install Zeppelin, use the FDP installer command, `bin/fdp-start-base.sh --with-zeppelin`.
+
+Then from under this project, run the following commands:
 ```bash
 cd bin
 ./app-install.sh --use-zeppelin
 ```
 Note the output of these commands. They will be useful later.
 
-Then open Zeppelin UI from DC/OS. You should be able to see a folder "FDP Sample Apps" that contains two notebooks: SparkClustering and BatchKMeans. Open any one of them. If this is the first time you start Zeppelin, you will be prompted to save your interpreter settings. You can go with the default settings. Simply press the "Save" button. After you open a notebook, the first paragraph contains some information about the contents of the notebook. In the second paragraph, you will be asked to copy part of the output you obtained previously by running `app-install.sh` to the cell. Hit `Shift + Return` to run a paragraph when done. You are free to change the parameters in the notebook. 
+Then open Zeppelin UI from DC/OS. You should be able to see a folder "FDP Sample Apps" that contains two notebooks: SparkClustering and BatchKMeans. Open any one of them. If this is the first time you start Zeppelin, you will be prompted to save your interpreter settings. You can go with the default settings. Simply press the "Save" button. After you open a notebook, the first paragraph contains some information about the contents of the notebook. In the second paragraph, you will be asked to copy part of the output you obtained previously by running `app-install.sh` to the cell. Hit `Shift + Return` to run a paragraph when done. You are free to change the parameters in the notebook.
 
 There are currently a few limitations with Zeppelin compared to running the sample apps by deploying them to DC/OS.
-1. Only one Spark streaming context can be running at a time, meaning you cannot start streaming contexts in both SparkClustering and BatchKMeans notebooks. 
+1. Only one Spark streaming context can be running at a time, meaning you cannot start streaming contexts in both SparkClustering and BatchKMeans notebooks.
 2. Zeppelin does not support stopping a started streaming context that is still running. To test the other notebook after starting streaming context in one notebook, you need to restart Zeppelin service from the DC/OS UI.
