@@ -53,10 +53,9 @@ rm -rf $staging
 mkdir -p $staging
 
 mkdir -p $staging/$OUTPUT_FILE_ROOT
-for f in ${CONTENT}; do cp -r $f $staging/$OUTPUT_FILE_ROOT/$f; done
+for f in ${CONTENT}; do cp -r ${ROOT_DIR}/$f $staging/$OUTPUT_FILE_ROOT/$f; done
 cd $staging
 echo running: tar -czf ${OUTPUT_FILE} ${OUTPUT_FILE_ROOT}
 tar -czf ${OUTPUT_FILE} ${OUTPUT_FILE_ROOT}
 
 rm -rf ${OUTPUT_FILE_ROOT}
-
