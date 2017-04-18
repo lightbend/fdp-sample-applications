@@ -71,6 +71,7 @@ class Worker(clusterClient: ActorRef, workExecutorProps: Props, registerInterval
       log.info("Work is complete. Result {}.", result)
       sendToMaster(WorkIsDone(workerId, workId, result))
       context.setReceiveTimeout(5.seconds)
+      // context.setReceiveTimeout(Duration.Undefined)
       context.become(waitForWorkIsDoneAck(result))
 
     case _: Work =>

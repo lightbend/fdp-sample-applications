@@ -23,7 +23,7 @@ class Frontend extends Actor {
 
   def receive = {
     case work =>
-      implicit val timeout = Timeout(5.seconds)
+      implicit val timeout = Timeout(60.seconds)
       (masterProxy ? work) map {
         case Master.Ack(_) => Ok
       } recover { case _ => NotOk } pipeTo sender()

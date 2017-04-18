@@ -40,7 +40,7 @@ object Main {
 
   }
 
-  def workTimeout = 10.seconds
+  def workTimeout = 120.seconds
 
   def startBackend(port: Int, role: String): Unit = {
     val conf = ConfigFactory.parseString(s"akka.cluster.roles=[$role]").
@@ -95,7 +95,7 @@ object Main {
       system.actorOf(Props[SharedLeveldbStore], "store")
     // register the shared journal
     import system.dispatcher
-    implicit val timeout = Timeout(15.seconds)
+    implicit val timeout = Timeout(60.seconds)
     val f = (system.actorSelection(path) ? Identify(None))
     f.onSuccess {
       case ActorIdentity(_, Some(ref)) => SharedLeveldbJournal.setStore(ref, system)
