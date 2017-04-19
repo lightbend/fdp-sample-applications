@@ -11,6 +11,7 @@ import akka.cluster.client.ClusterClientReceptionist
 import akka.cluster.Cluster
 import akka.persistence.PersistentActor
 import scala.concurrent.duration._
+import java.io.FileWriter
 
 object Master {
 
@@ -37,6 +38,7 @@ class Master(workTimeout: FiniteDuration) extends PersistentActor with ActorLogg
 
   val mediator = DistributedPubSub(context.system).mediator
   ClusterClientReceptionist(context.system).registerService(self)
+  val fw = new FileWriter("/tmp/stats.txt", true)
 
   // persistenceId must include cluster role to support multiple masters
   override def persistenceId: String = Cluster(context.system).selfRoles.find(_.startsWith("backend-")) match {
@@ -60,6 +62,7 @@ class Master(workTimeout: FiniteDuration) extends PersistentActor with ActorLogg
   override def postStop(): Unit = {
     cleanupTask.cancel()
     reportCountTask.cancel()
+    fw.close()
   }
 
   override def receiveRecover: Receive = {
@@ -150,7 +153,9 @@ class Master(workTimeout: FiniteDuration) extends PersistentActor with ActorLogg
       }
 
     case ReportCount => {
-      println(s"***** Done in last 60 seconds: ${workState.doneCount - lastDoneCount}")
+      println(s"***** Done in last 60 seconds: ${workState.doneCount - lastDoneCount} / ${workers.size}")
+      fw.write(s"${workState.doneCount - lastDoneCount},${workers.size}\n")
+      fw.flush()
       lastDoneCount = workState.doneCount
       println(s"***** Job Status : [${workState.pendingCount}/${workState.inProgressCount}/${workState.acceptedCount}/${workState.doneCount}]")
     }
