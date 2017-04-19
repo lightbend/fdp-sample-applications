@@ -40,7 +40,7 @@ object Main {
 
   }
 
-  def workTimeout = 120.seconds
+  def workTimeout = 1200.seconds
 
   def startBackend(port: Int, role: String): Unit = {
     val conf = ConfigFactory.parseString(s"akka.cluster.roles=[$role]").
@@ -64,9 +64,13 @@ object Main {
   def startFrontend(port: Int): Unit = {
     val conf = ConfigFactory.parseString("akka.remote.netty.tcp.port=" + port).
       withFallback(ConfigFactory.load())
+
+    val maxListSize = conf.getInt("akka.job.max-list-size")
+    val maxElementValue = conf.getInt("akka.job.max-list-element-value")
+
     val system = ActorSystem("ClusterSystem", conf)
     val frontend = system.actorOf(Props[Frontend], "frontend")
-    system.actorOf(Props(classOf[WorkProducer], frontend), "producer")
+    system.actorOf(Props(classOf[WorkProducer], frontend, maxListSize, maxElementValue), "producer")
     system.actorOf(Props[WorkResultConsumer], "consumer")
   }
 

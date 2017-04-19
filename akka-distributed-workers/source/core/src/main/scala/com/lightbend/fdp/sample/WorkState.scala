@@ -33,6 +33,11 @@ case class WorkState private (
   def isInProgress(workId: String): Boolean = workInProgress.contains(workId)
   def isDone(workId: String): Boolean = doneWorkIds.contains(workId)
 
+  def pendingCount: Int = pendingWork.size
+  def inProgressCount: Int = workInProgress.size
+  def acceptedCount: Int = acceptedWorkIds.size
+  def doneCount: Int = doneWorkIds.size
+
   def updated(event: WorkDomainEvent): WorkState = event match {
     case WorkAccepted(work) ⇒
       copy(
