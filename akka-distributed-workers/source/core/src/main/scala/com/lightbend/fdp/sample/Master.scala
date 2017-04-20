@@ -153,11 +153,11 @@ class Master(workTimeout: FiniteDuration) extends PersistentActor with ActorLogg
       }
 
     case ReportCount => {
-      println(s"***** Done in last 60 seconds: ${workState.doneCount - lastDoneCount} / ${workers.size}")
-      fw.write(s"${workState.doneCount - lastDoneCount},${workers.size}\n")
+      log.info(s"Done in last 60 seconds: ${workState.doneCount - lastDoneCount} / ${workers.size}")
+      fw.write(s"${workState.doneCount - lastDoneCount},${workers.size},${workState.pendingCount},${workState.inProgressCount},${workState.acceptedCount},${workState.doneCount}\n")
       fw.flush()
       lastDoneCount = workState.doneCount
-      println(s"***** Job Status : [${workState.pendingCount}/${workState.inProgressCount}/${workState.acceptedCount}/${workState.doneCount}]")
+      log.info(s"Job Status : [${workState.pendingCount}/${workState.inProgressCount}/${workState.acceptedCount}/${workState.doneCount}]")
     }
   }
 
