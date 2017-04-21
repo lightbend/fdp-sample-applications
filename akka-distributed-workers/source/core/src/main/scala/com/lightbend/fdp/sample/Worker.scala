@@ -32,7 +32,7 @@ class Worker(clusterClient: ActorRef, workExecutorProps: Props, registerInterval
 
   import context.dispatcher
   val registerTask = context.system.scheduler.schedule(0.seconds, registerInterval, clusterClient,
-    SendToAll("/user/master/singleton", RegisterWorker(workerId)))
+    SendToAll("/user/master/singleton", RegisterWorker(workerId, registerInterval)))
 
   val workExecutor = context.watch(context.actorOf(workExecutorProps, "exec"))
 
@@ -44,7 +44,7 @@ class Worker(clusterClient: ActorRef, workExecutorProps: Props, registerInterval
 
   override def supervisorStrategy = OneForOneStrategy() {
     case _: ActorInitializationException => Stop
-    case _: DeathPactException           => Stop
+    case _: DeathPactException           => Stop 
     case _: Exception =>
       currentWorkId foreach { workId => sendToMaster(WorkFailed(workerId, workId)) }
       context.become(idle)
