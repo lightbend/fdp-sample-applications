@@ -38,7 +38,14 @@ class Master(workTimeout: FiniteDuration) extends PersistentActor with ActorLogg
 
   val mediator = DistributedPubSub(context.system).mediator
   ClusterClientReceptionist(context.system).registerService(self)
-  val fw = new FileWriter("/tmp/stats.txt", true)
+  val fw = try {
+    new FileWriter("/tmp/stats.txt", true)
+  } catch {
+    case th: Throwable => { 
+      th.printStackTrace()
+      new FileWriter("/tmp/stats.txt", true)
+    }
+  }
 
   // persistenceId must include cluster role to support multiple masters
   override def persistenceId: String = Cluster(context.system).selfRoles.find(_.startsWith("backend-")) match {
@@ -48,6 +55,9 @@ class Master(workTimeout: FiniteDuration) extends PersistentActor with ActorLogg
 
   // workers state is not event sourced
   private var workers = Map[String, WorkerState]()
+
+  // registry that keeps the alive status of workers
+  private var aliveWorkers = Map[String, Deadline]()
 
   // workState is event sourced
   private var workState = WorkState.empty
@@ -73,7 +83,11 @@ class Master(workTimeout: FiniteDuration) extends PersistentActor with ActorLogg
   }
 
   override def receiveCommand: Receive = {
-    case MasterWorkerProtocol.RegisterWorker(workerId) =>
+    case MasterWorkerProtocol.RegisterWorker(workerId, registerInterval) => {
+      // track alive workers here
+      // renew expiry with each RegisterWorker command
+      aliveWorkers += (workerId -> (Deadline.now + registerInterval))
+
       if (workers.contains(workerId)) {
         workers += (workerId -> workers(workerId).copy(ref = sender()))
       } else {
@@ -82,6 +96,7 @@ class Master(workTimeout: FiniteDuration) extends PersistentActor with ActorLogg
         if (workState.hasWork)
           sender() ! MasterWorkerProtocol.WorkIsReady
       }
+    }
 
     case MasterWorkerProtocol.WorkerRequestsWork(workerId) =>
       if (workState.hasWork) {
@@ -149,6 +164,14 @@ class Master(workTimeout: FiniteDuration) extends PersistentActor with ActorLogg
             workState = workState.updated(event)
             notifyWorkers()
           }
+        }
+      }
+      // clean up expired workers
+      aliveWorkers.foreach { case (wid, timeout) =>
+        if (timeout.isOverdue) {
+          workers -= wid
+          aliveWorkers -= wid
+          log.info(s"Worker $wid removed from active worker list")
         }
       }
 

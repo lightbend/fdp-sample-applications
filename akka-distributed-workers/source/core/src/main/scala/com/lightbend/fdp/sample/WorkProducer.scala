@@ -11,7 +11,9 @@ object WorkProducer {
   case object Tick
 }
 
-class WorkProducer(frontend: ActorRef, maxListSize: Int, maxElementValue: Int) extends Actor with ActorLogging {
+class WorkProducer(frontend: ActorRef, maxListSize: Int, maxElementValue: Int, jobSchedulingFrequency: FiniteDuration) 
+  extends Actor with ActorLogging {
+
   import WorkProducer._
   import context.dispatcher
   def scheduler = context.system.scheduler
@@ -19,7 +21,7 @@ class WorkProducer(frontend: ActorRef, maxListSize: Int, maxElementValue: Int) e
   def nextWorkId(): String = UUID.randomUUID().toString
 
   override def preStart(): Unit =
-    scheduler.scheduleOnce(2.seconds, self, Tick)
+    scheduler.scheduleOnce(5.seconds, self, Tick)
 
   // override postRestart so we don't call preStart and schedule a new Tick
   override def postRestart(reason: Throwable): Unit = ()
@@ -37,7 +39,8 @@ class WorkProducer(frontend: ActorRef, maxListSize: Int, maxElementValue: Int) e
   def waitAccepted(work: Work): Actor.Receive = {
     case Frontend.Ok =>
       context.unbecome()
-      scheduler.scheduleOnce(rnd.nextInt(3, 10).seconds, self, Tick)
+      // scheduler.scheduleOnce(rnd.nextInt(3, 10).seconds, self, Tick)
+      scheduler.scheduleOnce(jobSchedulingFrequency, self, Tick)
     case Frontend.NotOk =>
       log.info("Work not accepted, retry after a while")
       scheduler.scheduleOnce(3.seconds, frontend, work)
