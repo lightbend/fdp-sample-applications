@@ -1,5 +1,6 @@
 package com.lightbend.fdp.sample
 
+import akka.actor.Actor
 import akka.actor.ActorLogging
 import akka.actor.ActorRef
 import akka.cluster.pubsub.DistributedPubSub
@@ -9,7 +10,6 @@ import scala.concurrent.duration.FiniteDuration
 import akka.actor.Props
 import akka.cluster.client.ClusterClientReceptionist
 import akka.cluster.Cluster
-import akka.persistence.PersistentActor
 import scala.concurrent.duration._
 import java.io.FileWriter
 
@@ -32,7 +32,7 @@ object Master {
 
 }
 
-class Master(workTimeout: FiniteDuration) extends PersistentActor with ActorLogging {
+class Master(workTimeout: FiniteDuration) extends Actor with ActorLogging {
   import Master._
   import WorkState._
 
@@ -47,19 +47,12 @@ class Master(workTimeout: FiniteDuration) extends PersistentActor with ActorLogg
     }
   }
 
-  // persistenceId must include cluster role to support multiple masters
-  override def persistenceId: String = Cluster(context.system).selfRoles.find(_.startsWith("backend-")) match {
-    case Some(role) ⇒ role + "-master"
-    case None       ⇒ "master"
-  }
-
-  // workers state is not event sourced
+  // workers state 
   private var workers = Map[String, WorkerState]()
 
   // registry that keeps the alive status of workers
   private var aliveWorkers = Map[String, Deadline]()
 
-  // workState is event sourced
   private var workState = WorkState.empty
 
   import context.dispatcher
@@ -75,14 +68,7 @@ class Master(workTimeout: FiniteDuration) extends PersistentActor with ActorLogg
     fw.close()
   }
 
-  override def receiveRecover: Receive = {
-    case event: WorkDomainEvent =>
-      // only update current state by applying the event, no side effects
-      workState = workState.updated(event)
-      log.info("Replayed {}", event.getClass.getSimpleName)
-  }
-
-  override def receiveCommand: Receive = {
+  override def receive = {
     case MasterWorkerProtocol.RegisterWorker(workerId, registerInterval) => {
       // track alive workers here
       // renew expiry with each RegisterWorker command
@@ -103,12 +89,10 @@ class Master(workTimeout: FiniteDuration) extends PersistentActor with ActorLogg
         workers.get(workerId) match {
           case Some(s @ WorkerState(_, Idle)) =>
             val work = workState.nextWork
-            persist(WorkStarted(work.workId)) { event =>
-              workState = workState.updated(event)
-              log.info("Giving worker {} some work {}", workerId, work.workId)
-              workers += (workerId -> s.copy(status = Busy(work.workId, Deadline.now + workTimeout)))
-              sender() ! work
-            }
+            workState = workState.updated(WorkStarted(work.workId))
+            log.info("Giving worker {} some work {}", workerId, work.workId)
+            workers += (workerId -> s.copy(status = Busy(work.workId, Deadline.now + workTimeout)))
+            sender() ! work
           case _ =>
         }
       }
@@ -123,22 +107,18 @@ class Master(workTimeout: FiniteDuration) extends PersistentActor with ActorLogg
       } else {
         log.info("Work {} is done by worker {}", workId, workerId)
         changeWorkerToIdle(workerId, workId)
-        persist(WorkCompleted(workId, result)) { event ⇒
-          workState = workState.updated(event)
-          mediator ! DistributedPubSubMediator.Publish(ResultsTopic, WorkResult(workId, result))
-          // Ack back to original sender
-          sender ! MasterWorkerProtocol.Ack(workId)
-        }
+        workState = workState.updated(WorkCompleted(workId, result))
+        mediator ! DistributedPubSubMediator.Publish(ResultsTopic, WorkResult(workId, result))
+        // Ack back to original sender
+        sender ! MasterWorkerProtocol.Ack(workId)
       }
 
     case MasterWorkerProtocol.WorkFailed(workerId, workId) =>
       if (workState.isInProgress(workId)) {
         log.info("Work {} failed by worker {}", workId, workerId)
         changeWorkerToIdle(workerId, workId)
-        persist(WorkerFailed(workId)) { event ⇒
-          workState = workState.updated(event)
-          notifyWorkers()
-        }
+        workState = workState.updated(WorkerFailed(workId))
+        notifyWorkers()
       }
 
     case work: Work =>
@@ -147,12 +127,10 @@ class Master(workTimeout: FiniteDuration) extends PersistentActor with ActorLogg
         sender() ! Master.Ack(work.workId)
       } else {
         log.info("Accepted work: {}", work.workId)
-        persist(WorkAccepted(work)) { event ⇒
-          // Ack back to original sender
-          sender() ! Master.Ack(work.workId)
-          workState = workState.updated(event)
-          notifyWorkers()
-        }
+        // Ack back to original sender
+        sender() ! Master.Ack(work.workId)
+        workState = workState.updated(WorkAccepted(work))
+        notifyWorkers()
       }
 
     case CleanupTick =>
@@ -160,10 +138,8 @@ class Master(workTimeout: FiniteDuration) extends PersistentActor with ActorLogg
         if (timeout.isOverdue) {
           log.info("Work timed out: {}", workId)
           workers -= workerId
-          persist(WorkerTimedOut(workId)) { event ⇒
-            workState = workState.updated(event)
-            notifyWorkers()
-          }
+          workState = workState.updated(WorkerTimedOut(workId))
+          notifyWorkers()
         }
       }
       // clean up expired workers
@@ -198,10 +174,5 @@ class Master(workTimeout: FiniteDuration) extends PersistentActor with ActorLogg
       case Some(s @ WorkerState(_, Busy(`workId`, _))) ⇒
         workers += (workerId -> s.copy(status = Idle))
       case _ ⇒
-      // ok, might happen after standby recovery, worker state is not persisted
     }
-
-  // TODO cleanup old workers
-  // TODO cleanup old workIds, doneWorkIds
-
 }
