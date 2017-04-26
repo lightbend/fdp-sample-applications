@@ -11,8 +11,6 @@ import akka.actor.ActorIdentity
 import akka.cluster.client.{ClusterClientReceptionist, ClusterClientSettings, ClusterClient}
 import akka.cluster.singleton.{ClusterSingletonManagerSettings, ClusterSingletonManager}
 import akka.japi.Util.immutableSeq
-import akka.persistence.journal.leveldb.SharedLeveldbJournal
-import akka.persistence.journal.leveldb.SharedLeveldbStore
 import akka.util.Timeout
 import akka.pattern.ask
 import com.typesafe.config.ConfigFactory
@@ -81,9 +79,6 @@ object Main extends CommandLineParser {
     val system = ActorSystem("ClusterSystem", conf)
     println(s"""job-timeout = ${conf.getDuration("akka.job.job-timeout").getSeconds}""")
 
-    startupSharedJournal(system, startStore = (config.port == 2551), path =
-      ActorPath.fromString("akka.tcp://ClusterSystem@127.0.0.1:2551/user/store"))
-
     system.actorOf(
       ClusterSingletonManager.props(
         Master.props(conf.getDuration("akka.job.job-timeout")),
@@ -144,11 +139,10 @@ object Main extends CommandLineParser {
   }
 
   def startWorker(port: Int): Unit = {
-    // load worker.conf
     val conf = ConfigFactory.parseString("akka.remote.netty.tcp.port=" + port).
-      withFallback(ConfigFactory.load("worker"))
+      withFallback(ConfigFactory.load())
     val system = ActorSystem("WorkerSystem", conf)
-    val initialContacts = immutableSeq(conf.getStringList("contact-points")).map {
+    val initialContacts = immutableSeq(conf.getStringList("akka.worker.contact-points")).map {
       case AddressFromURIString(addr) ⇒ RootActorPath(addr) / "system" / "receptionist"
     }.toSet
 
@@ -159,27 +153,5 @@ object Main extends CommandLineParser {
       "clusterClient")
 
     system.actorOf(Worker.props(clusterClient, Props[WorkExecutor]), "worker")
-  }
-
-  def startupSharedJournal(system: ActorSystem, startStore: Boolean, path: ActorPath): Unit = {
-    // Start the shared journal one one node (don't crash this SPOF)
-    // This will not be needed with a distributed journal
-    if (startStore)
-      system.actorOf(Props[SharedLeveldbStore], "store")
-    // register the shared journal
-    import system.dispatcher
-    implicit val timeout = Timeout(60.seconds)
-    val f = (system.actorSelection(path) ? Identify(None))
-    f.onSuccess {
-      case ActorIdentity(_, Some(ref)) => SharedLeveldbJournal.setStore(ref, system)
-      case _ =>
-        system.log.error("Shared journal not started at {}", path)
-        system.terminate()
-    }
-    f.onFailure {
-      case _ =>
-        system.log.error("Lookup of shared journal at {} timed out", path)
-        system.terminate()
-    }
   }
 }
