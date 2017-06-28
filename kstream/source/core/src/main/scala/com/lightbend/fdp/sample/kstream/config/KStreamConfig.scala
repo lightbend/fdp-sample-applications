@@ -20,7 +20,9 @@ object KStreamConfig {
     fromTopic: String, 
     toTopic: String, 
     summaryAccessTopic: String, 
+    windowedSummaryAccessTopic: String, 
     summaryPayloadTopic: String, 
+    windowedSummaryPayloadTopic: String, 
     errorTopic: String
   )
 
@@ -30,7 +32,9 @@ object KStreamConfig {
     def fromTopic = ks.fromTopic
     def toTopic = ks.toTopic
     def summaryAccessTopic = ks.summaryAccessTopic
+    def windowedSummaryAccessTopic = ks.windowedSummaryAccessTopic
     def summaryPayloadTopic = ks.summaryPayloadTopic
+    def windowedSummaryPayloadTopic = ks.windowedSummaryPayloadTopic
     def errorTopic = ks.errorTopic
   }
 
@@ -44,7 +48,9 @@ object KStreamConfig {
         config.getString("dcos.kafka.fromtopic"),
         config.getString("dcos.kafka.totopic"),
         config.getString("dcos.kafka.summaryaccesstopic"),
+        config.getString("dcos.kafka.windowedsummaryaccesstopic"),
         config.getString("dcos.kafka.summarypayloadtopic"),
+        config.getString("dcos.kafka.windowedsummarypayloadtopic"),
         config.getString("dcos.kafka.errortopic")
       )
     }

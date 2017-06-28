@@ -99,7 +99,8 @@ The jar is a Java application that can be run from the command line as follows:
 java -Dconfig.file=<path-to-application.conf> \
      -Dlogback.configurationFile=<path-to-logback.xml> \
      -cp ./fdp-kstream-assembly-0.1.jar \
-     com.lightbend.fdp.sample.kstream.WeblogProcessing 7070 localhost
+     com.lightbend.fdp.sample.kstream.WeblogProcessing \
+     --port 7070 --host localhost
 ```
 
 In case of running the application in a distributed mode, another instance can be run exactly as above only with a different port number (and may be on a different host):
@@ -108,7 +109,8 @@ In case of running the application in a distributed mode, another instance can b
 java -Dconfig.file=<path-to-application.conf> \
      -Dlogback.configurationFile=<path-to-logback.xml> \
      -cp ./fdp-kstream-assembly-0.1.jar \
-     com.lightbend.fdp.sample.kstream.WeblogProcessing 7071 localhost
+     com.lightbend.fdp.sample.kstream.WeblogProcessing \
+     --port 7071 --host localhost
 ```
 
 Before the application can be run, the kafka topics need to be created. Here are some sample commands for doing the same:
@@ -133,11 +135,19 @@ The application has a microservice built using `akka-http` that publishes http e
 http://localhost:7070/weblog/access/<host-key>
 ```
 
-This will return the total number of times the host specified by `<host-key>` has been accessed in the log.
+This will return the total number of times the host specified by `<host-key>` has been accessed in the log. To get the same as above but in windows of size 1 minute starting from beginning till the current time:
+
+```
+http://localhost:7070/weblog/access/win/<host-key>
+```
 
 
 ```
 http://localhost:7070/weblog/bytes/<host-key>
 ```
 
-This will return the total payload (number of bytes) transferred for the host specified by `<host-key>` as computed from the log.
+This will return the total payload (number of bytes) transferred for the host specified by `<host-key>` as computed from the log. To get the same as above but in windows of size 1 minute starting from beginning till the current time:
+
+```
+http://localhost:7070/weblog/bytes/win/<host-key>
+```

@@ -6,12 +6,12 @@ import org.apache.kafka.streams.KafkaStreams
 import org.apache.kafka.streams.state.StreamsMetadata
 
 import scala.collection.JavaConverters._
+import scala.util.Try
 
 case class HostStoreInfo(host: String, port: Int, storeNames: Set[String])
 
 /**
- * Looks up StreamsMetadata from KafkaStreams and converts the results
- * into Beans that can be JSON serialized via Jersey.
+ * Looks up StreamsMetadata from KafkaStreams 
  */
 class MetadataService(val streams: KafkaStreams) {
 
@@ -32,7 +32,7 @@ class MetadataService(val streams: KafkaStreams) {
    */
   def streamsMetadataForStore(store: String): List[HostStoreInfo] = {
     // Get metadata for all of the instances of this Kafka Streams application hosting the store
-    return mapInstancesToHostStoreInfo(streams.allMetadataForStore(store).asScala.toList)
+    mapInstancesToHostStoreInfo(streams.allMetadataForStore(store).asScala.toList)
   }
 
   /**
@@ -42,7 +42,7 @@ class MetadataService(val streams: KafkaStreams) {
    * @param key     The key to find
    * @return {@link HostStoreInfo}
    */
-  def streamsMetadataForStoreAndKey[K](store: String, key: K, serializer: Serializer[K]): HostStoreInfo = {
+  def streamsMetadataForStoreAndKey[K](store: String, key: K, serializer: Serializer[K]): Try[HostStoreInfo] = Try {
     // Get metadata for the instances of this Kafka Streams application hosting the store and
     // potentially the value for key
     streams.metadataForKey(store, key, serializer) match {

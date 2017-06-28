@@ -7,7 +7,8 @@ import java.util.{ Properties, Locale }
 import java.lang.{ Long => JLong }
 
 import org.apache.kafka.common.serialization.{ Serde, Serdes }
-import org.apache.kafka.streams.kstream.{ KStreamBuilder, KStream, ValueMapper, KeyValueMapper, KTable, Initializer, Aggregator, Predicate }
+import org.apache.kafka.streams.kstream.{ KStreamBuilder, KStream, ValueMapper, KeyValueMapper, KTable }
+import org.apache.kafka.streams.kstream.{ Initializer, Aggregator, Predicate, TimeWindows, KGroupedStream, Windowed }
 import org.apache.kafka.streams.{ StreamsConfig, KafkaStreams, KeyValue }
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.streams.state.{ ReadOnlyKeyValueStore, QueryableStoreTypes, QueryableStoreType }
@@ -67,13 +68,15 @@ import http.WeblogMicroservice
  * }
  * </pre>
  */ 
-object WeblogProcessing extends LazyLogging with CommandLineParser {
+object WeblogProcessing extends LazyLogging with CommandLineParser with Serializers {
 
   private final val DEFAULT_REST_ENDPOINT_HOSTNAME = "localhost"
   private final val DEFAULT_BOOTSTRAP_SERVERS = "localhost:9092"
 
   final val ACCESS_COUNT_PER_HOST_STORE = "access-count-per-host"
   final val PAYLOAD_SIZE_PER_HOST_STORE = "payload-size-per-host"
+  final val WINDOWED_ACCESS_COUNT_PER_HOST_STORE = "windowed-access-count-per-host"
+  final val WINDOWED_PAYLOAD_SIZE_PER_HOST_STORE = "windowed-payload-size-per-host"
 
   def main(args: Array[String]): Unit = {
     
@@ -152,16 +155,13 @@ object WeblogProcessing extends LazyLogging with CommandLineParser {
       settings
     }
 
-    val ms = new ModelSerializer[LogRecord]()
-    val logRecordSerde = Serdes.serdeFrom(ms, ms)
-
     val builder = new KStreamBuilder()
 
     generateLogRecords(builder, config)
 
     //
     // assumption : the topic contains serialized records of LogRecord
-    val logRecords: KStream[Array[Byte], LogRecord] = builder.stream(Serdes.ByteArray(), logRecordSerde, config.toTopic)
+    val logRecords: KStream[Array[Byte], LogRecord] = builder.stream(byteArraySerde, logRecordSerde, config.toTopic)
 
     hostCountSummary(logRecords, builder, config)
     totalPayloadPerHostSummary(logRecords, builder, config)
@@ -169,12 +169,7 @@ object WeblogProcessing extends LazyLogging with CommandLineParser {
     new KafkaStreams(builder, streamingConfig)
   }
 
-  def generateLogRecords(builder: KStreamBuilder, config: ConfigData) = {
-    val ms = new ModelSerializer[LogRecord]()
-    val ts = new Tuple2Serializer[String, String]()
-
-    val logRecordSerde = Serdes.serdeFrom(ms, ms)
-    val tuple2StringSerde = Serdes.serdeFrom(ts, ts)
+  def generateLogRecords(builder: KStreamBuilder, config: ConfigData): Unit = {
 
     // will read network data from `fromTopic`
     val logs: KStream[Array[Byte], String] = builder.stream(config.fromTopic)
@@ -187,11 +182,11 @@ object WeblogProcessing extends LazyLogging with CommandLineParser {
 
     // push the labelled data
     val v: KStream[Array[Byte], LogRecord] = filtered(0).mapValues(simpleMapper)
-    v.to(Serdes.ByteArray, logRecordSerde, config.toTopic)
+    v.to(byteArraySerde, logRecordSerde, config.toTopic)
 
     // push the extraction errors
     val i: KStream[Array[Byte], (String, String)] = filtered(1).mapValues(errorMapper)
-    i.to(Serdes.ByteArray, tuple2StringSerde, config.errorTopic)
+    i.to(byteArraySerde, tuple2StringSerde, config.errorTopic)
   }
 
   sealed abstract class Extracted { }
@@ -246,7 +241,7 @@ object WeblogProcessing extends LazyLogging with CommandLineParser {
   /**
    * Summary count of number of times each host has been accessed
    */ 
-  def hostCountSummary(logRecords: KStream[Array[Byte], LogRecord], builder: KStreamBuilder, config: ConfigData) = {
+  def hostCountSummary(logRecords: KStream[Array[Byte], LogRecord], builder: KStreamBuilder, config: ConfigData): Unit = {
     // we want to compute the number of times each host is accessed, hence get the host name
     val hosts: KStream[Array[Byte], String] = logRecords.mapValues(hostExtractor)
 
@@ -257,16 +252,23 @@ object WeblogProcessing extends LazyLogging with CommandLineParser {
       }) 
     
     // keys have changed - hence need new serdes
-    // also since this is a KTable (changelog stream), only the latest summarized information
-    // for a host will be the correct one - all earlier records will be considered out of date
-    val counts: KTable[String, java.lang.Long] = 
-      hostPairs.groupByKey(Serdes.String(), Serdes.String()).count(ACCESS_COUNT_PER_HOST_STORE)
+    val groupedStream: KGroupedStream[String, String] = 
+      hostPairs.groupByKey(stringSerde, stringSerde)
 
+    // since this is a KTable (changelog stream), only the latest summarized information
+    // for a host will be the correct one - all earlier records will be considered out of date
+    val counts: KTable[String, java.lang.Long] = groupedStream.count(ACCESS_COUNT_PER_HOST_STORE)
+
+    val windowedCounts: KTable[Windowed[String], java.lang.Long] = 
+      groupedStream.count(TimeWindows.of(60000), WINDOWED_ACCESS_COUNT_PER_HOST_STORE)
+ 
     // materialize the summarized information into a topic
-    counts.to(Serdes.String(), Serdes.Long(), config.summaryAccessTopic)
+    counts.to(stringSerde, longSerde, config.summaryAccessTopic)
+    windowedCounts.to(windowedSerde, longSerde, config.windowedSummaryAccessTopic)
 
     // print the topic info (for debugging)
-    builder.stream(Serdes.String(), Serdes.Long(), config.summaryAccessTopic).print()
+    builder.stream(stringSerde, longSerde, config.summaryAccessTopic).print()
+    builder.stream(windowedSerde, longSerde, config.windowedSummaryAccessTopic).print()
   }
 
   val hostExtractor = new ValueMapper[LogRecord, String] {
@@ -276,7 +278,7 @@ object WeblogProcessing extends LazyLogging with CommandLineParser {
   /**
    * Aggregate value of payloadSize per host
    */ 
-  def totalPayloadPerHostSummary(logRecords: KStream[Array[Byte], LogRecord], builder: KStreamBuilder, config: ConfigData) = {
+  def totalPayloadPerHostSummary(logRecords: KStream[Array[Byte], LogRecord], builder: KStreamBuilder, config: ConfigData): Unit = {
     // we want to compute the number of times each host is accessed, hence get the host name
     val payloads: KStream[Array[Byte], (String, JLong)] = logRecords.mapValues(hostPayloadExtractor)
 
@@ -286,7 +288,9 @@ object WeblogProcessing extends LazyLogging with CommandLineParser {
         override def apply(key: Array[Byte], value: (String, JLong)): KeyValue[String, JLong] = new KeyValue(value._1, value._2)
       }) 
     
-    val payloadSize: KTable[String, JLong] = n.groupByKey(Serdes.String(), Serdes.Long())
+    val groupedStream: KGroupedStream[String, JLong] = n.groupByKey(stringSerde, longSerde)
+
+    val payloadSize: KTable[String, JLong] = groupedStream
      .aggregate(
        new Initializer[JLong] {
          def apply() = 0L
@@ -294,15 +298,29 @@ object WeblogProcessing extends LazyLogging with CommandLineParser {
        new Aggregator[String, JLong, JLong] {
          def apply(k: String, s: JLong, agg: JLong) = s + agg
        },
-       Serdes.Long(),
+       longSerde,
        PAYLOAD_SIZE_PER_HOST_STORE
      )
 
+    val windowedPayloadSize: KTable[Windowed[String], JLong] = groupedStream
+     .aggregate(
+       new Initializer[JLong] {
+         def apply() = 0L
+       },
+       new Aggregator[String, JLong, JLong] {
+         def apply(k: String, s: JLong, agg: JLong) = s + agg
+       },
+       TimeWindows.of(60000),
+       longSerde,
+       WINDOWED_PAYLOAD_SIZE_PER_HOST_STORE
+     )
+
     // materialize the summarized information into a topic
-    payloadSize.to(Serdes.String(), Serdes.Long(), config.summaryPayloadTopic)
+    payloadSize.to(stringSerde, longSerde, config.summaryPayloadTopic)
+    windowedPayloadSize.to(windowedSerde, longSerde, config.windowedSummaryPayloadTopic)
 
     // print the topic info (for debugging)
-    builder.stream(Serdes.String(), Serdes.Long(), config.summaryPayloadTopic).print()
+    builder.stream(stringSerde, longSerde, config.summaryPayloadTopic).print()
   }
 
   val hostPayloadExtractor = new ValueMapper[LogRecord, (String, JLong)] {

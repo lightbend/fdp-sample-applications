@@ -6,32 +6,25 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.server.Directives
 import Directives._
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.client.RequestBuilding
 
-import akka.http.scaladsl.model.{HttpResponse, HttpRequest, HttpMethods}
+import akka.http.scaladsl.model.HttpResponse
 import akka.http.scaladsl.model.StatusCodes._
-import akka.http.scaladsl.model.StatusCodes.{ Success => HttpSuccess }
 import akka.http.scaladsl.server.ExceptionHandler
-import akka.http.scaladsl.unmarshalling.Unmarshal
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport
 
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.{Flow, Sink, Source}
 
 import io.circe.generic.auto._
 import io.circe.syntax._
 
-import org.apache.kafka.common.serialization.StringSerializer
-import org.apache.kafka.streams.KafkaStreams
-import org.apache.kafka.streams.state.{ HostInfo, ReadOnlyKeyValueStore, QueryableStoreTypes, QueryableStoreType }
+import org.apache.kafka.streams.{ KafkaStreams }
+import org.apache.kafka.streams.state.HostInfo
 
-import java.io.IOException
-
-import scala.concurrent.{ExecutionContextExecutor, Future}
+import scala.concurrent.{ Future, ExecutionContext}
 import scala.util.{ Try, Success, Failure }
 
 import com.typesafe.scalalogging.LazyLogging
-import services.{ MetadataService, HostStoreInfo }
+import services.{ MetadataService, HostStoreInfo, LocalStateStoreQuery }
 
 
 /**
@@ -67,89 +60,30 @@ import services.{ MetadataService, HostStoreInfo }
 class WeblogMicroservice(streams: KafkaStreams, hostInfo: HostInfo) 
   extends Directives with FailFastCirceSupport with LazyLogging {
 
-  val metadataService = new MetadataService(streams)
-
   implicit val system = ActorSystem()
   implicit val materializer = ActorMaterializer()
   implicit val executionContext = system.dispatcher
+
+  // service for fetching metadata information
+  val metadataService = new MetadataService(streams)
+
+  // service for fetching from local state store
+  val localStateStoreQuery = new LocalStateStoreQuery[String, Long]
+
+  // http service for request handling
+  val httpRequester = new HttpRequester(system, materializer, executionContext)
+  import httpRequester._
+
+  // http layer for key/value store interface
+  val keyValueFetcher = 
+    new KeyValueFetcher(metadataService, localStateStoreQuery, httpRequester, 
+      streams, executionContext, hostInfo)
   
+  // http layer for windowing query from store interface
+  val windowValueFetcher = 
+    new WindowValueFetcher(metadataService, localStateStoreQuery, httpRequester, 
+      streams, executionContext, hostInfo)
 
-  private def fetchAccessCountSummary(hostName: String): Future[Either[String, Long]] = 
-    fetchSummaryInfo(WeblogProcessing.ACCESS_COUNT_PER_HOST_STORE, "/weblog/access/" + hostName, hostName)
-
-
-  private def fetchPayloadSizeSummary(hostName: String): Future[Either[String, Long]] =
-    fetchSummaryInfo(WeblogProcessing.PAYLOAD_SIZE_PER_HOST_STORE, "/weblog/bytes/" + hostName, hostName)
-
-
-  private def fetchSummaryInfo(store: String, path: String, hostName: String): Future[Either[String, Long]] = {
-
-    // The hostName might be hosted on another instance. We need to find which instance it is on
-    // and then perform a remote lookup if necessary.
-    val host: HostStoreInfo =
-      metadataService.streamsMetadataForStoreAndKey(
-        store, 
-        hostName, 
-        new StringSerializer())
-
-    // hostName is on another instance. call the other instance to fetch the data.
-    if (!thisHost(host)) {
-      logger.warn(s"Key $hostName is on another instance not on $host - requerying ..")
-      queryFromHost(host, path)
-    } else {
-      // hostName is on this instance
-      queryStateStore(streams, store, hostName)
-    }
-  }
-
-
-  private def apiConnectionFlow(host: String, port: Int): Flow[HttpRequest, HttpResponse, Any] =
-    Http().outgoingConnection(host, port)
-
-
-  private def apiRequest(request: HttpRequest, host: HostStoreInfo): Future[HttpResponse] = {
-    logger.debug(request.toString)
-    Source.single(request).via(apiConnectionFlow(host.host, host.port)).runWith(Sink.head)
-  }
-
-
-  private def queryFromHost(host: HostStoreInfo, 
-    path: String): Future[Either[String, Long]] = {
-    logger.debug(s"Path to query $path")
-    apiRequest(RequestBuilding.Get(path), host).flatMap { response =>
-      response.status match {
-        case OK         => Unmarshal(response.entity).to[Either[String, Long]]
-         
-        case BadRequest => {
-          logger.error(s"$path: incorrect path")
-          Future.successful(Left(s"$path: incorrect path"))
-        }
-
-        case _          => Unmarshal(response.entity).to[String].flatMap { entity =>
-          val error = s"state fetch request failed with status code ${response.status} and entity $entity"
-          logger.error(error)
-          Future.failed(new IOException(error))
-        }
-      }
-    }
-  }
-
-
-  // query host specific information from the state store
-  private def queryStateStore(streams: KafkaStreams, store: String, host: String): Future[Either[String, Long]] = Future {
-    Try {
-      val q: QueryableStoreType[ReadOnlyKeyValueStore[String, Long]] = QueryableStoreTypes.keyValueStore()
-      val localStore: ReadOnlyKeyValueStore[String, Long] = streams.store(store, q)
-      localStore.get(host)
-    } match {
-      case Success(s)  => Right(s)
-      case Failure(ex) => Left(ex.getMessage)
-    }
-  }
-
-
-  private def thisHost(host: HostStoreInfo): Boolean =
-    host.host.equals(hostInfo.host) && host.port == hostInfo.port
 
   val myExceptionHandler = ExceptionHandler {
     case ex: Exception =>
@@ -159,17 +93,28 @@ class WeblogMicroservice(streams: KafkaStreams, hostInfo: HostInfo)
       }
   }
 
+
   // define the routes
   val routes = handleExceptions(myExceptionHandler) {
     pathPrefix("weblog") {
+      (get & pathPrefix("access" / "win") & path(Segment)) { hostKey =>
+        complete {
+          windowValueFetcher.fetchWindowedAccessCountSummary(hostKey, 0, System.currentTimeMillis).map(_.asJson)
+        }
+      } ~
+      (get & pathPrefix("bytes" / "win") & path(Segment)) { hostKey =>
+        complete {
+          windowValueFetcher.fetchWindowedPayloadSizeSummary(hostKey, 0, System.currentTimeMillis).map(_.asJson)
+        }
+      } ~
       (get & pathPrefix("access") & path(Segment)) { hostKey =>
         complete {
-          fetchAccessCountSummary(hostKey).map(_.asJson)
+          keyValueFetcher.fetchAccessCountSummary(hostKey).map(_.asJson)
         }
       } ~
       (get & pathPrefix("bytes") & path(Segment)) { hostKey =>
         complete {
-          fetchPayloadSizeSummary(hostKey).map(_.asJson)
+          keyValueFetcher.fetchPayloadSizeSummary(hostKey).map(_.asJson)
         }
       }
     }
