@@ -10,7 +10,7 @@ import org.apache.kafka.common.serialization.{ Serde, Serdes }
 import org.apache.kafka.streams.kstream.{ KStreamBuilder, KStream, ValueMapper, KeyValueMapper, KTable }
 import org.apache.kafka.streams.kstream.{ Initializer, Aggregator, Predicate, TimeWindows, KGroupedStream, Windowed }
 import org.apache.kafka.streams.{ StreamsConfig, KafkaStreams, KeyValue }
-import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.streams.state.{ ReadOnlyKeyValueStore, QueryableStoreTypes, QueryableStoreType }
 import org.apache.kafka.streams.errors.InvalidStateStoreException
 import org.apache.kafka.streams.state.HostInfo
@@ -23,51 +23,6 @@ import serializers._
 import models.{ LogRecord, LogParseUtil }
 import http.WeblogMicroservice
 
-/**
- * This program streams data from a Kafka Topic (`config.fromTopic`), where records are of the following format:
- *
- * +-----------------------------------------------------------------------------------------------------------+
- * | access9.accsyst.com - - [28/Aug/1995:00:00:35 -0400] "GET /pub/robert/curr99.gif HTTP/1.0" 200 5836       |
- * | world.std.com - - [28/Aug/1995:00:00:36 -0400] "GET /pub/atomicbk/catalog/sleazbk.html HTTP/1.0" 200 18338|
- * | cssu24.cs.ust.hk - - [28/Aug/1995:00:00:36 -0400] "GET /pub/job/vk/view17.jpg HTTP/1.0" 200 5944          |
- * +-----------------------------------------------------------------------------------------------------------+
- *
- * <p/>
- *
- * It then does the following:
- *
- * 1. Parses each record and creates an instance of {@link LogRecord}, which it then persists in another Kafka
- * topic (`config.toTopic`). If there's any exception processing a record, that record goes to the error topic
- * (`config.errorTopic`).
- *
- * 2. Transforms and creates summary information into Kafka KTables. It creates 2 types of summary information:
- *
- *   A. Report summary information of the number of times each host has been accessed. The steps followed are:
- *   
- *     a. Transforms input stream into one containing the host name
- *     b. Maps on the stream to change the key to host-name, so we now have a (hostname, hostname) tuple in the stream
- *     c. Does a `groupByKey` followed by a `count` to form a `KTable` as a result of a stateful transformation
- *     d. Materializes the `KTable` into a Kafka topic
- *
- *   B. Report summary information of the hostwise payload size processed by the server. The steps followed are:
- *   
- *     a. Transforms input stream into one containing the host name and payload size
- *     b. Maps on the stream to change the key to host-name, so we now have a (hostname, payload-size) tuple in the stream
- *     c. Does a `groupByKey` followed by an `aggregate` to form a `KTable` as a result of a stateful transformation
- *     d. Materializes the `KTable` into a Kafka topic
- *
- * 3. Sets up a REST microservice that offers query for the state store ({@link WeblogMicroservice}).
- *
- * <em>How to run this application</em>
- * 
- * This is a Java application that can be run from the command line as follows:
- *
- * <pre>
- * {@code
- * java -cp ./fdp-kstream-assembly-0.1.jar com.lightbend.fdp.sample.kstream.WeblogProcessing 7070 localhost
- * }
- * </pre>
- */ 
 object WeblogProcessing extends LazyLogging with CommandLineParser with Serializers {
 
   private final val DEFAULT_REST_ENDPOINT_HOSTNAME = "localhost"
@@ -80,6 +35,8 @@ object WeblogProcessing extends LazyLogging with CommandLineParser with Serializ
 
   def main(args: Array[String]): Unit = {
     
+    var restService: WeblogMicroservice = null
+
     val cliConfig: CliConfig = 
       parseCommandLineArgs(args).getOrElse(throw new IllegalArgumentException("Invalid command line arguments specified"))
 
@@ -100,6 +57,20 @@ object WeblogProcessing extends LazyLogging with CommandLineParser with Serializ
     // set up the topology
     val streams: KafkaStreams = createStreams(config, restEndpointPort, "/tmp/kafka-streams")
 
+    // need to exit for any stream exception
+    // mesos will restart the application
+    streams.setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+      override def uncaughtException(t: Thread, e: Throwable): Unit = try {
+        logger.error(s"Stream terminated because of uncaught exception .. Shutting down app", e)
+        restService.stop()
+        streams.close()
+      } catch {
+        case _: Exception => 
+      } finally {
+        System.exit(-1)
+      }
+    })
+
     // Need to be done for running the application after resetting the state store
     // should not be done in production
     streams.cleanUp()
@@ -110,7 +81,7 @@ object WeblogProcessing extends LazyLogging with CommandLineParser with Serializ
     streams.start()
 
     // Start the Restful proxy for servicing remote access to state stores
-    val restService: WeblogMicroservice = startRestProxy(streams, restEndpoint)
+    restService = startRestProxy(streams, restEndpoint)
 
     // Add shutdown hook to respond to SIGTERM and gracefully close Kafka Streams
     Runtime.getRuntime().addShutdownHook(new Thread(() => try {
@@ -161,7 +132,7 @@ object WeblogProcessing extends LazyLogging with CommandLineParser with Serializ
 
     //
     // assumption : the topic contains serialized records of LogRecord
-    val logRecords: KStream[Array[Byte], LogRecord] = builder.stream(byteArraySerde, logRecordSerde, config.toTopic)
+    val logRecords: KStream[Array[Byte], LogRecord] = builder.stream(byteArraySerde, logRecordSerde, config.toTopic.get)
 
     hostCountSummary(logRecords, builder, config)
     totalPayloadPerHostSummary(logRecords, builder, config)
@@ -182,7 +153,7 @@ object WeblogProcessing extends LazyLogging with CommandLineParser with Serializ
 
     // push the labelled data
     val v: KStream[Array[Byte], LogRecord] = filtered(0).mapValues(simpleMapper)
-    v.to(byteArraySerde, logRecordSerde, config.toTopic)
+    v.to(byteArraySerde, logRecordSerde, config.toTopic.get)
 
     // push the extraction errors
     val i: KStream[Array[Byte], (String, String)] = filtered(1).mapValues(errorMapper)
@@ -263,12 +234,12 @@ object WeblogProcessing extends LazyLogging with CommandLineParser with Serializ
       groupedStream.count(TimeWindows.of(60000), WINDOWED_ACCESS_COUNT_PER_HOST_STORE)
  
     // materialize the summarized information into a topic
-    counts.to(stringSerde, longSerde, config.summaryAccessTopic)
-    windowedCounts.to(windowedSerde, longSerde, config.windowedSummaryAccessTopic)
+    counts.to(stringSerde, longSerde, config.summaryAccessTopic.get)
+    windowedCounts.to(windowedSerde, longSerde, config.windowedSummaryAccessTopic.get)
 
     // print the topic info (for debugging)
-    builder.stream(stringSerde, longSerde, config.summaryAccessTopic).print()
-    builder.stream(windowedSerde, longSerde, config.windowedSummaryAccessTopic).print()
+    builder.stream(stringSerde, longSerde, config.summaryAccessTopic.get).print()
+    builder.stream(windowedSerde, longSerde, config.windowedSummaryAccessTopic.get).print()
   }
 
   val hostExtractor = new ValueMapper[LogRecord, String] {
@@ -316,11 +287,11 @@ object WeblogProcessing extends LazyLogging with CommandLineParser with Serializ
      )
 
     // materialize the summarized information into a topic
-    payloadSize.to(stringSerde, longSerde, config.summaryPayloadTopic)
-    windowedPayloadSize.to(windowedSerde, longSerde, config.windowedSummaryPayloadTopic)
+    payloadSize.to(stringSerde, longSerde, config.summaryPayloadTopic.get)
+    windowedPayloadSize.to(windowedSerde, longSerde, config.windowedSummaryPayloadTopic.get)
 
     // print the topic info (for debugging)
-    builder.stream(stringSerde, longSerde, config.summaryPayloadTopic).print()
+    builder.stream(stringSerde, longSerde, config.summaryPayloadTopic.get).print()
   }
 
   val hostPayloadExtractor = new ValueMapper[LogRecord, (String, JLong)] {

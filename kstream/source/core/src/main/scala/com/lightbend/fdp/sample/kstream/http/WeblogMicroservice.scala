@@ -27,36 +27,6 @@ import com.typesafe.scalalogging.LazyLogging
 import services.{ MetadataService, HostStoreInfo, LocalStateStoreQuery }
 
 
-/**
- * A microservice that offers an http interface (through akka-http) to query Kafka Streams state store for
- * {@link WebLogProcessing}. 
- *
- * State stores in Kafka Streams are local to the instance. But in case of a distributed application where you
- * run multiple instances of the stream, states may be distributed across the cluster. In case of repartitioning,
- * states also migrate from one instance to another. So it's quite common to be in a situation when you query
- * for a specific state but find it has been migrated to other instances. 
- *
- * In Kafka Streams, metadata service provides the location of such state. This microservice allows users to
- * query for state and serves the information by transparantly collecting the relvant information from whichever
- * host / instance actually contains that information.
- *
- * <em>How to run this service</em>
- *
- * This service is started from {@link WebLogProcessing}, which is the main driver for the Kafka Streams example
- * application. Once it starts, the service can be used to query the state information. Assuming the service starts on 
- * host = localhost and port = 7070, here's how to query for the state:
- *
- * <pre>
- * {@code
- * # Get the number of times a hostname world.std.com has been accessed in the weblog
- * http://localhost:7070/weblog/access/world.std.com
- *
- * # Get the total bytes of payload transferred for hostname world.std.com as recorded in the weblog
- * http://localhost:7070/weblog/bytes/world.std.com
- * }
- * </pre>
- */
-
 class WeblogMicroservice(streams: KafkaStreams, hostInfo: HostInfo) 
   extends Directives with FailFastCirceSupport with LazyLogging {
 
@@ -84,6 +54,11 @@ class WeblogMicroservice(streams: KafkaStreams, hostInfo: HostInfo)
     new WindowValueFetcher(metadataService, localStateStoreQuery, httpRequester, 
       streams, executionContext, hostInfo)
 
+  // http layer for bloom filter based query from store interface
+  val bfValueFetcher = 
+    new BFValueFetcher(metadataService, localStateStoreQuery, httpRequester, 
+      streams, executionContext, hostInfo)
+
 
   val myExceptionHandler = ExceptionHandler {
     case ex: Exception =>
@@ -100,6 +75,11 @@ class WeblogMicroservice(streams: KafkaStreams, hostInfo: HostInfo)
       (get & pathPrefix("access" / "win") & path(Segment)) { hostKey =>
         complete {
           windowValueFetcher.fetchWindowedAccessCountSummary(hostKey, 0, System.currentTimeMillis).map(_.asJson)
+        }
+      } ~
+      (get & pathPrefix("access" / "check") & path(Segment)) { hostKey =>
+        complete {
+          bfValueFetcher.checkIfPresent(hostKey).map(_.asJson)
         }
       } ~
       (get & pathPrefix("bytes" / "win") & path(Segment)) { hostKey =>

@@ -37,7 +37,7 @@ class HttpRequester(val actorSystem: ActorSystem, val mat: ActorMaterializer,
 
   def queryFromHost[V](host: HostStoreInfo, 
     path: String)(implicit u: Unmarshaller[ResponseEntity, V]): Future[V] = {
-    logger.warn(s"Path to query $path")
+    logger.debug(s"Path to query $path host $host")
     apiRequest(RequestBuilding.Get(path), host).flatMap { response =>
       response.status match {
         case OK         => Unmarshal(response.entity).to[V]
