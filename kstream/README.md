@@ -84,7 +84,8 @@ dcos {
     zookeeper = "localhost:2181"
     zookeeper = ${?ZOOKEEPER_URL}
   }
-}```
+}
+```
 
 The input records are assumed to be of the following format:
 
