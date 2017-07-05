@@ -60,16 +60,19 @@ object TransformIntrusionData {
     val logs: KStream[Array[Byte], String] = builder.stream(config.fromTopic)
     
     // extract values after transformation
-    val extracted = logs.mapValues(extractor)
+    val extracted: KStream[Array[Byte], Extracted] = logs.mapValues(extractor)
+    // val extracted = logs.mapValues(extractor)
     
     // need to separate labelled data and errors
-    val filtered = extracted.branch(predicateLabelled, predicateErrors)
+    val filtered: Array[KStream[Array[Byte], Extracted]] = extracted.branch(predicateLabelled, predicateErrors)
 
     // push the labelled data
-    filtered(0).mapValues(simpleMapper).to(Serdes.ByteArray, new Tuple2StringSerde, config.toTopic)
-    
+    val v: KStream[Array[Byte], (String, String)] = filtered(0).mapValues(simpleMapper)
+    v.to(Serdes.ByteArray, new Tuple2StringSerde, config.toTopic)
+
     // push the extraction errors
-    filtered(1).mapValues(errorMapper).to(Serdes.ByteArray, new Tuple2StringSerde, config.errorTopic)
+    val i: KStream[Array[Byte], (String, String)] = filtered(1).mapValues(errorMapper)
+    i.to(Serdes.ByteArray, new Tuple2StringSerde, config.errorTopic)
 
     // start streaming
     val stream = new KafkaStreams(builder, streamingConfig)

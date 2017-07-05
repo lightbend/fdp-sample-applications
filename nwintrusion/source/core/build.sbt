@@ -21,7 +21,7 @@ mainClass in assembly := Some("com.lightbend.fdp.sample.TransformIntrusionData")
 val spark = "2.0.1"
 
 libraryDependencies ++= Seq(
-  "org.apache.kafka"      %   "kafka-streams"                  % "0.10.1.0",
+  "org.apache.kafka"      %   "kafka-streams"                  % "0.10.2.1",
   "com.typesafe"          %   "config"                         % "1.3.1",
   "org.typelevel"        %%   "cats"                           % "0.8.0",
   "org.apache.spark"     %%   "spark-streaming-kafka-0-10"     % spark,
