@@ -83,6 +83,20 @@ dcos {
 
     zookeeper = "localhost:2181"
     zookeeper = ${?ZOOKEEPER_URL}
+    
+    statestoredir = "/tmp/kafka-streams"
+    statestoredir = ${?STATESTOREDIR}
+  }
+  
+  # http endpoints of the weblog microservice
+  http {
+    # The port the dashboard listens on
+    port = 7070
+    port = ${?PORT_DSL}
+
+    # The interface the dashboard listens on
+    interface = "localhost"
+    interface = ${?INTERFACE_DSL}
   }
 }
 ```
@@ -128,13 +142,13 @@ This will create a `tgz` of the application package for the module in a folder `
 
 ```
 $ cd build/dsl/target/universal
-$ tar xvfz dslpackage-0.1-SNAPSHOT.tgz
+$ tar xvfz dslpackage-0.1.tgz
 ```
 
-This creates the distribution under the folder `dslpackage-0.1-SNAPSHOT`. The folder has 2 subfolders:
+This creates the distribution under the folder `dslpackage-0.1`. The folder has 2 subfolders:
 
 * `bin` containing the startup scripts
-* `conf` containing the configuration file `application.conf`, the logging configuration `logback.xml` and `application.ini` containing the command line arguments that the Java application will take
+* `conf` containing the configuration file `application.conf` and the logging configuration `logback.xml`
 * `lib` containing all the jars
 
 The configuration fies in `conf` can be customized for the deployment environment.
@@ -163,7 +177,9 @@ In order for the application to run, data need to be loaded in the input topic (
 
 As we discussed in the last section, application state is built from the summary information. This is done through continuous computation of the current state into Kafka `KTable`s through `KStream`s.
 
-The application has a microservice built using `akka-http` that publishes http end points for such queries.
+The application has a microservice built using `akka-http` that publishes http end points for such queries. 
+
+*The configuration of the http end points are driven by the `application.conf` entries `dcos.http.port` and `dcps.http.interface`. For local mode of running, the values can be something like `7070` and `localhost` respectively. However for running in the FDP DC/OS cluster, the value of `dcos.http.interface` is extracted from the environment variable `$INTERFACE_DSL` and the port number assigned is a random free port. The value of this port can be checked from the application log file.*
 
 ```
 http://localhost:7070/weblog/access/<host-key>
@@ -215,7 +231,30 @@ servers = [
 ]
 ```
 
-This file contains the parameters for both the dsl and the proc packages. We will discuss the proc package later in this document.
+This file contains the parameters for both the `dsl` and the `proc` packages. We will discuss the `proc` package later in this document.
+
+Once the `deploySsh` is complete we can run the application as a Marathon job. The project root folder contains a json file `fdp-kstream-dsl.json` that contains all the relevant settings for deployment. Here's the file contents:
+
+```json
+{
+  "id": "/kstream-app-dsl",
+  "cmd": "export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && ./dslpackage-0.1/bin/dslpackage",
+  "env": {
+    "INTERFACE_DSL": "0.0.0.0",
+    "KAFKA_BROKERS": "broker.confluent-kafka.l4lb.thisdcos.directory:9092"
+  },
+  "cpus": 1.0,
+  "mem": 8192,
+  "disk": 20480,
+  "instances": 1,
+  "fetch": [
+    { "uri": "https://downloads.mesosphere.com/java/jre-8u112-linux-x64.tar.gz" },
+    { "uri": "http://jim-lab.marathon.mesos/dslpackage-0.1.tgz" }
+  ]
+}
+```
+
+*Note the file sets the environment variables `$INTERFACE_DSL` that sets the host  of deployment for the http endpoint of the REST microservice. This variable is picked up by the configuration parameter `dcos.http.interface`. For the port number of the endpoint a random free port will be allocated. The value of this port number can be found from the application log file.*
 
 ## Kafka Streams' Procedure API based module
 
@@ -245,6 +284,20 @@ dcos {
 
     zookeeper = "localhost:2181"
     zookeeper = ${?ZOOKEEPER_URL}
+    
+    statestoredir = "/tmp/kafka-streams"
+    statestoredir = ${?STATESTOREDIR}
+  }
+  
+  # http endpoints of the weblog microservice
+  http {
+    # The port the dashboard listens on
+    port = 7071
+    port = ${?PORT}
+
+    # The interface the dashboard listens on
+    interface = "localhost"
+    interface = ${?INTERFACE}
   }
 }
 ```
@@ -277,13 +330,13 @@ This will create a `tgz` of the application package for the module in a folder `
 
 ```
 $ cd build/proc/target/universal
-$ tar xvfz procpackage-0.1-SNAPSHOT.tgz
+$ tar xvfz procpackage-0.1.tgz
 ```
 
-This creates the distribution under the folder `procpackage-0.1-SNAPSHOT`. The folder has 2 subfolders:
+This creates the distribution under the folder `procpackage-0.1`. The folder has 2 subfolders:
 
 * `bin` containing the startup scripts
-* `conf` containing the configuration file `application.conf`, the logging configuration `logback.xml` and `application.ini` containing the command line arguments that the Java application will take
+* `conf` containing the configuration file `application.conf` and the logging configuration `logback.xml`
 * `lib` containing all the jars
 
 The configuration fies in `conf` can be customized for the deployment environment.
@@ -299,3 +352,68 @@ $ bin/procpackage
 Before the application can be run, the kafka topics need to be created. 
 
 In order for the application to run, data need to be loaded in the input topic (`server-log-proc` in the above example). This can be done either through a bash script or through a data loading application in case of a Mesos DC/OS clustered application. We discuss the latter later in the document.
+
+### How to query summary information
+
+The rpocedure is exactly similar to what we discussed in the section for DSL based application. The only difference is that the environment variables for host and port endpoints of http are `$INTERFACE_PROC` and `$PORT_PROC`. 
+
+```
+http://localhost:7070/weblog/access/check/<host-key>
+```
+
+This will return `true` if the `<host-key>` is present in the store, `false`, otherwise.
+
+
+### Deploy on FDP cluster
+
+We will use [fdp-laboratory-base](https://github.com/typesafehub/fdp-laboratory.git) to deploy the application as a Marathon job on the FDP cluster. The application build uses a plugin `sbt-deploy-ssh` which does the plumbing of remote deploy. See `build.sbt` for details. Here are the steps to follow for a remote deploy of the service:
+
+```
+$ sbt
+> procPackage/deploySsh fdp-kstream-proc
+```
+This will do the deploy of the `tgz` in `/var/www/html/` of the remote server. The specifications of the remote server are given in a file `deploy.conf` which should be in the project root folder. Here's how `deploy.conf` looks like:
+
+```json
+servers = [
+ {
+  name = "fdp-kstream-dsl"
+  user = "publisher"
+  host = "52.173.78.24"
+  port = 9022
+  sshKeyFile = "dg-test-fdp.pem"
+ },
+ {
+  name = "fdp-kstream-proc"
+  user = "publisher"
+  host = "52.173.78.24"
+  port = 9022
+  sshKeyFile = "dg-test-fdp.pem"
+ }
+]
+```
+
+This file contains the parameters for both the `dsl` and the `proc` packages. 
+
+Once the `deploySsh` is complete we can run the application as a Marathon job. The project root folder contains a json file `fdp-kstream-proc.json` that contains all the relevant settings for deployment. Here's the file contents:
+
+```json
+{
+  "id": "/kstream-app-proc",
+  "cmd": "export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && ./dslpackage-0.1/bin/procpackage",
+  "env": {
+    "INTERFACE_PROC": "0.0.0.0",
+    "KAFKA_BROKERS": "broker.confluent-kafka.l4lb.thisdcos.directory:9092"
+  },
+  "cpus": 1.0,
+  "mem": 8192,
+  "disk": 20480,
+  "instances": 1,
+  "fetch": [
+    { "uri": "https://downloads.mesosphere.com/java/jre-8u112-linux-x64.tar.gz" },
+    { "uri": "http://jim-lab.marathon.mesos/procpackage-0.1.tgz" }
+  ]
+}
+```
+
+*Note the file sets the environment variables `$INTERFACE_PROC` that sets the host  of deployment for the http endpoint of the REST microservice. This variable is picked up by the configuration parameter `dcos.http.interface`. For the port number of the endpoint a random free port will be allocated. The value of this port number can be found from the application log file.*

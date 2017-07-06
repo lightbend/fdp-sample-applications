@@ -23,10 +23,16 @@ object KStreamConfig {
     summaryAccessTopic: Option[String], 
     windowedSummaryAccessTopic: Option[String], 
     summaryPayloadTopic: Option[String], 
-    windowedSummaryPayloadTopic: Option[String] 
+    windowedSummaryPayloadTopic: Option[String],
+    stateStoreDir: String
   )
 
-  case class ConfigData(ks: KafkaSettings) {
+  private[KStreamConfig] case class HttpSettings(
+    interface: String,
+    port: Int
+  )
+
+  case class ConfigData(ks: KafkaSettings, hs: HttpSettings) {
     def brokers = ks.brokers
     def zk = ks.zk
     def fromTopic = ks.fromTopic
@@ -36,6 +42,9 @@ object KStreamConfig {
     def summaryPayloadTopic = ks.summaryPayloadTopic
     def windowedSummaryPayloadTopic = ks.windowedSummaryPayloadTopic
     def errorTopic = ks.errorTopic
+    def stateStoreDir = ks.stateStoreDir
+    def httpInterface = hs.interface
+    def httpPort = hs.port
   }
 
   type ConfigReader[A] = ReaderT[Try, Config, A]
@@ -57,13 +66,24 @@ object KStreamConfig {
         getStringMaybe(config, "dcos.kafka.summaryaccesstopic"),
         getStringMaybe(config, "dcos.kafka.windowedsummaryaccesstopic"),
         getStringMaybe(config, "dcos.kafka.summarypayloadtopic"),
-        getStringMaybe(config, "dcos.kafka.windowedsummarypayloadtopic")
+        getStringMaybe(config, "dcos.kafka.windowedsummarypayloadtopic"),
+        config.getString("dcos.kafka.statestoredir")
+      )
+    }
+  }
+
+  private def fromHttpConfig: ConfigReader[HttpSettings] = Kleisli { (config: Config) =>
+    Try {
+      HttpSettings(
+        config.getString("dcos.http.interface"),
+        config.getInt("dcos.http.port")
       )
     }
   }
 
   def fromConfig: ConfigReader[ConfigData] = for {
     k <- fromKafkaConfig
-  } yield ConfigData(k)
+    h <- fromHttpConfig
+  } yield ConfigData(k, h)
 }
 

@@ -14,19 +14,18 @@ val logbackVersion = "1.2.3"
 val akkaVersion = "2.5.3"
 val akkaHttpVersion = "10.0.8"
 val akkaHttpCirceVersion = "1.17.0"
-val scoptVersion = "3.5.0"
 val algebirdVersion = "0.13.0"
 val chillVersion = "0.9.2"
 
 val scalaVer = "2.12.2"
 
-name := "fdp-kstream"
+name in ThisBuild := "fdp-kstream"
 
-organization := "lightbend"
+organization in ThisBuild := "lightbend"
 
-version := "0.1"
+version in ThisBuild := "0.1"
 
-scalaVersion := scalaVer
+scalaVersion in ThisBuild := scalaVer
 
 enablePlugins(JavaAppPackaging)
 enablePlugins(DeploySSH)
@@ -42,7 +41,6 @@ lazy val app = project
       "org.apache.kafka"              % "kafka-streams"        % kafkaVersion,
       "com.typesafe"                  % "config"               % configVersion,
       "com.typesafe.scala-logging"   %% "scala-logging"        % scalaLoggingVersion,
-      "com.github.scopt"             %% "scopt"                % scoptVersion,
       "org.typelevel"                %% "cats"                 % catsVersion,
       "io.circe"                     %% "circe-core"           % circeVersion,
       "io.circe"                     %% "circe-generic"        % circeVersion,
@@ -106,7 +104,8 @@ lazy val app = project
     assemblyMergeStrategy in assembly := {
       case PathList("application_proc.conf") => MergeStrategy.discard
       case PathList("application_dsl.conf") => MergeStrategy.discard
-      case PathList("logback.xml") => MergeStrategy.discard
+      case PathList("logback-dsl.xml") => MergeStrategy.discard
+      case PathList("logback-proc.xml") => MergeStrategy.discard
       case PathList("META-INF", "MANIFEST.MF") => MergeStrategy.discard
       case PathList("META-INF", xs @ _*) => MergeStrategy.last
       case PathList("META-INF", "io.netty.versions.properties") => MergeStrategy.last
@@ -126,15 +125,11 @@ lazy val dslPackage = project
     resourceDirectory in Compile := (resourceDirectory in (app, Compile)).value,
     mappings in Universal ++= {
       Seq(((resourceDirectory in Compile).value / "application_dsl.conf") -> "conf/application.conf") ++
-      Seq(((resourceDirectory in Compile).value / "logback.xml") -> "conf/logback.xml")
+      Seq(((resourceDirectory in Compile).value / "logback-dsl.xml") -> "conf/logback.xml")
     },
     deployResourceConfigFiles ++= Seq("deploy.conf"),
     deployArtifacts ++= Seq(
       ArtifactSSH((packageZipTarball in Universal).value, "/var/www/html/")
-    ),
-    javaOptions in Universal ++= Seq(
-      "--port=7070",
-      "--host=localhost"
     ),
     scriptClasspath := Seq("../conf/") ++ scriptClasspath.value,
     mainClass in Compile := Some("com.lightbend.fdp.sample.kstream.WeblogProcessing")
@@ -151,15 +146,11 @@ lazy val procPackage = project
     resourceDirectory in Compile := (resourceDirectory in (app, Compile)).value,
     mappings in Universal ++= {
       Seq(((resourceDirectory in Compile).value / "application_proc.conf") -> "conf/application.conf") ++
-      Seq(((resourceDirectory in Compile).value / "logback.xml") -> "conf/logback.xml")
+      Seq(((resourceDirectory in Compile).value / "logback-proc.xml") -> "conf/logback.xml")
     },
     deployResourceConfigFiles ++= Seq("deploy.conf"),
     deployArtifacts ++= Seq(
       ArtifactSSH((packageZipTarball in Universal).value, "/var/www/html/")
-    ),
-    javaOptions in Universal ++= Seq(
-      "--port=7071",
-      "--host=localhost"
     ),
     scriptClasspath := Seq("../conf/") ++ scriptClasspath.value,
     mainClass in Compile := Some("com.lightbend.fdp.sample.kstream.processor.WeblogDriver")
