@@ -19,18 +19,13 @@ import serializers.Serializers
 import config.KStreamConfig._
 import http.WeblogMicroservice
 
-object WeblogDriver extends LazyLogging with Serializers with CommandLineParser {
+object WeblogDriver extends LazyLogging with Serializers {
 
-  private final val DEFAULT_REST_ENDPOINT_HOSTNAME = "localhost"
-  private final val DEFAULT_BOOTSTRAP_SERVERS = "localhost:9092"
   final val LOG_COUNT_STATE_STORE = "log-counts"
 
   def main(args: Array[String]): Unit = {
 
     var restService: WeblogMicroservice = null
-
-    val cliConfig: CliConfig = 
-      parseCommandLineArgs(args).getOrElse(throw new IllegalArgumentException("Invalid command line arguments specified"))
 
     // get config info
     val config: ConfigData = fromConfig(ConfigFactory.load()) match {
@@ -39,14 +34,14 @@ object WeblogDriver extends LazyLogging with Serializers with CommandLineParser 
     }
 
     // setup REST endpoints
-    val restEndpointPort = cliConfig.port
-    val restEndpointHostName = cliConfig.host.getOrElse(DEFAULT_REST_ENDPOINT_HOSTNAME)
+    val restEndpointPort = config.httpPort
+    val restEndpointHostName = config.httpInterface
     val restEndpoint = new HostInfo(restEndpointHostName, restEndpointPort)
 
     logger.info("Connecting to Kafka cluster via bootstrap servers " + config.brokers)
     logger.info("REST endpoint at http://" + restEndpointHostName + ":" + restEndpointPort)
 
-    val streams = createStreams(config, restEndpointPort, "/tmp/kafka-streams")
+    val streams = createStreams(config)
 
     // need to exit for any stream exception
     // mesos will restart the application
@@ -89,7 +84,7 @@ object WeblogDriver extends LazyLogging with Serializers with CommandLineParser 
     restService
   }
   
-  def createStreams(config: ConfigData, applicationServerPort: Int, stateStoreDir: String): KafkaStreams = {
+  def createStreams(config: ConfigData): KafkaStreams = {
     val changelogConfig = {
       val cfg = new java.util.HashMap[String, String]
       val segmentSizeBytes = (20 * 1024 * 1024).toString
@@ -111,10 +106,10 @@ object WeblogDriver extends LazyLogging with Serializers with CommandLineParser 
       settings.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
       // need this for query service
-      settings.put(StreamsConfig.APPLICATION_SERVER_CONFIG, "localhost:" + applicationServerPort);
+      settings.put(StreamsConfig.APPLICATION_SERVER_CONFIG, s"${config.httpInterface}:${config.httpPort}")
 
       // default is /tmp/kafka-streams
-      settings.put(StreamsConfig.STATE_DIR_CONFIG, stateStoreDir)
+      settings.put(StreamsConfig.STATE_DIR_CONFIG, config.stateStoreDir)
 
       // Set the commit interval to 500ms so that any changes are flushed frequently and the summary
       // data are updated with low latency.
@@ -127,7 +122,6 @@ object WeblogDriver extends LazyLogging with Serializers with CommandLineParser 
     builder.addSource("Source", config.fromTopic)
            .addProcessor("Process", WeblogProcessorSupplier, "Source")
            .addStateStore(new BFStoreSupplier[String](LOG_COUNT_STATE_STORE, stringSerde, true, changelogConfig), "Process")
-           .addSink("Sink", "weblog-count-topic", "Process")
 
     new KafkaStreams(builder, streamingConfig)
   }
