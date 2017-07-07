@@ -6,6 +6,9 @@ import java.io.{ StringWriter, PrintWriter }
 import java.util.{ Properties, Locale }
 import java.lang.{ Long => JLong }
 
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
+
 import org.apache.kafka.common.serialization.{ Serde, Serdes }
 import org.apache.kafka.streams.kstream.{ KStreamBuilder, KStream, ValueMapper, KeyValueMapper, KTable }
 import org.apache.kafka.streams.kstream.{ Initializer, Aggregator, Predicate, TimeWindows, KGroupedStream, Windowed }
@@ -15,13 +18,17 @@ import org.apache.kafka.streams.state.{ ReadOnlyKeyValueStore, QueryableStoreTyp
 import org.apache.kafka.streams.errors.InvalidStateStoreException
 import org.apache.kafka.streams.state.HostInfo
 
+import java.util.concurrent.Executors
+
+import scala.concurrent.ExecutionContext
 import scala.util.{ Success, Failure }
 import com.typesafe.scalalogging.LazyLogging
 
 import config.KStreamConfig._
 import serializers._
 import models.{ LogRecord, LogParseUtil }
-import http.WeblogMicroservice
+import http.{ WeblogDSLHttpService, HttpRequester, KeyValueFetcher, WindowValueFetcher }
+import services.{ MetadataService, LocalStateStoreQuery }
 
 object WeblogProcessing extends LazyLogging with Serializers {
 
@@ -32,7 +39,7 @@ object WeblogProcessing extends LazyLogging with Serializers {
 
   def main(args: Array[String]): Unit = {
     
-    var restService: WeblogMicroservice = null
+    var restService: WeblogDSLHttpService = null
 
     // get config info
     val config: ConfigData = fromConfig(ConfigFactory.load()) match {
@@ -86,8 +93,36 @@ object WeblogProcessing extends LazyLogging with Serializers {
     }))
   }  
 
-  def startRestProxy(streams: KafkaStreams, hostInfo: HostInfo): WeblogMicroservice = {
-    val restService = new WeblogMicroservice(streams, hostInfo)
+  def startRestProxy(streams: KafkaStreams, hostInfo: HostInfo): WeblogDSLHttpService = {
+
+    implicit val system = ActorSystem()
+    val materializer = ActorMaterializer()
+
+    lazy val defaultParallelism: Int = {
+      val rt = Runtime.getRuntime()
+      rt.availableProcessors() * 4
+    }
+
+    def defaultExecutionContext(parallelism: Int = defaultParallelism): ExecutionContext = 
+      ExecutionContext.fromExecutor(Executors.newFixedThreadPool(parallelism))
+    
+    val executionContext = defaultExecutionContext()
+
+    // service for fetching metadata information
+    val metadataService = new MetadataService(streams)
+  
+    // service for fetching from local state store
+    val localStateStoreQuery = new LocalStateStoreQuery[String, Long]
+  
+    // http service for request handling
+    val httpRequester = new HttpRequester(system, materializer, executionContext)
+  
+    val restService = new WeblogDSLHttpService(
+      hostInfo, 
+      new KeyValueFetcher(metadataService, localStateStoreQuery, httpRequester, streams, executionContext, hostInfo),
+      new WindowValueFetcher(metadataService, localStateStoreQuery, httpRequester, streams, executionContext, hostInfo),
+      system, materializer, executionContext
+    )
     restService.start()
     restService
   }

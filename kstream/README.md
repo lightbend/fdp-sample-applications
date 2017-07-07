@@ -50,7 +50,7 @@ In this application we develop an http based service that queries all *necessary
 
 The driver program is the object `WeblogProcessing` that is a plain Scala application with a `main` function. This program assumes that data will be available for streaming in the Kafka topic specified by `dcos.kafka.fromtopic`. The full config of the application consists of the following key/value pairs:
 
-```json
+```
 dcos {
 
   kafka {
@@ -126,7 +126,7 @@ topic (`dcos.kafka.totopic`). If there's any exception processing a record, that
        * Maps on the stream to change the key to host-name, so we now have a (hostname, payload-size) tuple in the stream
        * Does a `groupByKey` followed by an `aggregate` to form a `KTable` as a result of a stateful transformation
        * Materializes the `KTable` into a Kafka topic
-4. Sets up a REST microservice that offers query for the state store `WeblogMicroservice`.
+4. Sets up a REST microservice that offers query for the state store `WeblogDSLHttpService`.
 
 
 ### How to package and run the driver application
@@ -212,7 +212,7 @@ $ sbt
 ```
 This will do the deploy of the `tgz` in `/var/www/html/` of the remote server. The specifications of the remote server are given in a file `deploy.conf` which should be in the project root folder. Here's how `deploy.conf` looks like:
 
-```json
+```
 servers = [
  {
   name = "fdp-kstream-dsl"
@@ -374,7 +374,7 @@ $ sbt
 ```
 This will do the deploy of the `tgz` in `/var/www/html/` of the remote server. The specifications of the remote server are given in a file `deploy.conf` which should be in the project root folder. Here's how `deploy.conf` looks like:
 
-```json
+```
 servers = [
  {
   name = "fdp-kstream-dsl"
