@@ -5,11 +5,11 @@ SCRIPT=`basename ${BASH_SOURCE[0]}`
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 
 . "$DIR/../../bin/common.sh"
+. "$DIR/../version.sh"
 
 # You could override these definitions with environment variables.
 : ${S3_BUCKET:="fdp-sample-bigdl-vgg"}
-: ${JAR:="bigdlsample-assembly-0.0.1.jar"}
-: ${BIGDL_JAR:="bigdl-0.1.0-SNAPSHOT-jar-with-dependencies.jar"}
+: ${JAR:="bigdlsample-assembly-$APP_VERSION.jar"}
 : ${AWS_ENV_FILE:=$HOME/.ssh/aws.sh}
 
 # Used by show_help
@@ -50,21 +50,8 @@ function upload_app_jar {
   echo "Building jar..."
   $NOEXEC sbt clean clean-files
 
-  # check if unmanaged dependency exists - the BigDL jar
-  # if not then download the jar from S3
-
-  if [ ! -d "$DIR/lib" ]; then
-    echo "$DIR/lib" does not exist .. creating
-    $NOEXEC mkdir "$DIR/lib"
-  fi
-
-  if [ ! -f "$DIR/lib/bigdl-0.1.0-SNAPSHOT-jar-with-dependencies.jar" ]; then
-    echo BigDL jar does not exist .. Downloading from S3
-    # It's actually staged in the region shown:
-    $NOEXEC aws s3 cp "s3://$S3_BUCKET/$BIGDL_JAR" "$DIR/lib" --region "ap-south-1"
-  fi
-
   $NOEXEC sbt assembly
+
   echo "Uploading jar $JAR to S3 bucket $S3_BUCKET..."
   $NOEXEC aws s3 cp "$DIR/target/scala-2.11/$JAR" "s3://$S3_BUCKET/$JAR" --acl public-read --region "$AWS_DEFAULT_REGION"
 }
