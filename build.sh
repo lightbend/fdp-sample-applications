@@ -9,5 +9,3 @@ echo ${HERE}
 ${HERE}/nwintrusion/build.sh
 
 ${HERE}/flink/build.sh
-
-${HERE}/kstream/build.sh
