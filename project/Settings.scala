@@ -18,10 +18,9 @@ import scala.language.postfixOps
 
 import sbt._
 import sbt.Keys._
-import net.virtualvoid.sbt.graph.Plugin.graphSettings
-import com.scalapenos.sbt.prompt.SbtPrompt.autoImport._
 
 object Settings extends Build {
+
 
   lazy val buildSettings = Seq(
     name := "KillrWeather",
@@ -30,8 +29,7 @@ object Settings extends Build {
     organizationHomepage := Some(url("http://www.github.com/killrweather/killrweather")),
     scalaVersion := Versions.Scala,
     homepage := Some(url("https://github.com/killrweather/killrweather")),
-    licenses := Seq(("Apache License, Version 2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))),
-    promptTheme := ScalapenosTheme
+    licenses := Seq(("Apache License, Version 2.0", url("http://www.apache.org/licenses/LICENSE-2.0")))
   )
 
   override lazy val settings = super.settings ++ buildSettings
@@ -41,7 +39,7 @@ object Settings extends Build {
     publish := {}
   )
 
-  lazy val defaultSettings = testSettings ++ graphSettings ++ sigarSettings ++ Seq(
+  lazy val defaultSettings = testSettings ++ sigarSettings ++ Seq(
     autoCompilerPlugins := true,
     // removed "-Xfatal-warnings" as temporary workaround for log4j fatal error.
     scalacOptions ++= Seq("-encoding", "UTF-8", s"-target:jvm-${Versions.JDK}", "-feature", "-language:_", "-deprecation", "-unchecked", "-Xlint"),
@@ -49,10 +47,7 @@ object Settings extends Build {
     run in Compile <<= Defaults.runTask(fullClasspath in Compile, mainClass in (Compile, run), runner in (Compile, run)),
     ivyLoggingLevel in ThisBuild := UpdateLogging.Quiet,
     parallelExecution in ThisBuild := false,
-    parallelExecution in Global := false/*,
-    ivyXML := <dependencies>
-      <exclude org="org.slf4j" module="slf4j-log4j12"/>
-    </dependencies>*/
+    parallelExecution in Global := false
   )
 
   val tests = inConfig(Test)(Defaults.testTasks) ++ inConfig(IntegrationTest)(Defaults.itSettings)

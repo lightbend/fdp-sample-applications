@@ -1,13 +1,12 @@
 # KillrWeather
 
-KillrWeather is a reference application (which we are constantly improving) showing how to easily leverage and integrate [Apache Spark](http://spark.apache.org),
-[Apache Cassandra](http://cassandra.apache.org), and [Apache Kafka](http://kafka.apache.org) for fast, streaming computations in asynchronous [Akka](http://akka.io) event-driven environments. This application focuses on the use case of  **[time series data](https://github.com/killrweather/killrweather/wiki/4.-Time-Series-Data-Model)**.  
+KillrWeather is a reference application (which is adopted from Datastax's https://github.com/killrweather/killrweather) showing how to easily leverage and integrate [Apache Spark](http://spark.apache.org),
+[Apache Cassandra](http://cassandra.apache.org), and [Apache Kafka](http://kafka.apache.org) for fast, streaming computations in asynchronous. This application focuses on the use case of  **[time series data](https://github.com/killrweather/killrweather/wiki/4.-Time-Series-Data-Model)**.
+This application also can be viewed as a prototypical IoT (or sensors) data collection and storing data in the form of time series 
   
 ## Sample Use Case
 I need fast access to historical data  on the fly for  predictive modeling  with real time data from the stream. 
-
-## Basic Samples
-[Basic Spark, Kafka, Cassandra Samples](https://github.com/killrweather/killrweather/tree/master/killrweather-examples/src/main/scala/com/datastax/killrweather)
+The application does not quite do that, it stops at capturing real-time and cummulative information.
 
 ## Reference Application 
 [KillrWeather Main App](https://github.com/killrweather/killrweather/tree/master/killrweather-app/src/main/scala/com/datastax/killrweather)
@@ -22,11 +21,6 @@ There are many flavors of time series data. Some can be windowed in the stream, 
 ## Start Here
 * [KillrWeather Wiki](https://github.com/killrweather/killrweather/wiki) 
 * com.datastax.killrweather [Spark, Kafka and Cassandra workers](http://github.com/killrweather/killrweather/tree/master/killrweather-app/src/it/scala/com/datastax/killrweather)
-
-### Clone the repo
-
-    git clone https://github.com/killrweather/killrweather.git
-    cd killrweather
 
 
 ### Build the code 
@@ -57,12 +51,15 @@ On the command line start a cqlsh shell:
 
 2. Chose to run the Cassandra automatically during start-up
 
+3. Download the latest version of CQLSH (use PIP)
+
 3. Run the setup cql scripts to create the schema and populate the weather stations table.
 On the command line start a `cqlsh` shell:
 
 ```
     cd c:/path/to/killrweather
     c:/pat/to/cassandara/bin/cqlsh
+    [cassandra-dir]/bin/cqlsh
 ```
 
 ### In CQL Shell:
@@ -78,6 +75,20 @@ Run the scripts, then keep the cql shell open querying once the apps are running
      cqlsh> source 'create-timeseries.cql';
      cqlsh> source 'load-timeseries.cql';
 
+Verify the keyspace was added:
+
+     describe keyspaces;
+
+Switch active keyspace context:
+
+     use isd_weather_data ;
+List out all tables installed:
+
+     describe tables;
+     
+Weather stations table should be populated
+     
+     select * from weather_station limit 5;
 
 ### Run
 #### Logging
@@ -98,64 +109,41 @@ To change any package log levels and see more activity, simply modify
     cd /path/to/killrweather
     sbt app/run
 
-As the `KillrWeather` app initializes, you will see Akka Cluster start, Zookeeper and the Kafka servers start.
+As the `KillrWeather` app initializes, you will see Spark Cluster start, Zookeeper and the Kafka servers start (Application is packaged with in process Kafka, but it can work with external Kafka as well).
 
-For all three apps in load-time you see the Akka Cluster node join and start metrics collection. In deployment with multiple nodes of each app
-this would leverage the health of each node for load balancing as the rest of the cluster nodes join the cluster:
 
 2.Start the Kafka data feed app
 In a second shell run:
 
     sbt clients/run
 
-You should see:
-
-    Multiple main classes detected, select one to run:
-
-    [1] com.datastax.killrweather.KafkaDataIngestionApp
-    [2] com.datastax.killrweather.KillrWeatherClientApp
-
-Select `KafkaDataIngestionApp`, and watch the shells for activity. You can stop the data feed or let it keep running.
 After a few seconds you should see data by entering this in the cqlsh shell:
 
     cqlsh> select * from isd_weather_data.raw_weather_data;
+    cqlsh> select * from daily_aggregate_temperature;
+    cqlsh> select * from daily_aggregate_precip;
+    
 
-This confirms that data from the ingestion app has published to Kafka, and that raw data is
-streaming from Spark to Cassandra from the `KillrWeatherApp`.
+This confirms that data from the ingestion app has published to Kafka, and that both raw and cummulative data is
+streaming from Spark to Cassandra from the `KillrWeather` app.
 
-    cqlsh> select * from isd_weather_data.daily_aggregate_precip;
+Current implementation only populate daily aggregates. In addition to this, monthly and yearly aggregates can be added 
+in a similar fashion
 
-Unfortunately the precips are mostly 0 in the samples (To Do).
+To clean up data in Cassandra, type:
 
-3.Open a third shell and again enter this but select `KillrWeatherClientApp`:
-
-    sbt clients/run
-This api client runs queries against the raw and the aggregated data from the kafka stream.
-It sends requests (for varying locations and dates/times) and for some, triggers further aggregations
-in compute time which are also saved to Cassandra:
-
-* current weather
-* daily temperatures
-* monthly temperatures
-* monthly highs and low temperatures
-* daily precipitations
-* top-k precipitation
-
-Next I will add some forecasting with ML :)
-
-Watch the app and client activity in request response of weather data and aggregation data.
-Because the querying of the API triggers even further aggregation of data from the originally
-aggregated daily roll ups, you can now see a new tier of temperature and precipitation aggregation:
-In the cql shell:
-
-    cqlsh> select * from isd_weather_data.daily_aggregate_temperature;
-    cqlsh> select * from isd_weather_data.daily_aggregate_precip;
-
-#### From an IDE
-1. Run the app [com.datastax.killrweather.KillrWeatherApp](https://github.com/killrweather/killrweather/blob/master/killrweather-app/src/main/scala/com/datastax/killrweather/KillrWeatherApp.scala)
-2. Run the kafka data ingestion server [com.datastax.killrweather.KafkaDataIngestionApp](https://github.com/killrweather/killrweather/blob/master/killrweather-clients/src/main/scala/com/datastax/killrweather/KafkaDataIngestionApp.scala)
-3. Run the API client [com.datastax.killrweather.KillrWeatherClientApp](https://github.com/killrweather/killrweather/blob/master/killrweather-clients/src/main/scala/com/datastax/killrweather/KillrWeatherClientApp.scala)
+    cqlsh> DROP KEYSPACE isd_weather_data;
 
 To close the cql shell:
 
     cqlsh> quit;
+
+## Future development
+
+The obvious future developments for this applications:
+1. Current implementation KafkaDataIngester reads data from file and publish to Kafka. A more realistic implementation should be 
+HTTP listener, recieving REST messages and writing them to Kafka
+2. Current implementation includes only daily cummulative data. Both monthly and yearly aggregates can be added to the existing application, 
+following the approach implemented here (THe underlying approach here relies on information coming in order. For hourly observations this is quite realistic).
+3. Current implementation concentrates on ingestion. Additional data processing can be implemented, based on the data collected to Cassandra.
+Current support for [Cassandra in Zeppelin](https://zeppelin.apache.org/docs/0.7.0/interpreter/cassandra.html) makes Zeppelin a great choice for such implementation
