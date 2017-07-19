@@ -143,6 +143,12 @@ To close the cql shell:
 The obvious future developments for this applications:
 1. Current implementation KafkaDataIngester reads data from file and publish to Kafka. A more realistic implementation should be 
 HTTP listener, recieving REST messages and writing them to Kafka
+A request to such client will look like
+
+
+    curl -v -H "Content-Type: application/json" POST http://localhost:5000/weather 
+    -d'{"wsid": "wsid", "year": 2008, "month":1, "day": 15, "hour": 3, "temperature": 15, "dewpoint": 10, "pressure": 10, "windDirection": 1, "windSpeed": 2, "skyCondition": 3, "skyConditionText": "blue", "oneHourPrecip": 1.0, "sixHourPrecip": 1.0}'
+
 2. Current implementation includes only daily cummulative data. Both monthly and yearly aggregates can be added to the existing application, 
 following the approach implemented here (THe underlying approach here relies on information coming in order. For hourly observations this is quite realistic).
 3. Current implementation concentrates on ingestion. Additional data processing can be implemented, based on the data collected to Cassandra.

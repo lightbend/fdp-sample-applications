@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+option java_package = "com.lightbend.killrweather";
+
+// Description of the wine.
+message WeatherRecord {
+    string wsid = 1;
+    int32 year = 2;
+    int32 month =3;
+    int32 day = 4;
+    int32 hour = 5;
+    double temperature = 7;
+    double dewpoint = 8;
+    double pressure = 9;
+    int32 windDirection = 10;
+    double windSpeed = 11;
+    int32 skyCondition = 12;
+    string skyConditionText = 13;
+    double oneHourPrecip = 14;
+    double sixHourPrecip = 15;
+}

@@ -4,12 +4,13 @@ import com.lightbend.killrweather.kafka.{EmbeddedSingleNodeKafkaCluster, Message
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming.{Seconds, State, StateSpec, StreamingContext}
 import com.lightbend.killrweather.settings.WeatherSettings
-import org.apache.kafka.common.serialization.StringDeserializer
+import org.apache.kafka.common.serialization.ByteArrayDeserializer
 import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
 import org.apache.spark.streaming.kafka010.KafkaUtils
 import org.apache.spark.streaming.kafka010.LocationStrategies.PreferConsistent
-import com.lightbend.killrweather.utils.Weather
 import com.datastax.spark.connector.streaming._
+import com.lightbend.killrweather.Record.WeatherRecord
+import com.lightbend.killrweather.utils._
 import org.apache.spark.util.StatCounter
 
 import scala.collection.mutable.ListBuffer
@@ -24,8 +25,7 @@ object KillrWeather {
     val settings = new WeatherSettings()
 
     import settings._
-    import Weather._
-    // Create embedded Kafka and topic
+     // Create embedded Kafka and topic
     EmbeddedSingleNodeKafkaCluster.start()
     EmbeddedSingleNodeKafkaCluster.createTopic(KafkaTopicRaw)
 //    val brokers = "localhost:9092"
@@ -43,25 +43,28 @@ object KillrWeather {
 
     // Create raw data observations stream
     val kafkaParams = MessageListener.consumerProperties(brokers,
-            KafkaGroupId, classOf[StringDeserializer].getName, classOf[StringDeserializer].getName)
+            KafkaGroupId, classOf[ByteArrayDeserializer].getName, classOf[ByteArrayDeserializer].getName)
     val topics = List(KafkaTopicRaw)
 
-    // Initial state RDD for current models
-    val dailyRDD = ssc.sparkContext.emptyRDD[(String, ListBuffer[RawWeatherData])]
+    // Initial state RDD for daily accumulator
+    val dailyRDD = ssc.sparkContext.emptyRDD[(String, ListBuffer[WeatherRecord])]
 
-    val kafkaDataStream = KafkaUtils.createDirectStream[String, String](
-      ssc, PreferConsistent, Subscribe[String, String] (topics,kafkaParams))
+    // Initial state RDD for monthly accumulator
+    val monthlyRDD = ssc.sparkContext.emptyRDD[(String, ListBuffer[DailyWeatherDataProcess])]
 
-    val kafkaStream = kafkaDataStream.map(_.value().split(",")).map(RawWeatherData(_))
+    val kafkaDataStream = KafkaUtils.createDirectStream[Array[Byte], Array[Byte]](
+      ssc, PreferConsistent, Subscribe[Array[Byte], Array[Byte]] (topics,kafkaParams))
+
+    val kafkaStream = kafkaDataStream.map(r => WeatherRecord.parseFrom(r.value()))
 
     /** Saves the raw data to Cassandra - raw table. */
     kafkaStream.saveToCassandra(CassandraKeyspace, CassandraTableRaw)
 
     // Calculate daily
-    val dailyMappingFunc = (station: String, reading: Option[RawWeatherData], state: State[ListBuffer[RawWeatherData]]) => {
-      val current = state.getOption().getOrElse(new ListBuffer[RawWeatherData])
+    val dailyMappingFunc = (station: String, reading: Option[WeatherRecord], state: State[ListBuffer[WeatherRecord]]) => {
+      val current = state.getOption().getOrElse(new ListBuffer[WeatherRecord])
       var daily : Option[(String,DailyWeatherData)] = None
-      val last = current.lastOption.getOrElse(null.asInstanceOf[RawWeatherData])
+      val last = current.lastOption.getOrElse(null.asInstanceOf[WeatherRecord])
       reading match {
         case Some(weather) => {
           current match {
@@ -69,8 +72,13 @@ object KillrWeather {
               // The day has changed
               val dailyPrecip = sequence.foldLeft(.0) (_ + _.oneHourPrecip)
               val tempAggregate = StatCounter(sequence.map(_.temperature))
-              daily = Some(last.wsid, DailyWeatherData(last.wsid, last.year, last.month, last.day, tempAggregate.max,
-                tempAggregate.min, tempAggregate.mean, tempAggregate.stdev, tempAggregate.variance, dailyPrecip))
+              val windAggregate = StatCounter(sequence.map(_.windSpeed))
+              val pressureAggregate = StatCounter(sequence.map(_.pressure).filter(_ > 1.0))    // remove 0 elements
+              daily = Some(last.wsid, DailyWeatherData(last.wsid, last.year, last.month, last.day,
+                tempAggregate.max, tempAggregate.min, tempAggregate.mean, tempAggregate.stdev, tempAggregate.variance,
+                windAggregate.max, windAggregate.min, windAggregate.mean, windAggregate.stdev, windAggregate.variance,
+                pressureAggregate.max, pressureAggregate.min, pressureAggregate.mean, pressureAggregate.stdev, pressureAggregate.variance,
+                dailyPrecip))
               current.clear()
             }
             case _ =>
@@ -91,13 +99,62 @@ object KillrWeather {
     dailyStream.print()
 
     // Save daily temperature
-    dailyStream.map(ds => (ds._2.wsid, ds._2.year, ds._2.month, ds._2.day, ds._2.high, ds._2.low, ds._2.mean, ds._2.stdev,
-      ds._2.variance)).saveToCassandra(CassandraKeyspace, CassandraTableDailyTemp)
+    dailyStream.map(ds => DailyTemperature(ds._2)).saveToCassandra(CassandraKeyspace, CassandraTableDailyTemp)
 
+    // Save daily wind
+    dailyStream.map(ds => DailyWindSpeed(ds._2)).saveToCassandra(CassandraKeyspace, CassandraTableDailyWind)
 
-    // Save daily presips
-    dailyStream.map(ds => (ds._2.wsid, ds._2.year, ds._2.month, ds._2.day, ds._2.precip)).
-      saveToCassandra(CassandraKeyspace, CassandraTableDailyPrecip)
+    // Save daily pressure
+    dailyStream.map(ds => DailyPressure(ds._2)).saveToCassandra(CassandraKeyspace, CassandraTableDailyPressure)
+
+    // Save daily presipitations
+    dailyStream.map(ds => DailyPrecipitation(ds._2)).saveToCassandra(CassandraKeyspace, CassandraTableDailyPrecip)
+
+    // Calculate daily
+    val monthlyMappingFunc = (station: String, reading: Option[DailyWeatherDataProcess], state: State[ListBuffer[DailyWeatherDataProcess]]) => {
+      val current = state.getOption().getOrElse(new ListBuffer[DailyWeatherDataProcess])
+      var monthly: Option[(String, MonthlyWeatherData)] = None
+      val last = current.lastOption.getOrElse(null.asInstanceOf[DailyWeatherDataProcess])
+      reading match {
+        case Some(weather) => {
+          current match {
+            case sequence if ((sequence.size > 0) && (weather.month != last.month)) => {
+              // The day has changed
+              val tempAggregate = StatCounter(sequence.map(_.temp))
+              val windAggregate = StatCounter(sequence.map(_.wind))
+              val pressureAggregate = StatCounter(sequence.map(_.pressure))
+              val presipAggregate = StatCounter(sequence.map(_.precip))
+              monthly = Some(last.wsid, MonthlyWeatherData(last.wsid, last.year, last.month,
+                tempAggregate.max, tempAggregate.min, tempAggregate.mean, tempAggregate.stdev, tempAggregate.variance,
+                windAggregate.max, windAggregate.min, windAggregate.mean, windAggregate.stdev, windAggregate.variance,
+                pressureAggregate.max, pressureAggregate.min, pressureAggregate.mean, pressureAggregate.stdev, pressureAggregate.variance,
+                presipAggregate.max, presipAggregate.min, presipAggregate.mean, presipAggregate.stdev, presipAggregate.variance))
+              current.clear()
+            }
+            case _ =>
+          }
+          current += weather
+          state.update(current)
+        }
+        case None =>
+      }
+      monthly
+    }
+
+    val monthlyStream = dailyStream.map(r => (r._1, DailyWeatherDataProcess(r._2))).
+      mapWithState(StateSpec.function(monthlyMappingFunc).initialState(monthlyRDD)).filter(_.isDefined).map(_.get)
+
+    // Save monthly temperature
+    monthlyStream.map(ds => MonthlyTemperature(ds._2)).saveToCassandra(CassandraKeyspace, CassandraTableMonthlyTemp)
+
+    // Save monthly wind
+    monthlyStream.map(ds => MonthlyWindSpeed(ds._2)).saveToCassandra(CassandraKeyspace, CassandraTableMonthlyWind)
+
+    // Save monthly pressure
+    monthlyStream.map(ds => MonthlyPressure(ds._2)).saveToCassandra(CassandraKeyspace, CassandraTableMonthlyPressure)
+
+    // Save monthly presipitations
+    monthlyStream.map(ds => MonthlyPrecipitation(ds._2)).saveToCassandra(CassandraKeyspace, CassandraTableMonthlyPrecip)
 
     // Execute
     ssc.start()

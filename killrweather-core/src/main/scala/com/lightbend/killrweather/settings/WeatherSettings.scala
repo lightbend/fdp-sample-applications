@@ -120,11 +120,21 @@ final class WeatherSettings extends Serializable {
   val KafkaTopicRaw = "killrweather.raw"
 
   val AppName = "KillrWeather"
+
   val CassandraKeyspace = "isd_weather_data"
+
   val CassandraTableRaw = "raw_weather_data"
+
   val CassandraTableDailyTemp = "daily_aggregate_temperature"
+  val CassandraTableDailyWind = "daily_aggregate_windspeed"
+  val CassandraTableDailyPressure = "daily_aggregate_pressure"
   val CassandraTableDailyPrecip = "daily_aggregate_precip"
-  val CassandraTableCumulativePrecip = "year_cumulative_precip"
+
+  val CassandraTableMonthlyTemp = "monthly_aggregate_temperature"
+  val CassandraTableMonthlyWind = "monthly_aggregate_windspeed"
+  val CassandraTableMonthlyPressure = "monthly_aggregate_pressure"
+  val CassandraTableMonthlyPrecip = "monthly_aggregate_precip"
+
   val CassandraTableSky = "sky_condition_lookup"
   val CassandraTableStations = "weather_station"
   val DataLoadPath = "./data/load"

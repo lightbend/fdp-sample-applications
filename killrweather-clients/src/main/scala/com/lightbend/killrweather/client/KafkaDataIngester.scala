@@ -1,11 +1,13 @@
 package com.lightbend.killrweather.client
 
-import java.io.{BufferedReader, FileInputStream, InputStreamReader}
+import java.io.{BufferedReader, ByteArrayOutputStream, FileInputStream, InputStreamReader}
 import java.util.zip.GZIPInputStream
 
+import com.lightbend.killrweather.Record.WeatherRecord
 import com.lightbend.killrweather.kafka.MessageSender
-import org.apache.kafka.common.serialization.StringSerializer
+import org.apache.kafka.common.serialization.ByteArraySerializer
 import com.lightbend.killrweather.settings.WeatherSettings
+import com.lightbend.killrweather.utils.RawWeatherData
 
 import scala.collection.mutable.ListBuffer
 
@@ -16,6 +18,7 @@ object KafkaDataIngester {
   val file = "data/load/ny-2008.csv.gz"
   val timeInterval = 100 * 1        // 1 sec
   val batchSize = 10
+  private val bos = new ByteArrayOutputStream()
 
   def main(args: Array[String]) {
 
@@ -32,19 +35,19 @@ object KafkaDataIngester {
 
 class KafkaDataIngester(brokers : String){
 
-  val sender = MessageSender[String, String](brokers, classOf[StringSerializer].getName, classOf[StringSerializer].getName)
+  val sender = MessageSender[Array[Byte], Array[Byte]](brokers, classOf[ByteArraySerializer].getName, classOf[ByteArraySerializer].getName)
 
   import KafkaDataIngester._
 
   def execute(file: String, topic : String) : Unit = {
 
     val iterator = GzFileIterator(new java.io.File(file), "UTF-8")
-    val batch = new ListBuffer[String]()
-    var day = -1
+    val batch = new ListBuffer[Array[Byte]]()
     var numrec = 0;
     iterator.foreach(record => {
+
       numrec = numrec + 1
-      batch += record
+      batch += convertRecord(record)
       if (batch.size >= batchSize) {
         sender.batchWriteValue(topic, batch)
         batch.clear()
@@ -55,7 +58,6 @@ class KafkaDataIngester(brokers : String){
     })
     if(batch.size > 0)
       sender.batchWriteValue(topic, batch)
-
     println(s"Submitted $numrec records")
   }
 
@@ -66,6 +68,15 @@ class KafkaDataIngester(brokers : String){
     catch {
       case _: Throwable => // Ignore
     }
+  }
+
+  def convertRecord(string: String) : Array[Byte] = {
+    bos.reset
+    val report = RawWeatherData(string.split(","))
+    WeatherRecord(report.wsid,report.year, report.month, report.day, report.hour, report.temperature,
+      report.dewpoint, report.pressure, report.windDirection, report.windSpeed, report.skyCondition,
+      report.skyConditionText, report.oneHourPrecip, report.sixHourPrecip).writeTo(bos)
+    bos.toByteArray
   }
 }
 

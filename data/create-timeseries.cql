@@ -70,9 +70,36 @@ CREATE TABLE daily_aggregate_temperature (
    PRIMARY KEY ((wsid), year, month, day)
 ) WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC);
 
+CREATE TABLE daily_aggregate_windspeed (
+   wsid text,
+   year int,
+   month int,
+   day int,
+   high double,
+   low double,
+   mean double,
+   variance double,
+   stdev double,
+   PRIMARY KEY ((wsid), year, month, day)
+) WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC);
+
+CREATE TABLE daily_aggregate_pressure (
+   wsid text,
+   year int,
+   month int,
+   day int,
+   high double,
+   low double,
+   mean double,
+   variance double,
+   stdev double,
+   PRIMARY KEY ((wsid), year, month, day)
+) WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC);
+
 /*
   Sum of all one_hour_precip for one day and one weather station
 */
+
 CREATE TABLE daily_aggregate_precip (
    wsid text,
    year int,
@@ -82,10 +109,52 @@ CREATE TABLE daily_aggregate_precip (
    PRIMARY KEY ((wsid), year, month, day)
 ) WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC);
 
-
-CREATE TABLE year_cumulative_precip (
+CREATE TABLE monthly_aggregate_temperature (
    wsid text,
    year int,
-   precipitation counter,
-   PRIMARY KEY ((wsid), year)
-) WITH CLUSTERING ORDER BY (year DESC);
+   month int,
+   high double,
+   low double,
+   mean double,
+   variance double,
+   stdev double,
+   PRIMARY KEY ((wsid), year, month)
+) WITH CLUSTERING ORDER BY (year DESC, month DESC);
+
+CREATE TABLE monthly_aggregate_windspeed (
+   wsid text,
+   year int,
+   month int,
+   high double,
+   low double,
+   mean double,
+   variance double,
+   stdev double,
+   PRIMARY KEY ((wsid), year, month)
+) WITH CLUSTERING ORDER BY (year DESC, month DESC);
+
+CREATE TABLE monthly_aggregate_pressure (
+   wsid text,
+   year int,
+   month int,
+   high double,
+   low double,
+   mean double,
+   variance double,
+   stdev double,
+   PRIMARY KEY ((wsid), year, month)
+) WITH CLUSTERING ORDER BY (year DESC, month DESC);
+
+
+CREATE TABLE monthly_aggregate_precip (
+   wsid text,
+   year int,
+   month int,
+   high double,
+   low double,
+   mean double,
+   variance double,
+   stdev double,
+   PRIMARY KEY ((wsid), year, month)
+) WITH CLUSTERING ORDER BY (year DESC, month DESC);
+
