@@ -10,6 +10,7 @@ trait Serializers {
   final val ts = new Tuple2Serializer[String, String]()
   final val ms = new ModelSerializer[LogRecord]()
   final val logRecordSerde = Serdes.serdeFrom(ms, ms)
+  final val logRecordAvroSerde = new SpecificAvroSerde[LogRecordAvro]()
   final val tuple2StringSerde = Serdes.serdeFrom(ts, ts)
   final val stringSerializer = new StringSerializer()
   final val stringDeserializer = new StringDeserializer()
@@ -20,5 +21,3 @@ trait Serializers {
   final val longSerde = Serdes.Long()
   final val byteArraySerde = Serdes.ByteArray()
 }
-
-

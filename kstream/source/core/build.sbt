@@ -7,6 +7,7 @@ val circeVersion = "0.8.0"
 val catsVersion = "0.9.0"
 val configVersion = "1.3.1"
 val kafkaVersion = "0.10.2.1"
+val confluentKafkaVersion = "3.2.2"
 val specs2Version = "3.8.9" 
 val scalaCheckVersion = "1.12.4"
 val scalaLoggingVersion = "3.5.0"
@@ -29,6 +30,12 @@ version in ThisBuild := "0.1"
 
 scalaVersion in ThisBuild := scalaVer
 
+resolvers += "Confluent Maven" at "http://packages.confluent.io/maven/"
+
+(sourceDirectory in avroConfig) := baseDirectory.value / "src/main/resources/com/lightbend/fdp/sample/kstream/"
+(javaSource in avroConfig) := baseDirectory.value / "src/main/java/"
+(stringType in avroConfig) := "String"
+
 enablePlugins(JavaAppPackaging)
 enablePlugins(DeploySSH)
 
@@ -41,6 +48,7 @@ lazy val app = project
     scalaVersion := scalaVer,
     libraryDependencies ++= Seq(
       "org.apache.kafka"              % "kafka-streams"            % kafkaVersion,
+      "io.confluent"                  % "kafka-avro-serializer"    % confluentKafkaVersion exclude("org.slf4j", "slf4j-log4j12"),
       "com.typesafe"                  % "config"                   % configVersion,
       "com.typesafe.scala-logging"   %% "scala-logging"            % scalaLoggingVersion,
       "org.typelevel"                %% "cats"                     % catsVersion,
@@ -100,10 +108,10 @@ lazy val app = project
       "-Ywarn-nullary-override",           // Warn when non-nullary `def f()' overrides nullary `def f'.
       "-Ywarn-nullary-unit",               // Warn when nullary methods return Unit.
       "-Ywarn-unused:implicits",           // Warn if an implicit parameter is unused.
-      "-Ywarn-unused:locals",              // Warn if a local definition is unused.
-      "-Ywarn-unused:params",              // Warn if a value parameter is unused.
-      "-Ywarn-unused:patvars",             // Warn if a variable bound in a pattern is unused.
-      "-Ywarn-unused:privates",            // Warn if a private member is unused.
+      // "-Ywarn-unused:locals",              // Warn if a local definition is unused.
+      // "-Ywarn-unused:params",              // Warn if a value parameter is unused.
+      // "-Ywarn-unused:patvars",             // Warn if a variable bound in a pattern is unused.
+      // "-Ywarn-unused:privates",            // Warn if a private member is unused.
       "-Ywarn-value-discard"               // Warn when non-Unit expression results are unused.
     ),
     assemblyMergeStrategy in assembly := {
@@ -141,6 +149,7 @@ lazy val dslPackage = project
   )
   .dependsOn(app)
 
+
 // the package for WeblogDriver that uses Kafka-Streams Processor APIs
 lazy val procPackage = project
   .in(file("build/proc"))
@@ -158,6 +167,6 @@ lazy val procPackage = project
       ArtifactSSH((packageZipTarball in Universal).value, "/var/www/html/")
     ),
     scriptClasspath := Seq("../conf/") ++ scriptClasspath.value,
-    mainClass in Compile := Some("com.lightbend.fdp.sample.kstream.processor.WeblogDriver")
+    mainClass in Compile := Some("com.lightbend.fdp.sample.kstream.WeblogDriver")
   )
   .dependsOn(app)

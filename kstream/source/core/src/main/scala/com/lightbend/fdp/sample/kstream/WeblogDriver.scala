@@ -1,5 +1,4 @@
 package com.lightbend.fdp.sample.kstream
-package processor
 
 import java.util.Properties
 
@@ -24,6 +23,7 @@ import config.KStreamConfig._
 import http.{ WeblogProcHttpService, HttpRequester, BFValueFetcher }
 import services.{ MetadataService, LocalStateStoreQuery }
 import ingestion.DataIngestion
+import processor.{ BFStoreSupplier, WeblogProcessor }
 
 object WeblogDriver extends LazyLogging with Serializers {
 

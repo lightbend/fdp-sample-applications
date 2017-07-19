@@ -17,16 +17,26 @@ import scala.concurrent.duration._
 object KStreamConfig {
 
   private[KStreamConfig] case class KafkaSettings(
+    serverSettings: ServerSettings,
+    topicSettings: TopicSettings
+  )
+
+  private[KStreamConfig] case class ServerSettings(
     brokers: String, 
     zk: String, 
+    schemaRegistryUrl: Option[String],
+    stateStoreDir: String
+  )
+
+  private[KStreamConfig] case class TopicSettings(
     fromTopic: String, 
     errorTopic: String,
     toTopic: Option[String], 
+    avroTopic: Option[String], 
     summaryAccessTopic: Option[String], 
     windowedSummaryAccessTopic: Option[String], 
     summaryPayloadTopic: Option[String], 
-    windowedSummaryPayloadTopic: Option[String],
-    stateStoreDir: String
+    windowedSummaryPayloadTopic: Option[String]
   )
 
   private[KStreamConfig] case class HttpSettings(
@@ -41,16 +51,18 @@ object KStreamConfig {
   )
 
   case class ConfigData(ks: KafkaSettings, hs: HttpSettings, dls: DataLoaderSettings) {
-    def brokers = ks.brokers
-    def zk = ks.zk
-    def fromTopic = ks.fromTopic
-    def toTopic = ks.toTopic
-    def summaryAccessTopic = ks.summaryAccessTopic
-    def windowedSummaryAccessTopic = ks.windowedSummaryAccessTopic
-    def summaryPayloadTopic = ks.summaryPayloadTopic
-    def windowedSummaryPayloadTopic = ks.windowedSummaryPayloadTopic
-    def errorTopic = ks.errorTopic
-    def stateStoreDir = ks.stateStoreDir
+    def brokers = ks.serverSettings.brokers
+    def zk = ks.serverSettings.zk
+    def schemaRegistryUrl = ks.serverSettings.schemaRegistryUrl
+    def fromTopic = ks.topicSettings.fromTopic
+    def toTopic = ks.topicSettings.toTopic
+    def avroTopic = ks.topicSettings.avroTopic
+    def summaryAccessTopic = ks.topicSettings.summaryAccessTopic
+    def windowedSummaryAccessTopic = ks.topicSettings.windowedSummaryAccessTopic
+    def summaryPayloadTopic = ks.topicSettings.summaryPayloadTopic
+    def windowedSummaryPayloadTopic = ks.topicSettings.windowedSummaryPayloadTopic
+    def errorTopic = ks.topicSettings.errorTopic
+    def stateStoreDir = ks.serverSettings.stateStoreDir
     def httpInterface = hs.interface
     def httpPort = hs.port
     def sourceTopic = dls.sourceTopic
@@ -69,16 +81,22 @@ object KStreamConfig {
   private def fromKafkaConfig: ConfigReader[KafkaSettings] = Kleisli { (config: Config) =>
     Try {
       KafkaSettings(
-        config.getString("dcos.kafka.brokers"),
-        config.getString("dcos.kafka.zookeeper"),
-        config.getString("dcos.kafka.fromtopic"),
-        config.getString("dcos.kafka.errortopic"),
-        getStringMaybe(config, "dcos.kafka.totopic"),
-        getStringMaybe(config, "dcos.kafka.summaryaccesstopic"),
-        getStringMaybe(config, "dcos.kafka.windowedsummaryaccesstopic"),
-        getStringMaybe(config, "dcos.kafka.summarypayloadtopic"),
-        getStringMaybe(config, "dcos.kafka.windowedsummarypayloadtopic"),
-        config.getString("dcos.kafka.statestoredir")
+        ServerSettings(
+          config.getString("dcos.kafka.brokers"),
+          config.getString("dcos.kafka.zookeeper"),
+          getStringMaybe(config, "dcos.kafka.schemaregistryurl"),
+          config.getString("dcos.kafka.statestoredir")
+        ),
+        TopicSettings(
+          config.getString("dcos.kafka.fromtopic"),
+          config.getString("dcos.kafka.errortopic"),
+          getStringMaybe(config, "dcos.kafka.totopic"),
+          getStringMaybe(config, "dcos.kafka.avrotopic"),
+          getStringMaybe(config, "dcos.kafka.summaryaccesstopic"),
+          getStringMaybe(config, "dcos.kafka.windowedsummaryaccesstopic"),
+          getStringMaybe(config, "dcos.kafka.summarypayloadtopic"),
+          getStringMaybe(config, "dcos.kafka.windowedsummarypayloadtopic")
+        )
       )
     }
   }

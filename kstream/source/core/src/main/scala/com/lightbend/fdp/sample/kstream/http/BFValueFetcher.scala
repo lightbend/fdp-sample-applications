@@ -14,7 +14,6 @@ import com.typesafe.scalalogging.LazyLogging
 import services.{ MetadataService, HostStoreInfo, LocalStateStoreQuery }
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport
 import serializers.Serializers
-import processor.WeblogDriver
 
 class BFValueFetcher(
   metadataService: MetadataService, 

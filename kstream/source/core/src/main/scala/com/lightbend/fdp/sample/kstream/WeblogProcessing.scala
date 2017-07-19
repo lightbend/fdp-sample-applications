@@ -19,6 +19,7 @@ import org.apache.kafka.streams.errors.InvalidStateStoreException
 import org.apache.kafka.streams.state.HostInfo
 
 import java.util.concurrent.Executors
+import java.time.format.DateTimeFormatter
 
 import scala.concurrent.ExecutionContext
 import scala.util.{ Success, Failure }
@@ -31,6 +32,7 @@ import http.{ WeblogDSLHttpService, HttpRequester, KeyValueFetcher, WindowValueF
 import services.{ MetadataService, LocalStateStoreQuery }
 
 import ingestion.DataIngestion
+import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig
 
 object WeblogProcessing extends LazyLogging with Serializers {
 
@@ -145,6 +147,11 @@ object WeblogProcessing extends LazyLogging with Serializers {
       val settings = new Properties
       settings.put(StreamsConfig.APPLICATION_ID_CONFIG, "kstream-log-processing")
       settings.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, config.brokers)
+
+      config.schemaRegistryUrl.foreach{ url =>
+        settings.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, url)
+      }
+
       settings.put(StreamsConfig.KEY_SERDE_CLASS_CONFIG, Serdes.ByteArray.getClass.getName)
       settings.put(StreamsConfig.VALUE_SERDE_CLASS_CONFIG, Serdes.String.getClass.getName)
 
@@ -171,9 +178,10 @@ object WeblogProcessing extends LazyLogging with Serializers {
     generateLogRecords(builder, config)
 
     //
-    // assumption : the topic contains serialized records of LogRecord
+    // assumption : the topic contains serialized records of LogRecord (serialized through logRecordSerde)
     val logRecords: KStream[Array[Byte], LogRecord] = builder.stream(byteArraySerde, logRecordSerde, config.toTopic.get)
 
+    generateAvro(logRecords, builder, config)
     hostCountSummary(logRecords, builder, config)
     totalPayloadPerHostSummary(logRecords, builder, config)
 
@@ -245,6 +253,33 @@ object WeblogProcessing extends LazyLogging with Serializers {
         e.printStackTrace(new PrintWriter(writer))
         (writer.toString, v)
       case _ => ???
+    }
+  }
+
+  def generateAvro(logRecords: KStream[Array[Byte], LogRecord], builder: KStreamBuilder, 
+    config: ConfigData): Unit = config.schemaRegistryUrl.foreach { url =>
+      val isKeySerde = false
+      logRecordAvroSerde.configure(
+          java.util.Collections.singletonMap(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, url),
+          isKeySerde)
+
+      val records: KStream[Array[Byte], LogRecordAvro] = logRecords.mapValues(makeAvro)
+      records.to(byteArraySerde, logRecordAvroSerde, config.avroTopic.get)
+    }
+
+  val makeAvro = new ValueMapper[LogRecord, LogRecordAvro] {
+    def apply(record: LogRecord): LogRecordAvro = {
+      LogRecordAvro.newBuilder()
+        .setHost(record.host)
+        .setClientId(record.clientId)
+        .setUser(record.user)
+        .setTimestamp(record.timestamp.format(DateTimeFormatter.ofPattern("yyyy MM dd")))
+        .setMethod(record.method)
+        .setEndpoint(record.endpoint)
+        .setProtocol(record.protocol)
+        .setHttpReplyCode(record.httpReplyCode)
+        .setPayloadSize(record.payloadSize)
+        .build()
     }
   }
 
