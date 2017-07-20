@@ -8,3 +8,5 @@ addSbtPlugin("com.lightbend" % "sbt-whitesource" % "0.1.5")
 addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.2.0")
 
 addSbtPlugin("com.github.shmishleniy" %% "sbt-deploy-ssh" % "0.1.3")
+addSbtPlugin("com.cavorite" % "sbt-avro-1-7" % "1.1.2")
+
