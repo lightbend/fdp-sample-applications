@@ -73,7 +73,8 @@ object KStreamConfig {
   type ConfigReader[A] = ReaderT[Try, Config, A]
 
   private def getStringMaybe(config: Config, key: String): Option[String] = try {
-    Some(config.getString(key))
+    val str = config.getString(key)
+    if (str.trim.isEmpty) None else Some(str)
   } catch {
     case _: Exception => None
   }

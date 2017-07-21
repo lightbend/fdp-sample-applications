@@ -1,0 +1,27 @@
+{
+  "id": "/kstream-app-dsl",
+  "cmd": "mkdir -p {DIRECTORY_TO_WATCH_NQ} && mv clarknet_access_log_Aug28 {DIRECTORY_TO_WATCH_NQ} && chmod 777 {DIRECTORY_TO_WATCH_NQ}/clarknet_access_log_Aug28 && export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && ./dslpackage-0.1/bin/dslpackage",
+  "env": {
+    "INTERFACE_DSL": "0.0.0.0",
+    "KAFKA_BROKERS": {KAFKA_BROKERS},
+    "DIRECTORY_TO_WATCH": {DIRECTORY_TO_WATCH},
+    "KAFKA_FROM_TOPIC_DSL": {KAFKA_FROM_TOPIC_DSL},
+    "KAFKA_TO_TOPIC_DSL": {KAFKA_TO_TOPIC_DSL},
+    "KAFKA_AVRO_TOPIC_DSL": {KAFKA_AVRO_TOPIC_DSL},
+    "KAFKA_SUMMARY_ACCESS_TOPIC_DSL": {KAFKA_SUMMARY_ACCESS_TOPIC_DSL},
+    "KAFKA_WINDOWED_SUMMARY_ACCESS_TOPIC_DSL": {KAFKA_WINDOWED_SUMMARY_ACCESS_TOPIC_DSL},
+    "KAFKA_SUMMARY_PAYLOAD_TOPIC_DSL": {KAFKA_SUMMARY_PAYLOAD_TOPIC_DSL},
+    "KAFKA_WINDOWED_SUMMARY_PAYLOAD_TOPIC_DSL": {KAFKA_WINDOWED_SUMMARY_PAYLOAD_TOPIC_DSL},
+    "KAFKA_ERROR_TOPIC_DSL": {KAFKA_ERROR_TOPIC_DSL},
+    "SCHEMA_REGISTRY_URL": {SCHEMA_REGISTRY_URL}
+  },
+  "cpus": 1.0,
+  "mem": 8192,
+  "disk": 20480,
+  "instances": 1,
+  "fetch": [
+    { "uri": "https://downloads.mesosphere.com/java/jre-8u112-linux-x64.tar.gz" },
+    { "uri": {DSL_PACKAGE_ON_MESOS} },
+    { "uri": "ftp://ita.ee.lbl.gov/traces/clarknet_access_log_Aug28.gz" }
+  ]
+}
