@@ -494,7 +494,7 @@ function main {
   header Doing remote deployment ..
   deploy_app
 
-  echo Loading Marathon Jobs ..
+  ## echo Loading Marathon Jobs ..
   load_marathon_job
 
   echo

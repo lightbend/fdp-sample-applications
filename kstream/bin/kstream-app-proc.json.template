@@ -8,6 +8,10 @@
     "KAFKA_FROM_TOPIC_PROC": {KAFKA_FROM_TOPIC_PROC},
     "KAFKA_ERROR_TOPIC_PROC": {KAFKA_ERROR_TOPIC_PROC}
   },
+  "ports": [
+    0
+  ],
+  "constraints": [["hostname", "UNIQUE"]],
   "cpus": 1.0,
   "mem": 8192,
   "disk": 20480,

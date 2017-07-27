@@ -25,20 +25,13 @@ class HttpRequester(val actorSystem: ActorSystem, val mat: ActorMaterializer,
   private implicit val mt: ActorMaterializer = mat
   private implicit val ec: ExecutionContext = executionContext
 
-  private def apiConnectionFlow(host: String, port: Int): Flow[HttpRequest, HttpResponse, Any] =
-    Http().outgoingConnection(host, port)
-
-
-  private def apiRequest(request: HttpRequest, host: HostStoreInfo): Future[HttpResponse] = {
-    logger.debug(request.toString)
-    Source.single(request).via(apiConnectionFlow(host.host, host.port)).runWith(Sink.head)
-  }
+  private def apiRequest(path: String, host: HostStoreInfo): Future[HttpResponse] =
+    Http().singleRequest(HttpRequest(uri = s"http://${host.host}:${host.port}$path"))
 
 
   def queryFromHost[V](host: HostStoreInfo, 
     path: String)(implicit u: Unmarshaller[ResponseEntity, V]): Future[V] = {
-    logger.debug(s"Path to query $path host $host")
-    apiRequest(RequestBuilding.Get(path), host).flatMap { response =>
+    apiRequest(path, host).flatMap { response =>
       response.status match {
         case OK         => Unmarshal(response.entity).to[V]
          

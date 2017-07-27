@@ -29,16 +29,18 @@ object DataIngestion extends Serializers {
 
     val fs = FileSystems.getDefault
 
-    DirectoryChangesSource(fs.getPath(config.directoryToWatch), 
-      config.pollInterval, 
-      maxBufferSize = 1024).runForeach {
+    config.directoryToWatch.map { dir =>
+      DirectoryChangesSource(fs.getPath(dir),
+        config.pollInterval, 
+        maxBufferSize = 1024).runForeach {
 
-      case (path, Creation | Modification) => {
-        val _ = produce(path, config)
-        ()
+        case (path, Creation | Modification) => {
+          val _ = produce(path, config)
+          ()
+        }
+        case (_, Deletion) => ()
       }
-      case (_, Deletion) => ()
-    }
+    }.getOrElse(Future.failed(new IllegalArgumentException("No directoryToWatch set in data ingestion module")))
   }
    
   private def produce(path: Path, config: ConfigData)

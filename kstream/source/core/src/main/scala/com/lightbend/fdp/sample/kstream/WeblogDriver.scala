@@ -3,9 +3,6 @@ package com.lightbend.fdp.sample.kstream
 import java.util.Properties
 import java.util.concurrent.TimeUnit
 
-import com.typesafe.config.ConfigFactory
-import com.typesafe.scalalogging.LazyLogging
-
 import java.util.concurrent.Executors
 import scala.collection.JavaConverters._
 import scala.util.{ Success, Failure }
@@ -23,84 +20,15 @@ import serializers.Serializers
 import config.KStreamConfig._
 import http.{ WeblogProcHttpService, HttpRequester, BFValueFetcher }
 import services.{ MetadataService, LocalStateStoreQuery }
-import ingestion.DataIngestion
 import processor.{ BFStoreSupplier, WeblogProcessor }
 
-object WeblogDriver extends LazyLogging with Serializers {
+object WeblogDriver extends WeblogWorkflow {
 
   final val LOG_COUNT_STATE_STORE = "log-counts"
 
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]): Unit = workflow()
 
-    var restService: WeblogProcHttpService = null
-
-    // get config info
-    val config: ConfigData = fromConfig(ConfigFactory.load()) match {
-      case Success(c)  => c
-      case Failure(ex) => throw ex
-    }
-
-    logger.info(s"config = $config")
-
-    // setup REST endpoints
-    val restEndpointPort = config.httpPort
-    val restEndpointHostName = config.httpInterface
-    val restEndpoint = new HostInfo(restEndpointHostName, restEndpointPort)
-
-    logger.info("Connecting to Kafka cluster via bootstrap servers " + config.brokers)
-    logger.info("REST endpoint at http://" + restEndpointHostName + ":" + restEndpointPort)
-
-    implicit val system = ActorSystem()
-    implicit val materializer = ActorMaterializer()
-
-    // register for data ingestion
-    // whenever we find new / changed files in the configured location, we run data loading
-    DataIngestion.registerForIngestion(config)
-
-    val streams = createStreams(config)
-
-    // need to exit for any stream exception
-    // mesos will restart the application
-    streams.setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-      override def uncaughtException(t: Thread, e: Throwable): Unit = try {
-        logger.error(s"Stream terminated because of uncaught exception .. Shutting down app", e)
-        logger.error(s"Stopping http service ..")
-        restService.stop()
-        logger.error(s"Stopping streams service ..")
-        val closed = streams.close(1, TimeUnit.MINUTES)
-        logger.error(s"Exiting application after streams close ($closed)")
-      } catch {
-        case _: Exception => 
-      } finally {
-        logger.error("Exiting application ..")
-        System.exit(-1)
-      }
-    })
-
-    // Need to be done for running the application after resetting the state store
-    // should not be done in production
-    streams.cleanUp()
-
-    // Now that we have finished the definition of the processing topology we can actually run
-    // it via `start()`.  The Streams application as a whole can be launched just like any
-    // normal Java application that has a `main()` method.
-    streams.start()
-
-    // Start the Restful proxy for servicing remote access to state stores
-    restService = startRestProxy(streams, restEndpoint, system, materializer)
-
-    // Add shutdown hook to respond to SIGTERM and gracefully close Kafka Streams
-    Runtime.getRuntime().addShutdownHook(new Thread(() => try {
-      restService.stop()
-      val closed = streams.close(1, TimeUnit.MINUTES)
-      logger.error(s"Exiting application after streams close ($closed)")
-      // streams.close()
-    } catch {
-      case _: Exception => // ignored
-    }))
-  }
-
-  def startRestProxy(streams: KafkaStreams, hostInfo: HostInfo,
+  override def startRestProxy(streams: KafkaStreams, hostInfo: HostInfo,
     actorSystem: ActorSystem, materializer: ActorMaterializer): WeblogProcHttpService = {
 
     implicit val system = actorSystem
@@ -133,7 +61,7 @@ object WeblogDriver extends LazyLogging with Serializers {
     restService
   }
   
-  def createStreams(config: ConfigData): KafkaStreams = {
+  override def createStreams(config: ConfigData): KafkaStreams = {
     val changelogConfig = {
       val cfg = new java.util.HashMap[String, String]
       val segmentSizeBytes = (20 * 1024 * 1024).toString
@@ -155,7 +83,10 @@ object WeblogDriver extends LazyLogging with Serializers {
       settings.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
       // need this for query service
-      settings.put(StreamsConfig.APPLICATION_SERVER_CONFIG, s"${config.httpInterface}:${config.httpPort}")
+      val endpointHostName = translateHostInterface(config.httpInterface)
+      logger.info(s"Endpoint host name $endpointHostName")
+
+      settings.put(StreamsConfig.APPLICATION_SERVER_CONFIG, s"$endpointHostName:${config.httpPort}")
 
       // default is /tmp/kafka-streams
       settings.put(StreamsConfig.STATE_DIR_CONFIG, config.stateStoreDir)
