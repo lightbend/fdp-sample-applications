@@ -7,4 +7,5 @@ The applications are organized in subdirectories. For details, see the correspon
 * [nwintrusion/README.md](https://github.com/typesafehub/fdp-sample-apps/blob/master/nwintrusion/README.md)
 * [bigdl/README.md](https://github.com/typesafehub/fdp-sample-apps/blob/master/bigdl/README.md)
 * [flink/README.md](https://github.com/typesafehub/fdp-sample-apps/blob/master/flink/README.md)
+* [kstream/README.md](https://github.com/typesafehub/fdp-sample-apps/blob/develop/kstream/README.md)
 
