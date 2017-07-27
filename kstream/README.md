@@ -2,11 +2,11 @@
 
 This project consists of 2 applications that demonstrate the use of the following features of Kafka Streams:
 
-1. Building and configuring a Streams based topology using DSL as well as the processor based APIs
+1. Building and configuring a Streams based topology using Kafka Streams DSL as well as the lower level processor based APIs
 2. Transformation semantics applied to streams data
-3. Stateful transformation using local state stores
+3. Stateful transformation using *local* state stores
 4. Interactive queries in Kafka streams applied to a distributed application
-5. Implementing custom state stores
+5. Implementing *custom* state stores
 6. Interactive queries over custom state stores in a distributed setting
 
 ## Application Modules
@@ -20,7 +20,152 @@ Each of the modules has a separate `Main` class that drive each of the applicati
 
 ## Data used for weblogs
 
-This application processes [archived weblogs](http://ita.ee.lbl.gov/html/contrib/ClarkNet-HTTP.html) in Kafka Streams. The dataset has been downloaded and made available in S3 buckets for processing by the application. The data loading component will download data from the S3 buckets and populate the source Kafka topic.
+This application processes [archived weblogs](http://ita.ee.lbl.gov/html/contrib/ClarkNet-HTTP.html) in Kafka Streams. The dataset will be downloaded as part of the application installation process and will be cached in the node where the application will be deployed by Marathon. More on data loading in the Ingesting Data section.
+
+## Installing the Applications
+
+The applications can be installed from the `bin` folder of the project root. Here's a summary of all the options available for the installation script.
+
+```bash
+$ pwd
+<project root>
+$ cd bin
+$ ./app-install.sh --help
+  Installs the Kafka Streams sample application. Assumes DC/OS authentication was successful
+  using the DC/OS CLI.
+
+  Usage: app-install.sh   [options] 
+
+  eg: ./app-install.sh 
+
+  Options:
+  --config-file        Configuration file used to launch applications
+                       Default: ./app-install.properties
+  --start-only X       Only start the following apps:
+                         dsl         Starts topology based on Kafka Streams DSL
+                         procedure   Starts topology that implements custom state repository based on Kafka Streams procedures
+                       Repeat the option to run more than one.
+                       Default: runs all of them
+  -n | --no-exec       Do not actually run commands, just print them (for debugging).
+  -h | --help          Prints this message.
+```
+
+Some of the valid options to install the applications are:
+
+```bash
+$ ./app-install.sh --start-only dsl
+```
+
+This will install the DSL based module as one of the applications running under Marathon in the DC/OS cluster.
+
+```bash
+$ ./app-install.sh --start-only procedure
+```
+
+This will install the lower level procedure based module as one of the applications running under Marathon in the DC/OS cluster.
+
+```bash
+$ ./app-install.sh
+```
+
+This will install both the modules as applications running under Marathon in the DC/OS cluster. 
+
+**If you decide to install and run both the applications together, please ensure your Kafka cluster is beefy enough to handle the load.**
+
+### Installation configuration file
+
+The default configuration information is from `app-install.properties`, which has the following format:
+
+```bash
+## dcos kafka package - valid values : kafka | confluent-kafka
+kafka-dcos-package=confluent-kafka
+
+## whether to skip creation of kafka topics - valid values : true | false
+skip-create-topics=false
+
+## kafka topic partition : default 1
+kafka-topic-partitions=1
+
+## kafka topic replication factor : default 1
+kafka-topic-replication-factor=1
+
+## name of the user used to publish the artifact.  Typically 'publisher'
+publish-user="publisher"
+
+## the IP address of the publish machine
+publish-host="10.8.0.14"
+
+## port for the SSH connection. The default configuration is 9022
+ssh-port=9022
+
+## passphrase for your SSH key.  Remove this entry if you don't need a passphrase
+passphrase=
+
+## the key file in ~/.ssh/ that is to be used to connect to the deployment host
+ssh-keyfile="dg-test-fdp.pem"
+
+## the folder where data for ingestion will be put
+ingestion-directory=/tmp/data
+
+## laboratory mesos deployment
+laboratory-mesos-path=http://jim-lab.marathon.mesos
+```
+
+A few of the parameters relate to the configuration of `fdp-laboratory`, which is the basic engine for installing all sample applications of FDP. 
+
+However using `--config-file` option, you can specify your own configuration file as well.
+
+### Starting the data ingestion process
+
+Once the applications are installed as Marathon services, here's how to kickstart the data ingestion process for each module. This ingestion will actually start the streams topology and the application itself.
+
+1. Data needed to run the application have been packaged as part of the installation. Data downloaded from the source site is made available in the folder specified under `ingestion-directory` in the configuration file.
+2. Login to the node where the application is running and `touch` the file available under that folder to kickstart the ingestion process.
+3. This needs to be done for every module deployed
+
+
+## Check output of Applications
+
+### DSL based module
+
+This module demonstrates stateful streaming using local state stores. These state stores can be queried using interactive queries of Kafka streams through the http service developed as part of this application. The ingested data consists of http access logs of a number of URLs - this module supports 2 types of queries on the application state:
+
+1. count of the number of accesses made to a specific host
+2. count of the number of bytes transferred to a specific host
+
+Here's how to query using http interface. We are using `curl` for demonstration here:
+
+```bash
+$ curl http://10.8.0.9:7070/weblog/access/world.std.com
+```
+
+This reports the number of accesses made to the host `world.std.com`.
+
+```bash
+$ curl http://10.8.0.9:7070/weblog/bytes/world.std.com
+```
+
+This reports the number of bytes transferred to the host `world.std.com`.
+
+### Procedure based Custom State Store Module
+
+This module demonstrates the use of custom state stores. This module has implemented a state store based on the Bloom Filter data structure. The purpose is to store membership information in a sublinear data structure. And this module offers interactive queries on top of this custom store. The query returns true or false depending on whether the data for the queried host has been stored or not.
+
+Here's how to query using http interface. We are using `curl` for demonstration here:
+
+```bash
+$ curl http://10.8.0.9:7070/weblog/access/check/world.std.com
+```
+
+This reports `true` if the host `world.std.com` has been seen in the ingested data. Else it returns `false`.
+
+> *Note:* The DSL based application starts an http service on port `7070` and the procudure based application starts on `7071`(configurable through `application.conf`).  
+
+## Application Restarts
+
+Kafka streams manages state of the application for stateful streaming in local stores. For resiliency these stores are also backed up by Kafka topics, known as *changelog topics*. In case of application restarts, if it happens that the application is restarted ina different node of the cluster, Kafka will recreate the state store based on the compacted information of the changelog topic. This is also useful if the application faces any exception and Mesos does a restart albeit in a different node.
+
+> The following sections describe the application architecture and how the project builds and packaging are done. Feel free to skip these in case you just want to deploy and install the default configurations.
 
 ## Kafka Streams' DSL based module
 
@@ -48,46 +193,84 @@ In this application we develop an http based service that queries all *necessary
 
 ### The Driver Program of the application
 
-The driver program is the object `WeblogProcessing` that is a plain Scala application with a `main` function. This program assumes that data will be available for streaming in the Kafka topic specified by `dcos.kafka.fromtopic`. The full config of the application consists of the following key/value pairs:
+The driver program is the object `WeblogProcessing` that is a plain Scala application with a `main` function. This program assumes that data will be available for streaming in the Kafka topic specified by `dcos.kafka.fromtopic`. The next section describes how you can ingest data into this topic. The full config of the application consists of the following key/value pairs:
 
 ```
+akka {                                                                         
+  loglevel = INFO                                                             
+  log-config-on-start = on                                                     
+  loggers = ["akka.event.slf4j.Slf4jLogger"]                                   
+  logging-filter = "akka.event.slf4j.Slf4jLoggingFilter"                       
+  event-handlers = ["akka.event.slf4j.Slf4jEventHandler"]                      
+}
+
 dcos {
 
   kafka {
+    ## bootstrap servers for Kafka
     brokers = "localhost:9092"
     brokers = ${?KAFKA_BROKERS}
 
+    ## consumer group
     group = "group-dsl"
     group = ${?KAFKA_GROUP_DSL}
 
+    ## the source topic - processing starts with
+    ## data in this topic (to be loaded by ingestion)
     fromtopic = "server-log-dsl"
     fromtopic = ${?KAFKA_FROM_TOPIC_DSL}
 
+    ## processed records goes here in json of LogRecord
     totopic = "processed-log"
     totopic = ${?KAFKA_TO_TOPIC_DSL}
 
+    ## this gets the avro serialized data from totopic for processing by Kafka Connect
+    ## HDFS sink connector
+    avrotopic = "avro-topic"
+    avrotopic = ${?KAFKA_AVRO_TOPIC_DSL}
+
+    ## summary access information gets pushed here
     summaryaccesstopic = "summary-access-log"
     summaryaccesstopic = ${?KAFKA_SUMMARY_ACCESS_TOPIC_DSL}
 
+    ## windowed summary access information gets pushed here
     windowedsummaryaccesstopic = "windowed-summary-access-log"
     windowedsummaryaccesstopic = ${?KAFKA_WINDOWED_SUMMARY_ACCESS_TOPIC_DSL}
 
+    ## summary payload information gets pushed here
     summarypayloadtopic = "summary-payload-log"
     summarypayloadtopic = ${?KAFKA_SUMMARY_PAYLOAD_TOPIC_DSL}
 
+    ## windowed summary payload information gets pushed here
     windowedsummarypayloadtopic = "windowed-summary-payload-log"
     windowedsummarypayloadtopic = ${?KAFKA_WINDOWED_SUMMARY_PAYLOAD_TOPIC_DSL}
 
+    ## error topic for the initial processing
     errortopic = "logerr-dsl"
     errortopic = ${?KAFKA_ERROR_TOPIC_DSL}
 
     zookeeper = "localhost:2181"
     zookeeper = ${?ZOOKEEPER_URL}
-    
+
+    schemaregistryurl = "http://localhost:8081"
+    schemaregistryurl = ${?SCHEMA_REGISTRY_URL}
+
+    ## folder where state stores are created by Kafka Streams
     statestoredir = "/tmp/kafka-streams"
     statestoredir = ${?STATESTOREDIR}
+
+    ## settings for data ingestion
+    loader {
+      sourcetopic = ${dcos.kafka.fromtopic}
+      sourcetopic = ${?KAFKA_FROM_TOPIC_DSL}
+
+      directorytowatch = "/Users/debasishghosh/t"
+      directorytowatch = ${?DIRECTORY_TO_WATCH}
+
+      pollinterval = 1 second
+    }
   }
-  
+
   # http endpoints of the weblog microservice
   http {
     # The port the dashboard listens on
@@ -127,6 +310,10 @@ topic (`dcos.kafka.totopic`). If there's any exception processing a record, that
        * Does a `groupByKey` followed by an `aggregate` to form a `KTable` as a result of a stateful transformation
        * Materializes the `KTable` into a Kafka topic
 4. Sets up a REST microservice that offers query for the state store `WeblogDSLHttpService`.
+
+### Ingesting Data
+
+In order for the application to run, we need to ingest data into the source topic (`dcos.kafka.fromtopic`). This can be done using a file watcher based implementation. The `dcos.kafka.loader` section of the configuration file describes the settings of the file watcher. As a user you need to set up the appropriate folder name in `directorytowatch` - the application pulls data from this folder and loads into the topic.
 
 
 ### How to package and run the driver application
@@ -173,34 +360,6 @@ $ $KAFKA_HOME/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replicat
 
 In order for the application to run, data need to be loaded in the input topic (`server-log-dsl` in the above example). This can be done either through a bash script or through a data loading application in case of a Mesos DC/OS clustered application. We discuss the latter later in the document.
 
-### How to query summary information
-
-As we discussed in the last section, application state is built from the summary information. This is done through continuous computation of the current state into Kafka `KTable`s through `KStream`s.
-
-The application has a microservice built using `akka-http` that publishes http end points for such queries. 
-
-*The configuration of the http end points are driven by the `application.conf` entries `dcos.http.port` and `dcps.http.interface`. For local mode of running, the values can be something like `7070` and `localhost` respectively. However for running in the FDP DC/OS cluster, the value of `dcos.http.interface` is extracted from the environment variable `$INTERFACE_DSL` and the port number assigned is a random free port. The value of this port can be checked from the application log file.*
-
-```
-http://localhost:7070/weblog/access/<host-key>
-```
-
-This will return the total number of times the host specified by `<host-key>` has been accessed in the log. To get the same as above but in windows of size 1 minute starting from beginning till the current time:
-
-```
-http://localhost:7070/weblog/access/win/<host-key>
-```
-
-
-```
-http://localhost:7070/weblog/bytes/<host-key>
-```
-
-This will return the total payload (number of bytes) transferred for the host specified by `<host-key>` as computed from the log. To get the same as above but in windows of size 1 minute starting from beginning till the current time:
-
-```
-http://localhost:7070/weblog/bytes/win/<host-key>
-```
 
 ### Deploy on FDP cluster
 
@@ -238,10 +397,20 @@ Once the `deploySsh` is complete we can run the application as a Marathon job. T
 ```json
 {
   "id": "/kstream-app-dsl",
-  "cmd": "export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && ./dslpackage-0.1/bin/dslpackage",
+  "cmd": "mkdir -p /tmp/data && mv clarknet_access_log_Aug28 /tmp/data && chmod 777 /tmp/data/clarknet_access_log_Aug28 && export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && ./dslpackage-0.1/bin/dslpackage",
   "env": {
     "INTERFACE_DSL": "0.0.0.0",
-    "KAFKA_BROKERS": "broker.confluent-kafka.l4lb.thisdcos.directory:9092"
+    "KAFKA_BROKERS": "broker-0.confluent-kafka.mesos:9301",
+    "DIRECTORY_TO_WATCH": "/tmp/data",
+    "KAFKA_FROM_TOPIC_DSL": "server-log-dsl",
+    "KAFKA_TO_TOPIC_DSL": "processed-log",
+    "KAFKA_AVRO_TOPIC_DSL": "avro-topic",
+    "KAFKA_SUMMARY_ACCESS_TOPIC_DSL": "summary-access-log",
+    "KAFKA_WINDOWED_SUMMARY_ACCESS_TOPIC_DSL": "windowed-summary-access-log",
+    "KAFKA_SUMMARY_PAYLOAD_TOPIC_DSL": "summary-payload-log",
+    "KAFKA_WINDOWED_SUMMARY_PAYLOAD_TOPIC_DSL": "windowed-summary-payload-log",
+    "KAFKA_ERROR_TOPIC_DSL": "logerr-dsl",
+    "SCHEMA_REGISTRY_URL": "http://10.8.0.11:16568"
   },
   "cpus": 1.0,
   "mem": 8192,
@@ -249,12 +418,13 @@ Once the `deploySsh` is complete we can run the application as a Marathon job. T
   "instances": 1,
   "fetch": [
     { "uri": "https://downloads.mesosphere.com/java/jre-8u112-linux-x64.tar.gz" },
-    { "uri": "http://jim-lab.marathon.mesos/dslpackage-0.1.tgz" }
+    { "uri": "http://jim-lab.marathon.mesos/dslpackage-0.1.tgz" },
+    { "uri": "ftp://ita.ee.lbl.gov/traces/clarknet_access_log_Aug28.gz" }
   ]
 }
 ```
 
-*Note the file sets the environment variables `$INTERFACE_DSL` that sets the host  of deployment for the http endpoint of the REST microservice. This variable is picked up by the configuration parameter `dcos.http.interface`. For the port number of the endpoint a random free port will be allocated. The value of this port number can be found from the application log file.*
+*Note the file sets the environment variables `$INTERFACE_DSL` that sets the host  of deployment for the http endpoint of the REST microservice. This variable is picked up by the configuration parameter `dcos.http.interface`. For the port number of the endpoint a random free port will be allocated if the one allocated by the application is not free. The value of this port number can be found from the application log file.*
 
 ## Kafka Streams' Procedure API based module
 
@@ -267,37 +437,65 @@ This application module consists of the following components:
 
 ### The Driver Program of the application
 
-The driver program is the object `WeblogDriver` that is a plain Scala application with a `main` function. This program assumes that data will be available for streaming in the Kafka topic specified by `dcos.kafka.fromtopic`. The full config of the application consists of the following key/value pairs:
+The driver program is the object `WeblogDriver` that is a plain Scala application with a `main` function. This program assumes that data will be available for streaming in the Kafka topic specified by `dcos.kafka.fromtopic`. Data ingestion can be done using the same procedure as outlined in the DSL section above. The full config of the application consists of the following key/value pairs:
 
 ```
+akka {                                                                         
+  loglevel = INFO                                                             
+  log-config-on-start = on                                                     
+  loggers = ["akka.event.slf4j.Slf4jLogger"]                                   
+  logging-filter = "akka.event.slf4j.Slf4jLoggingFilter"                       
+  event-handlers = ["akka.event.slf4j.Slf4jEventHandler"]                      
+}
+
 dcos {
 
   kafka {
+    ## bootstrap servers for Kafka
     brokers = "localhost:9092"
     brokers = ${?KAFKA_BROKERS}
 
+    ## consumer group
     group = "group-proc"
     group = ${?KAFKA_GROUP_PROC}
 
+    ## the source topic - processing starts with
+    ## data in this topic (to be loaded by ingestion)
     fromtopic = "server-log-proc"
     fromtopic = ${?KAFKA_FROM_TOPIC_PROC}
 
+    ## error topic for the initial processing
+    errortopic = "logerr-proc"
+    errortopic = ${?KAFKA_ERROR_TOPIC_PROC}
+
     zookeeper = "localhost:2181"
     zookeeper = ${?ZOOKEEPER_URL}
-    
+
+    ## folder where state stores are created by Kafka Streams
     statestoredir = "/tmp/kafka-streams"
     statestoredir = ${?STATESTOREDIR}
+
+    ## settings for data ingestion
+    loader {
+      sourcetopic = ${dcos.kafka.fromtopic}
+      sourcetopic = ${?KAFKA_FROM_TOPIC_PROC}
+
+      directorytowatch = "/Users/debasishghosh/t"
+      directorytowatch = ${?DIRECTORY_TO_WATCH}
+
+      pollinterval = 1 second
+    }
   }
-  
+
   # http endpoints of the weblog microservice
   http {
     # The port the dashboard listens on
     port = 7071
-    port = ${?PORT}
+    port = ${?PORT_PROC}
 
     # The interface the dashboard listens on
     interface = "localhost"
-    interface = ${?INTERFACE}
+    interface = ${?INTERFACE_PROC}
   }
 }
 ```
@@ -353,16 +551,6 @@ Before the application can be run, the kafka topics need to be created.
 
 In order for the application to run, data need to be loaded in the input topic (`server-log-proc` in the above example). This can be done either through a bash script or through a data loading application in case of a Mesos DC/OS clustered application. We discuss the latter later in the document.
 
-### How to query summary information
-
-The rpocedure is exactly similar to what we discussed in the section for DSL based application. The only difference is that the environment variables for host and port endpoints of http are `$INTERFACE_PROC` and `$PORT_PROC`. 
-
-```
-http://localhost:7070/weblog/access/check/<host-key>
-```
-
-This will return `true` if the `<host-key>` is present in the store, `false`, otherwise.
-
 
 ### Deploy on FDP cluster
 
@@ -400,10 +588,13 @@ Once the `deploySsh` is complete we can run the application as a Marathon job. T
 ```json
 {
   "id": "/kstream-app-proc",
-  "cmd": "export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && ./dslpackage-0.1/bin/procpackage",
+  "cmd": "mkdir -p /tmp/data && mv clarknet_access_log_Sep4 /tmp/data && chmod 777 /tmp/data/clarknet_access_log_Sep4 && export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && ./procpackage-0.1/bin/procpackage",
   "env": {
     "INTERFACE_PROC": "0.0.0.0",
-    "KAFKA_BROKERS": "broker.confluent-kafka.l4lb.thisdcos.directory:9092"
+    "KAFKA_BROKERS": "broker-0.confluent-kafka.mesos:9301",
+    "DIRECTORY_TO_WATCH": "/tmp/data",
+    "KAFKA_FROM_TOPIC_PROC": "server-log-proc",
+    "KAFKA_ERROR_TOPIC_PROC": "logerr-proc"
   },
   "cpus": 1.0,
   "mem": 8192,
@@ -411,7 +602,8 @@ Once the `deploySsh` is complete we can run the application as a Marathon job. T
   "instances": 1,
   "fetch": [
     { "uri": "https://downloads.mesosphere.com/java/jre-8u112-linux-x64.tar.gz" },
-    { "uri": "http://jim-lab.marathon.mesos/procpackage-0.1.tgz" }
+    { "uri": "http://jim-lab.marathon.mesos/procpackage-0.1.tgz" },
+    { "uri": "ftp://ita.ee.lbl.gov/traces/clarknet_access_log_Sep4.gz" }
   ]
 }
 ```

@@ -5,6 +5,7 @@ import com.typesafe.config.ConfigFactory
 import java.io.{ StringWriter, PrintWriter }
 import java.util.{ Properties, Locale }
 import java.lang.{ Long => JLong }
+import java.util.concurrent.TimeUnit
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
@@ -76,11 +77,16 @@ object WeblogProcessing extends LazyLogging with Serializers {
     streams.setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
       override def uncaughtException(t: Thread, e: Throwable): Unit = try {
         logger.error(s"Stream terminated because of uncaught exception .. Shutting down app", e)
+        logger.error(s"Stopping http service ..")
         restService.stop()
-        streams.close()
+        logger.error(s"Stopping streams service ..")
+        // streams.close()
+        val closed = streams.close(1, TimeUnit.MINUTES)
+        logger.error(s"Exiting application after streams close ($closed)")
       } catch {
         case _: Exception => 
       } finally {
+        logger.error("Exiting application ..")
         System.exit(-1)
       }
     })
@@ -100,7 +106,9 @@ object WeblogProcessing extends LazyLogging with Serializers {
     // Add shutdown hook to respond to SIGTERM and gracefully close Kafka Streams
     Runtime.getRuntime().addShutdownHook(new Thread(() => try {
       restService.stop()
-      streams.close()
+      // streams.close()
+      val closed = streams.close(1, TimeUnit.MINUTES)
+      logger.error(s"Exiting application after streams close ($closed)")
     } catch {
       case _: Exception => // ignored
     }))
