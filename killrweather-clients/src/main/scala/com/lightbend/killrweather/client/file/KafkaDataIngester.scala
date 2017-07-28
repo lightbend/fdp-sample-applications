@@ -1,13 +1,13 @@
-package com.lightbend.killrweather.client
+package com.lightbend.killrweather.client.file
 
 import java.io.{BufferedReader, ByteArrayOutputStream, FileInputStream, InputStreamReader}
 import java.util.zip.GZIPInputStream
 
-import com.lightbend.killrweather.Record.WeatherRecord
+import com.lightbend.killrweather.WeatherClient.WeatherRecord
 import com.lightbend.killrweather.kafka.MessageSender
-import org.apache.kafka.common.serialization.ByteArraySerializer
 import com.lightbend.killrweather.settings.WeatherSettings
 import com.lightbend.killrweather.utils.RawWeatherData
+import org.apache.kafka.common.serialization.ByteArraySerializer
 
 import scala.collection.mutable.ListBuffer
 

@@ -36,6 +36,12 @@ object Dependencies {
   val slf4jLog          = "org.slf4j"           % "slf4j-log4j12"                       % Slf4j                   // MIT
   val sparkCassandra    = "com.datastax.spark"  %  "spark-cassandra-connector_2.11"     % SparkCassandra          // ApacheV2
 
+  val scalaPBRuntime = "com.trueaccord.scalapb" %% "scalapb-runtime"      % com.trueaccord.scalapb.compiler.Version.scalapbVersion % "protobuf"
+  val scalaPBGRPC =  "com.trueaccord.scalapb" %% "scalapb-runtime-grpc" % com.trueaccord.scalapb.compiler.Version.scalapbVersion
+  val grpcNetty = "io.grpc"                %  "grpc-netty"           % GRPCNettyVersion
+  val scalaPBJSON = "com.trueaccord.scalapb" %% "scalapb-json4s"       % ScalaPBJSONVersion
+
+
   val connector = Seq(driver, sparkCassandra, sparkCatalyst, sparkSQL)
 
   val logging = Seq(logback, slf4jApi)
@@ -46,6 +52,7 @@ object Dependencies {
 
   val json = Seq(json4sCore, json4sJackson, json4sNative)
 
+  val grpc = Seq(scalaPBRuntime, scalaPBGRPC, grpcNetty, scalaPBJSON)
 
   /** Module deps */
   val client = logging ++ akka ++ json

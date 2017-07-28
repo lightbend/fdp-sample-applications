@@ -9,6 +9,9 @@ lazy val protobufs = (project in file("./protobufs"))
     PB.targets in Compile := Seq(
       scalapb.gen() -> (sourceManaged in Compile).value
     ))
+  .settings(libraryDependencies ++= Dependencies.grpc)
+  .settings(dependencyOverrides += "io.netty" % "netty-codec-http2" % "4.1.11.Final")
+  .settings(dependencyOverrides += "io.netty" % "netty-handler-proxy" % "4.1.11.Final")
 
 lazy val core = (project in file("./killrweather-core"))
   .settings(defaultSettings:_*)

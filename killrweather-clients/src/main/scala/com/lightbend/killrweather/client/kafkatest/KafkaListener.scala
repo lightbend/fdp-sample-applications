@@ -8,7 +8,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig
 import akka.kafka.scaladsl.Consumer
 import akka.stream.ActorMaterializer
 import akka.stream.javadsl.Sink
-import com.lightbend.killrweather.Record.WeatherRecord
+import com.lightbend.killrweather.WeatherClient.WeatherRecord
 import com.lightbend.killrweather.kafka.EmbeddedSingleNodeKafkaCluster
 
 import scala.concurrent.Future
@@ -34,7 +34,7 @@ object KafkaListener {
 //    EmbeddedSingleNodeKafkaCluster.createTopic(KafkaTopicRaw)
 
     val consumerSettings = ConsumerSettings(system, new ByteArrayDeserializer, new ByteArrayDeserializer)
-      .withBootstrapServers("localhost:9092")
+      .withBootstrapServers(kafkaBrokers)
       .withGroupId(KafkaGroupId)
       .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
     val done = Consumer.plainSource(consumerSettings, Subscriptions.topics(KafkaTopicRaw))
