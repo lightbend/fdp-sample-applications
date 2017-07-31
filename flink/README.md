@@ -14,7 +14,11 @@ The main components of running the Flink sample application are:
 1. Deploy the data loading Marathon app which will pull data from an S3 bucket and load it into a Kafka topic (`taxiin`)
 2. Run the sample application following the steps outlined below.
 
-> **Note:** The DC/OS CLI plugin for Flink is not yet available. Hence, we need to run the application manually.
+> **Notes:**
+>
+> 1. The DC/OS CLI plugin for Flink is not yet available. Hence, we need to run the application manually.
+> 2. While Flink is bundled with FDP, it is considered experimental at this time. The 1.0 release may not include production support for Flink.
+
 
 ## Deploy the Data Loading Application
 1. `$ git clone https://github.com/typesafehub/fdp-sample-apps.git`
