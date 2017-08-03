@@ -46,7 +46,7 @@ object KStreamConfig {
 
   private[KStreamConfig] case class DataLoaderSettings(
     sourceTopic: String,
-    directoryToWatch: String,
+    directoryToWatch: Option[String],
     pollInterval: FiniteDuration
   )
 
@@ -115,7 +115,7 @@ object KStreamConfig {
     Try {
       DataLoaderSettings(
         config.getString("dcos.kafka.loader.sourcetopic"),
-        config.getString("dcos.kafka.loader.directorytowatch"),
+        getStringMaybe(config, "dcos.kafka.loader.directorytowatch"),
         config.getDuration("dcos.kafka.loader.pollinterval")
       )
     }

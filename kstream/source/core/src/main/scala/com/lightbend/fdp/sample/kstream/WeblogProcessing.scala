@@ -1,11 +1,8 @@
 package com.lightbend.fdp.sample.kstream
 
-import com.typesafe.config.ConfigFactory
-
 import java.io.{ StringWriter, PrintWriter }
 import java.util.{ Properties, Locale }
 import java.lang.{ Long => JLong }
-import java.util.concurrent.TimeUnit
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
@@ -24,7 +21,6 @@ import java.time.format.DateTimeFormatter
 
 import scala.concurrent.ExecutionContext
 import scala.util.{ Success, Failure }
-import com.typesafe.scalalogging.LazyLogging
 
 import config.KStreamConfig._
 import serializers._
@@ -32,89 +28,18 @@ import models.{ LogRecord, LogParseUtil }
 import http.{ WeblogDSLHttpService, HttpRequester, KeyValueFetcher, WindowValueFetcher }
 import services.{ MetadataService, LocalStateStoreQuery }
 
-import ingestion.DataIngestion
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig
 
-object WeblogProcessing extends LazyLogging with Serializers {
+object WeblogProcessing extends WeblogWorkflow {
 
   final val ACCESS_COUNT_PER_HOST_STORE = "access-count-per-host"
   final val PAYLOAD_SIZE_PER_HOST_STORE = "payload-size-per-host"
   final val WINDOWED_ACCESS_COUNT_PER_HOST_STORE = "windowed-access-count-per-host"
   final val WINDOWED_PAYLOAD_SIZE_PER_HOST_STORE = "windowed-payload-size-per-host"
 
-  def main(args: Array[String]): Unit = {
-    
-    var restService: WeblogDSLHttpService = null
+  def main(args: Array[String]): Unit = workflow()
 
-    // get config info
-    val config: ConfigData = fromConfig(ConfigFactory.load()) match {
-      case Success(c)  => c
-      case Failure(ex) => throw ex
-    }
-
-    logger.info(s"config = $config")
-
-    // setup REST endpoints
-    val restEndpointPort = config.httpPort
-    val restEndpointHostName = config.httpInterface
-    val restEndpoint = new HostInfo(restEndpointHostName, restEndpointPort)
-
-    logger.info("Connecting to Kafka cluster via bootstrap servers " + config.brokers)
-    logger.info("REST endpoint at http://" + restEndpointHostName + ":" + restEndpointPort)
-
-    implicit val system = ActorSystem()
-    implicit val materializer = ActorMaterializer()
-
-    // register for data ingestion
-    // whenever we find new / changed files in the configured location, we run data loading
-    DataIngestion.registerForIngestion(config)
-
-    // set up the topology
-    val streams: KafkaStreams = createStreams(config)
-
-    // need to exit for any stream exception
-    // mesos will restart the application
-    streams.setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-      override def uncaughtException(t: Thread, e: Throwable): Unit = try {
-        logger.error(s"Stream terminated because of uncaught exception .. Shutting down app", e)
-        logger.error(s"Stopping http service ..")
-        restService.stop()
-        logger.error(s"Stopping streams service ..")
-        // streams.close()
-        val closed = streams.close(1, TimeUnit.MINUTES)
-        logger.error(s"Exiting application after streams close ($closed)")
-      } catch {
-        case _: Exception => 
-      } finally {
-        logger.error("Exiting application ..")
-        System.exit(-1)
-      }
-    })
-
-    // Need to be done for running the application after resetting the state store
-    // should not be done in production
-    streams.cleanUp()
-
-    // Now that we have finished the definition of the processing topology we can actually run
-    // it via `start()`.  The Streams application as a whole can be launched just like any
-    // normal Java application that has a `main()` method.
-    streams.start()
-
-    // Start the Restful proxy for servicing remote access to state stores
-    restService = startRestProxy(streams, restEndpoint, system, materializer)
-
-    // Add shutdown hook to respond to SIGTERM and gracefully close Kafka Streams
-    Runtime.getRuntime().addShutdownHook(new Thread(() => try {
-      restService.stop()
-      // streams.close()
-      val closed = streams.close(1, TimeUnit.MINUTES)
-      logger.error(s"Exiting application after streams close ($closed)")
-    } catch {
-      case _: Exception => // ignored
-    }))
-  }  
-
-  def startRestProxy(streams: KafkaStreams, hostInfo: HostInfo,
+  override def startRestProxy(streams: KafkaStreams, hostInfo: HostInfo,
     actorSystem: ActorSystem, materializer: ActorMaterializer): WeblogDSLHttpService = {
 
     implicit val system = actorSystem
@@ -148,12 +73,12 @@ object WeblogProcessing extends LazyLogging with Serializers {
     restService
   }
   
-  def createStreams(config: ConfigData): KafkaStreams = {
+  override def createStreams(config: ConfigData): KafkaStreams = {
 
     // Kafka stream configuration
     val streamingConfig = {
       val settings = new Properties
-      settings.put(StreamsConfig.APPLICATION_ID_CONFIG, "kstream-log-processing")
+      settings.put(StreamsConfig.APPLICATION_ID_CONFIG, "kstream-weblog-processing")
       settings.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, config.brokers)
 
       config.schemaRegistryUrl.foreach{ url =>
@@ -169,7 +94,10 @@ object WeblogProcessing extends LazyLogging with Serializers {
       settings.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
 
       // need this for query service
-      settings.put(StreamsConfig.APPLICATION_SERVER_CONFIG, s"${config.httpInterface}:${config.httpPort}")
+      val endpointHostName = translateHostInterface(config.httpInterface)
+      logger.info(s"Endpoint host name $endpointHostName")
+
+      settings.put(StreamsConfig.APPLICATION_SERVER_CONFIG, s"$endpointHostName:${config.httpPort}")
 
       // default is /tmp/kafka-streams
       settings.put(StreamsConfig.STATE_DIR_CONFIG, config.stateStoreDir)
@@ -322,7 +250,7 @@ object WeblogProcessing extends LazyLogging with Serializers {
 
     // print the topic info (for debugging)
     builder.stream(stringSerde, longSerde, config.summaryAccessTopic.get).print()
-    builder.stream(windowedSerde, longSerde, config.windowedSummaryAccessTopic.get).print()
+    // builder.stream(windowedSerde, longSerde, config.windowedSummaryAccessTopic.get).print()
   }
 
   val hostExtractor = new ValueMapper[LogRecord, String] {

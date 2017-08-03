@@ -4,6 +4,7 @@ package http
 import akka.http.scaladsl.model.StatusCodes._
 
 import akka.stream.ActorMaterializer
+import akka.actor.ActorSystem
 
 import org.apache.kafka.streams.{ KafkaStreams }
 import org.apache.kafka.streams.state.HostInfo
@@ -23,7 +24,7 @@ class WindowValueFetcher(
   httpRequester: HttpRequester, 
   streams: KafkaStreams, 
   executionContext: ExecutionContext, 
-  hostInfo: HostInfo) extends LazyLogging with FailFastCirceSupport with Serializers {
+  hostInfo: HostInfo)(implicit actorSystem: ActorSystem) extends LazyLogging with FailFastCirceSupport with Serializers {
 
   private implicit val ec: ExecutionContext = executionContext
 
@@ -51,7 +52,7 @@ class WindowValueFetcher(
     }
 
   private def thisHost(host: HostStoreInfo): Boolean =
-    host.host.equals(hostInfo.host) && host.port == hostInfo.port
+    host.host.equals(translateHostInterface(hostInfo.host)) && host.port == hostInfo.port
 }
 
 

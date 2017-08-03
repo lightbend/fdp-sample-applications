@@ -7,13 +7,14 @@ import org.apache.kafka.streams.state.StreamsMetadata
 
 import scala.collection.JavaConverters._
 import scala.util.Try
+import com.typesafe.scalalogging.LazyLogging
 
 case class HostStoreInfo(host: String, port: Int, storeNames: Set[String])
 
 /**
  * Looks up StreamsMetadata from KafkaStreams 
  */
-class MetadataService(val streams: KafkaStreams) {
+class MetadataService(val streams: KafkaStreams) extends LazyLogging {
 
   /**
    * Get the metadata for all of the instances of this Kafka Streams application
@@ -45,6 +46,7 @@ class MetadataService(val streams: KafkaStreams) {
   def streamsMetadataForStoreAndKey[K](store: String, key: K, serializer: Serializer[K]): Try[HostStoreInfo] = Try {
     // Get metadata for the instances of this Kafka Streams application hosting the store and
     // potentially the value for key
+    logger.info(s"Finding streams metadata for $store, $key, $serializer")
     streams.metadataForKey(store, key, serializer) match {
       case null => throw new IllegalArgumentException(s"Metadata for key $key not found in $store")
       case metadata => new HostStoreInfo(metadata.host, metadata.port, metadata.stateStoreNames.asScala.toSet)

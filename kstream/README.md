@@ -159,7 +159,16 @@ $ curl http://10.8.0.9:7070/weblog/access/check/world.std.com
 
 This reports `true` if the host `world.std.com` has been seen in the ingested data. Else it returns `false`.
 
-> *Note:* The DSL based application starts an http service on port `7070` and the procudure based application starts on `7071`(configurable through `application.conf`).  
+> *Note:* When deployed on the cluster, Marathon assigns random free ports to both the applications. Check the log file (`kstream-dsl.log` or `kstream-proc.log`) for the assigned port number. The log files can be found from the Mesos console by clicking into the Mesos Task corresponding to the application. Go to `http://<Master URL>/mesos` and click on the appropriate task's Sandbox link. Move to the `logs` folder and look for the pattern **REST endpoint at http://0.0.0.0:25961** in the `kstream-*.log` file. In this example, `25961` is the assigned port number.
+
+
+## Running in Distributed mode
+
+Both the DSL based and Procedure based applications can be run in distributed mode. Multiple instances of the application can be run and all state can be queried using any of the host/port combination. Here are some things that need to be taken care of when running any of the applications in the distributed mode:
+
+* The application `id` in the Marathon deployment json must be different for each of the instances. The typical way to ensure this is to use the given `app-install.sh` for installing one instance and then copying the deployment json and changing it for subsequent deployment instances.
+* Some of the settings in the `cmd`, `env` and `uris` section of the deployment json need to be different for subsequent instances. Please refer to `kstream-app-dsl-subsequent-instances.json.template` or `kstream-app-proc-subsequent-instances.json.template` for the details of such changes.
+* In order to run multiple instances, ensure that all Kafka topics are created with number of partitions > 1 (>= the number of instances run) with replication factors >= 1. Both these factors can be supplied in the `app-install.properties` file during installation.
 
 ## Application Restarts
 
