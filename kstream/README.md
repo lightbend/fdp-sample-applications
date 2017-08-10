@@ -618,3 +618,64 @@ Once the `deploySsh` is complete we can run the application as a Marathon job. T
 ```
 
 *Note the file sets the environment variables `$INTERFACE_PROC` that sets the host  of deployment for the http endpoint of the REST microservice. This variable is picked up by the configuration parameter `dcos.http.interface`. For the port number of the endpoint a random free port will be allocated. The value of this port number can be found from the application log file.*
+
+## Interfacing with Confluent Connect
+
+The dsl module of the application generates Avro data corresponding to the ingested records to a topic named `avro-topic`. We can set up Confluent Connect to consume from `avro-topic` and write to HDFS. Confluent repository offers out of the box HDFS Sink connectors that can do this. In this section we will discuss how to set this up in our DC/OS clustered environment.
+
+### Prerequisites for the interface
+
+In order for the interface to work, we need to ensure the following:
+
+1. HDFS is installed in the DC/OS cluster and is up 'n running.
+2. We have the custom lightbend universe running as a Marathon service. 
+3. Lightbend universe is set up as the default Universe (index = 0) in the DC/OS packaging.
+4. Modifications for running Confluent Connect with HDFS are available the installed Lightbend universe (check the `confluent-connect`package in the Universe).
+5. Of course Confluent Connect has to run as a mandatory prerequisite.
+6. Confluent schema registry service is up 'n running in the DC/OS cluster.
+
+### Installing the Confluent Connect Distributed Worker
+
+This has to be installed from the Lightbend Universe, which should be the default universe once we ensure Step 3 in the last section. Before installing the package, a bunch of internal topics need to be created manually. These topics are used by the Connect worker.
+
+```bash
+$ dcos confluent-kafka topic create dcos-connect-configs --replication 3 --partitions 1
+
+$ dcos confluent-kafka topic create dcos-connect-offsets --replication 3 --partitions 30
+
+$ dcos confluent-kafka topic create dcos-connect-status --replication 3 --partitions 10
+```
+
+Check that the topics have been created without error.
+
+```bash
+$ dcos confluent-kafka topic list
+```
+
+The next step is to install the worker from the Universe. Here are some of the steps to install the worker from the Universe:
+
+1. Select package `confluent-connect v1.0.0-3.2.2` from the Universe
+2. Select Advanced Installation since we need to supply the hdfs URL
+3. The installation page has a link named *hdfs* in the left pane. Click on the link and fill out *config-url* with the value `http://api.hdfs.marathon.l4lb.thisdcos.directory/v1/endpoints`
+4. Complete the installation
+
+The `connect` package should now be available as a Marathon job in the DC/OS UI.
+
+### Installing the HDFS Sink Connector
+
+Once the worker and the internal topics are created, the next step is to create the actual connector. We will be installing the `HdfsSinkConnector` from Confluent which comes as an out of the box connector.
+
+> `HdfsSinkConnector` needs to be configured with a topic from where it will consume Avro data. Please ensure this topic `avro-topic` is pre-installed before we configure the connector. The best way to ensure this is to install the Kafka Streams sample application beforehand which automatically installs all necessary topics.
+
+The only way to install the connector is by using the REST APIs which Connect offers. Here's an example to install our `HdfsSinkConnector`:
+
+```bash
+$ curl -X POST -H "Content-Type: application/json" --data '{"name": "ks-hdfs-sink", "config": {"connector.class":"HdfsSinkConnector", "tasks.max":"1", "hdfs.url":"hdfs://hdfs", "topics":"avro-topic", "flush.size":"1000" }}' http://10.8.0.19:9622/connectors
+```
+Here the last URL `http://10.8.0.19:9622/connectors` refers to the host / port where the `connect` runs.
+
+For more details on how to configure and manage connectors, have a look at this [Confluent Page](http://docs.confluent.io/current/connect/managing.html).
+
+If the above setup steps went fine, then when you run the application for Kafka Streams DSL module, records will be generated in the `avro-topic` and will be consumed by the connector and written in HDFS.
+
+
