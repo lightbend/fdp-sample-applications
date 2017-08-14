@@ -11,7 +11,7 @@ import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.ByteArraySerializer
 import akka.kafka.scaladsl.Producer
 import com.lightbend.killrweather.settings.WeatherSettings
-import com.lightbend.killrweather.Record.WeatherRecord
+import com.lightbend.killrweather.WeatherClient.WeatherRecord
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -27,7 +27,7 @@ class RequestService(implicit executionContext: ExecutionContext, materializer :
   import RequestService._
 
   val producerSettings = ProducerSettings(system, new ByteArraySerializer, new ByteArraySerializer)
-    .withBootstrapServers("localhost:9092")
+    .withBootstrapServers(kafkaBrokers)
 
   def processRequest(report: RawWeatherData): Future[Unit] = Future {
 //    Source.single(report).runWith(Sink.foreach(println))

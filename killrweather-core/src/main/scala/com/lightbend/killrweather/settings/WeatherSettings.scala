@@ -46,6 +46,8 @@ final class WeatherSettings extends Serializable {
 
   val localAddress = InetAddress.getLocalHost.getHostAddress
 
+  val kafkaBrokers = "localhost:9092"
+
   val SparkMaster = "local[*]"
 
   val SparkCleanerTtl = (3600*2)

@@ -28,8 +28,8 @@ object RestAPIs extends WeatherReportResource {
     import settings._
 
     // Create embedded Kafka and topic
-    EmbeddedSingleNodeKafkaCluster.start()
-    EmbeddedSingleNodeKafkaCluster.createTopic(KafkaTopicRaw)
+//    EmbeddedSingleNodeKafkaCluster.start()
+//    EmbeddedSingleNodeKafkaCluster.createTopic(KafkaTopicRaw)
     val host = "localhost"
     val port = 5000
 

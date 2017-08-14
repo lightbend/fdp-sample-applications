@@ -9,7 +9,7 @@ import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
 import org.apache.spark.streaming.kafka010.KafkaUtils
 import org.apache.spark.streaming.kafka010.LocationStrategies.PreferConsistent
 import com.datastax.spark.connector.streaming._
-import com.lightbend.killrweather.Record.WeatherRecord
+import com.lightbend.killrweather.WeatherClient.WeatherRecord
 import com.lightbend.killrweather.utils._
 import org.apache.spark.util.StatCounter
 
