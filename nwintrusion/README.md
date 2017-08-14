@@ -62,10 +62,8 @@ kafka-topic-partitions=1
 
 ## kafka topic replication factor : default 1
 kafka-topic-replication-factor=1
-
-## S3 bucket to use to get Spark job artifacts
-spark-job-s3-bucket=http://fdp-kdd-network-intrusion.s3.amazonaws.com
 ```
+> The installation process fetches the artifacts from an S3 bucket whose value can be specified using an environment variable `S3_BUCKET`. You can set this value in case you used your own custom S3 bucket for building the application. The process of building the artifacts is described in the section "Building the App". The default bucket with pre-loaded artifacts is `fdp-sample-apps-artifacts`.
 
 There is also an `bin/app-package.sh` script that creates a tar file `nwin-app.tar` in the project `bin` directory, which you can use to deploy this app to any cluster. If you aren't using the DC/OS CLI on your local machine, just run this command, then copy and unzip the jar file on any system with the DC/OS CLI installed on it. Then run the `app-install.sh` script from there.
 
@@ -119,6 +117,8 @@ Or, to specify each option explicitly on the command line:
 ```
 ./build-app.sh --docker-username name --docker-password pwd --s3-bucket name
 ```
+
+> The S3 bucket can also be specified using an environment variable `S3_BUCKET`. The default bucket is `fdp-sample-apps-artifacts`. If you specify the bucket using `--s3-bucket` that value overrides the environment variable.
 
 The script builds all artifacts and pushes them to the appropriate repositories. The jars are pushed to S3. Use `build-app.sh --help` to view the available options. If you want to build an individual docker image then
 you can run the corresponding `build-image.sh` script under the specific component's folder in source/docker.

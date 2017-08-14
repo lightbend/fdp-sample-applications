@@ -3,14 +3,15 @@ set -e
 
 SCRIPT=`basename ${BASH_SOURCE[0]}`
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
+. "$DIR/../../../version.sh"
 
-DOCKER_TAG="latest"
+DOCKER_TAG="$APP_VERSION"
 DOCKER_REPO="fdp-nw-intrusion-transform-data"
 # DOCKER_USERNAME="lightbend"
 
 function build_image {
   rm -rf "$DIR/*.jar"
-  cp "$DIR/../../core/target/scala-2.11/fdp-nw-intrusion-assembly-0.1.jar" "$DIR"
+  cp "$DIR/../../core/target/scala-2.11/fdp-nw-intrusion-assembly-$APP_VERSION.jar" "$DIR"
   docker build --no-cache=true $DIR -t $DOCKER_USERNAME/$DOCKER_REPO:$DOCKER_TAG
 }
 
