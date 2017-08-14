@@ -16,7 +16,7 @@ import scala.collection.mutable.ListBuffer
   */
 object KafkaDataIngester {
   val file = "data/load/ny-2008.csv.gz"
-  val timeInterval = 100 * 1        // 1 sec
+  val timeInterval = 100 * 1L        // 1 sec
   val batchSize = 10
   private val bos = new ByteArrayOutputStream()
 
@@ -81,7 +81,7 @@ class KafkaDataIngester(brokers : String){
 }
 
 class BufferedReaderIterator(reader: BufferedReader) extends Iterator[String] {
-  override def hasNext() = reader.ready()
+  override def hasNext = reader.ready()
   override def next() = reader.readLine()
 }
 

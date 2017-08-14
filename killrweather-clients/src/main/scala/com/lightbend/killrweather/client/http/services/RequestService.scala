@@ -5,7 +5,7 @@ import java.io.ByteArrayOutputStream
 import akka.actor.ActorSystem
 import akka.kafka.ProducerSettings
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.{Sink, Source}
+import akka.stream.scaladsl.Source
 import com.lightbend.killrweather.utils.RawWeatherData
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.ByteArraySerializer
@@ -31,6 +31,7 @@ class RequestService(implicit executionContext: ExecutionContext, materializer :
 
   def processRequest(report: RawWeatherData): Future[Unit] = Future {
 //    Source.single(report).runWith(Sink.foreach(println))
+    // DeanW: Is the body of map correct? The new PRoducerRecord is discarded, right?
     Source.single(report).map { r =>
       new ProducerRecord[Array[Byte], Array[Byte]](KafkaTopicRaw, convertRecord(r))
     }.runWith(Producer.plainSink(producerSettings))

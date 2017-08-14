@@ -52,7 +52,7 @@ final class WeatherSettings extends Serializable {
 
   val SparkCleanerTtl = (3600*2)
 
-  val SparkStreamingBatchInterval = 2000
+  val SparkStreamingBatchInterval = 2000L
 
   val SparkCheckpointDir = "cpt/"
 

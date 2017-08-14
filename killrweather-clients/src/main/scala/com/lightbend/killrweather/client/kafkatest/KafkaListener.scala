@@ -9,7 +9,7 @@ import akka.kafka.scaladsl.Consumer
 import akka.stream.ActorMaterializer
 import akka.stream.javadsl.Sink
 import com.lightbend.killrweather.WeatherClient.WeatherRecord
-import com.lightbend.killrweather.kafka.EmbeddedSingleNodeKafkaCluster
+// import com.lightbend.killrweather.kafka.EmbeddedSingleNodeKafkaCluster
 
 import scala.concurrent.Future
 
