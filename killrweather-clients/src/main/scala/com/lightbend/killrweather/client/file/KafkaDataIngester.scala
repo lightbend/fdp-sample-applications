@@ -81,7 +81,7 @@ class KafkaDataIngester(brokers : String){
 }
 
 class BufferedReaderIterator(reader: BufferedReader) extends Iterator[String] {
-  override def hasNext() = reader.ready()
+  override def hasNext = reader.ready()
   override def next() = reader.readLine()
 }
 

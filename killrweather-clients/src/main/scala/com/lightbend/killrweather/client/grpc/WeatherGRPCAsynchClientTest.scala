@@ -36,7 +36,8 @@ class WeatherGRPCAsynchClientTest(private val channel: ManagedChannel,
                             private val asynchStub: WeatherListenerStub) {
 
   def shutdown(): Unit = {
-    channel.shutdown.awaitTermination(5, TimeUnit.SECONDS)
+    val result = channel.shutdown.awaitTermination(5, TimeUnit.SECONDS)
+    println(s"WeatherGRPCAsynchClientTest.shutdown: ManagedChannel terminated? $result")
   }
 
   /** Send report to a server. */

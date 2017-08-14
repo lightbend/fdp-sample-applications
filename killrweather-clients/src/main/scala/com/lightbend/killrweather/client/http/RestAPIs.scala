@@ -16,7 +16,7 @@ import akka.stream.ActorMaterializer
 import akka.util.Timeout
 import com.lightbend.killrweather.client.http.resources.WeatherReportResource
 import com.lightbend.killrweather.client.http.services.RequestService
-import com.lightbend.killrweather.kafka.EmbeddedSingleNodeKafkaCluster
+// import com.lightbend.killrweather.kafka.EmbeddedSingleNodeKafkaCluster
 import com.lightbend.killrweather.settings.WeatherSettings
 
 object RestAPIs extends WeatherReportResource {
@@ -25,7 +25,7 @@ object RestAPIs extends WeatherReportResource {
 
     val settings = new WeatherSettings()
 
-    import settings._
+    // import settings._
 
     // Create embedded Kafka and topic
 //    EmbeddedSingleNodeKafkaCluster.start()
@@ -42,9 +42,11 @@ object RestAPIs extends WeatherReportResource {
 
     val routes: Route = requestRoutes(new RequestService)
 
-    Http().bindAndHandle(routes, host, port) map
-      { binding => println(s"REST interface bound to ${binding.localAddress}") } recover { case ex =>
-      println(s"REST interface could not bind to $host:$port, ${ex.getMessage}")
+    val message = Http().bindAndHandle(routes, host, port) map {
+      binding => s"REST interface bound to ${binding.localAddress}"
+    } recover {
+      case ex => s"REST interface could not bind to $host:$port, ${ex.getMessage}"
     }
+    println(message)
   }
 }

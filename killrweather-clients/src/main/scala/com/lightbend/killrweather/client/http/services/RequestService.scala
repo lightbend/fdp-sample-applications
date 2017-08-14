@@ -31,6 +31,7 @@ class RequestService(implicit executionContext: ExecutionContext, materializer :
 
   def processRequest(report: RawWeatherData): Future[Unit] = Future {
 //    Source.single(report).runWith(Sink.foreach(println))
+    // DeanW: Is the body of map correct? The new PRoducerRecord is discarded, right?
     Source.single(report).map { r =>
       new ProducerRecord[Array[Byte], Array[Byte]](KafkaTopicRaw, convertRecord(r))
     }.runWith(Producer.plainSink(producerSettings))
