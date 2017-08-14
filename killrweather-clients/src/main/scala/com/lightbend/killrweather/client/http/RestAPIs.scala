@@ -21,7 +21,7 @@ import com.lightbend.killrweather.settings.WeatherSettings
 
 object RestAPIs extends WeatherReportResource {
 
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
 
     val settings = new WeatherSettings()
 
@@ -44,7 +44,7 @@ object RestAPIs extends WeatherReportResource {
 
     Http().bindAndHandle(routes, host, port) map
       { binding => println(s"REST interface bound to ${binding.localAddress}") } recover { case ex =>
-      println(s"REST interface could not bind to $host:$port", ex.getMessage)
+      println(s"REST interface could not bind to $host:$port, ${ex.getMessage}")
     }
   }
 }

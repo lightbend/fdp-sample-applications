@@ -3,8 +3,7 @@ package com.lightbend.killrweather.kafka
 import com.google.common.io.Files
 import kafka.admin.{AdminUtils, RackAwareMode}
 import kafka.server.{KafkaConfig, KafkaServerStartable}
-import kafka.utils.{CoreUtils, ZkUtils, ZKStringSerializer}
-import org.I0Itec.zkclient.{ZkClient, ZkConnection}
+import kafka.utils.{CoreUtils, ZkUtils} //, ZKStringSerializer}
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.util.{Collections, Properties}
@@ -124,8 +123,9 @@ class KafkaEmbedded (val config: Properties){
     */
   def createTopic(topic: String, partitions: Int, replication: Int, topicConfig: Properties): Unit = {
     KafkaEmbedded.log.debug(s"Creating topic { name: $topic, partitions: $partitions, replication: $replication, config: $topicConfig }")
-  //  val zkClient = new ZkClient(zookeeperConnect, KafkaEmbedded.DEFAULT_ZK_SESSION_TIMEOUT_MS, KafkaEmbedded.DEFAULT_ZK_CONNECTION_TIMEOUT_MS, ZKStringSerializer)
-  //  val zkUtils = new ZkUtils(zkClient, new ZkConnection(zookeeperConnect), false)
+    // import org.I0Itec.zkclient.{ZkClient, ZkConnection}
+    // val zkClient = new ZkClient(zookeeperConnect, KafkaEmbedded.DEFAULT_ZK_SESSION_TIMEOUT_MS, KafkaEmbedded.DEFAULT_ZK_CONNECTION_TIMEOUT_MS, ZKStringSerializer)
+    // val zkUtils = new ZkUtils(zkClient, new ZkConnection(zookeeperConnect), false)
     AdminUtils.createTopic(zkUtils, topic, partitions, replication, topicConfig, RackAwareMode.Enforced)
   }
 }

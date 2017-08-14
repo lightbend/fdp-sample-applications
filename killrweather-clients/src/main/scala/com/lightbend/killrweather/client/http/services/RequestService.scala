@@ -5,7 +5,7 @@ import java.io.ByteArrayOutputStream
 import akka.actor.ActorSystem
 import akka.kafka.ProducerSettings
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.{Sink, Source}
+import akka.stream.scaladsl.Source
 import com.lightbend.killrweather.utils.RawWeatherData
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.ByteArraySerializer

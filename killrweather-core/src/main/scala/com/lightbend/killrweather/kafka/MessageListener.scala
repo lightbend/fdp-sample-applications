@@ -1,7 +1,6 @@
 package com.lightbend.killrweather.kafka
 
 import org.apache.kafka.clients.consumer.{ConsumerConfig, KafkaConsumer}
-import java.util.Properties
 import scala.collection.JavaConversions._
 
 object MessageListener {

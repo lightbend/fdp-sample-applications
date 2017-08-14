@@ -74,7 +74,7 @@ object KillrWeather {
               val tempAggregate = StatCounter(sequence.map(_.temperature))
               val windAggregate = StatCounter(sequence.map(_.windSpeed))
               val pressureAggregate = StatCounter(sequence.map(_.pressure).filter(_ > 1.0))    // remove 0 elements
-              daily = Some(last.wsid, DailyWeatherData(last.wsid, last.year, last.month, last.day,
+              daily = Some(last.wsid -> DailyWeatherData(last.wsid, last.year, last.month, last.day,
                 tempAggregate.max, tempAggregate.min, tempAggregate.mean, tempAggregate.stdev, tempAggregate.variance,
                 windAggregate.max, windAggregate.min, windAggregate.mean, windAggregate.stdev, windAggregate.variance,
                 pressureAggregate.max, pressureAggregate.min, pressureAggregate.mean, pressureAggregate.stdev, pressureAggregate.variance,
@@ -124,7 +124,7 @@ object KillrWeather {
               val windAggregate = StatCounter(sequence.map(_.wind))
               val pressureAggregate = StatCounter(sequence.map(_.pressure))
               val presipAggregate = StatCounter(sequence.map(_.precip))
-              monthly = Some(last.wsid, MonthlyWeatherData(last.wsid, last.year, last.month,
+              monthly = Some(last.wsid -> MonthlyWeatherData(last.wsid, last.year, last.month,
                 tempAggregate.max, tempAggregate.min, tempAggregate.mean, tempAggregate.stdev, tempAggregate.variance,
                 windAggregate.max, windAggregate.min, windAggregate.mean, windAggregate.stdev, windAggregate.variance,
                 pressureAggregate.max, pressureAggregate.min, pressureAggregate.mean, pressureAggregate.stdev, pressureAggregate.variance,
