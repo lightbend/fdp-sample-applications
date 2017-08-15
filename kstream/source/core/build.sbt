@@ -32,7 +32,6 @@ scalaVersion in ThisBuild := scalaVer
 resolvers += "Confluent Maven" at "http://packages.confluent.io/maven/"
 
 (sourceDirectory in avroConfig) := baseDirectory.value / "src/main/resources/com/lightbend/fdp/sample/kstream/"
-(javaSource in avroConfig) := baseDirectory.value / "src/main/java/"
 (stringType in avroConfig) := "String"
 
 enablePlugins(JavaAppPackaging)
