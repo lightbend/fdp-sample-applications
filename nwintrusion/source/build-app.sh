@@ -6,10 +6,11 @@ SCRIPT=`basename ${BASH_SOURCE[0]}`
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 
 . "$DIR/../../bin/common.sh"
+. "$DIR/../version.sh"
 
 # You could override these definitions with environment variables.
-: ${S3_BUCKET:="fdp-kdd-network-intrusion"}
-: ${JAR:="fdp-nw-intrusion-assembly-0.1.jar"}
+: ${S3_BUCKET:="fdp-sample-apps-artifacts"}
+: ${JAR:="fdp-nw-intrusion-assembly-$APP_VERSION.jar"}
 : ${AWS_ENV_FILE:=$HOME/.ssh/aws.sh}
 
 function upload_app_jar {

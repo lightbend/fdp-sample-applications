@@ -5,6 +5,7 @@ SCRIPT=`basename ${BASH_SOURCE[0]}`
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 
 . "$DIR/utils.sh"
+. "$DIR/../version.sh"
 
 # Used by show_help
 HELP_MESSAGE="Installs the network intrusion app. Assumes DC/OS authentication was successful
@@ -257,11 +258,6 @@ keyval() {
         SKIP_CREATE_TOPICS=$value
       fi
 
-      if [ "$key" == "s3-bucket-url" ]
-      then
-        S3_BUCKET_URL=$value
-      fi
-
       if [ "$key" == "with-iam-role" ]
       then
 	if [ "$value" != true ]
@@ -293,10 +289,6 @@ keyval() {
     then
       SKIP_CREATE_TOPICS=false
     fi
-    if [ -z $S3_BUCKET_URL ]
-    then
-      error 's3-bucket-url requires a non-empty argument.'
-    fi
   else
     echo "$filename not found."
     exit 6
@@ -306,6 +298,12 @@ keyval() {
 function main {
 
   parse_arguments "$@"
+
+  : ${S3_BUCKET:="fdp-sample-apps-artifacts"}
+
+  S3_BUCKET_URL="http://$S3_BUCKET.s3.amazonaws.com"
+
+  echo "Bucket URL: $S3_BUCKET_URL"
 
   if [ ! -f $config_file ]
   then
@@ -334,9 +332,9 @@ function main {
 
   KAFKA_ZOOKEEPER_URL="master.mesos:$ZOOKEEPER_PORT/dcos-service-$KAFKA_DCOS_PACKAGE"
 
-  TRANSFORM_DATA_IMAGE="$DOCKER_USERNAME/fdp-nw-intrusion-transform-data"
-  LOAD_DATA_IMAGE="$DOCKER_USERNAME/fdp-nw-intrusion-load-data"
-  VIS_DATA_IMAGE="$DOCKER_USERNAME/fdp-nw-intrusion-visualize-data"
+  TRANSFORM_DATA_IMAGE="$DOCKER_USERNAME/fdp-nw-intrusion-transform-data:$APP_VERSION"
+  LOAD_DATA_IMAGE="$DOCKER_USERNAME/fdp-nw-intrusion-load-data:$APP_VERSION"
+  VIS_DATA_IMAGE="$DOCKER_USERNAME/fdp-nw-intrusion-visualize-data:$APP_VERSION"
 
   header "Verifying required tools are installed...\n"
 
