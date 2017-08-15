@@ -2,13 +2,12 @@ import sbtassembly.MergeStrategy
 import NativePackagerHelper._
 import deployssh.DeploySSH._
 
-
 val circeVersion = "0.8.0"
 val catsVersion = "0.9.0"
 val configVersion = "1.3.1"
 val kafkaVersion = "0.10.2.1"
 val confluentKafkaVersion = "3.2.2"
-val specs2Version = "3.8.9" 
+val specs2Version = "3.8.9"
 val scalaCheckVersion = "1.12.4"
 val scalaLoggingVersion = "3.5.0"
 val logbackVersion = "1.2.3"
@@ -128,6 +127,20 @@ lazy val app = project
     }
   )
 
+// an sbt project to make it easier to run WeblogProcessing
+lazy val dslRun = project
+  .in(file("run/dsl"))
+  .settings (
+    fork in run := true,
+    mainClass in Compile := Some("com.lightbend.fdp.sample.kstream.WeblogProcessing"),
+    resourceDirectory in Compile := (resourceDirectory in (app, Compile)).value,
+    javaOptions in run ++= Seq(
+      "-Dconfig.file=" + (resourceDirectory in Compile).value / "application_dsl.conf",
+      "-Dlogback.configurationFile=" + (resourceDirectory in Compile).value / "logback-dsl.xml"),
+    addCommandAlias("dsl", "dslRun/run")
+  )
+  .dependsOn(app)
+
 // the package for WeblogProcessing that uses Kafka-Streams DSL
 lazy val dslPackage = project
   .in(file("build/dsl"))
@@ -138,7 +151,7 @@ lazy val dslPackage = project
     resourceDirectory in Compile := (resourceDirectory in (app, Compile)).value,
     mappings in Universal ++= {
       Seq(((resourceDirectory in Compile).value / "application_dsl.conf") -> "conf/application.conf") ++
-      Seq(((resourceDirectory in Compile).value / "logback-dsl.xml") -> "conf/logback.xml")
+        Seq(((resourceDirectory in Compile).value / "logback-dsl.xml") -> "conf/logback.xml")
     },
     deployResourceConfigFiles ++= Seq("deploy.conf"),
     deployArtifacts ++= Seq(
@@ -149,6 +162,19 @@ lazy val dslPackage = project
   )
   .dependsOn(app)
 
+// an sbt project to make it easier to run WeblogDriver
+lazy val procRun = project
+  .in(file("run/proc"))
+  .settings (
+    fork in run := true,
+    mainClass in Compile := Some("com.lightbend.fdp.sample.kstream.WeblogDriver"),
+    resourceDirectory in Compile := (resourceDirectory in (app, Compile)).value,
+    javaOptions in run ++= Seq(
+      "-Dconfig.file=" + (resourceDirectory in Compile).value / "application_proc.conf",
+      "-Dlogback.configurationFile=" + (resourceDirectory in Compile).value / "logback-proc.xml"),
+    addCommandAlias("proc", "procRun/run")
+  )
+  .dependsOn(app)
 
 // the package for WeblogDriver that uses Kafka-Streams Processor APIs
 lazy val procPackage = project
@@ -160,7 +186,7 @@ lazy val procPackage = project
     resourceDirectory in Compile := (resourceDirectory in (app, Compile)).value,
     mappings in Universal ++= {
       Seq(((resourceDirectory in Compile).value / "application_proc.conf") -> "conf/application.conf") ++
-      Seq(((resourceDirectory in Compile).value / "logback-proc.xml") -> "conf/logback.xml")
+        Seq(((resourceDirectory in Compile).value / "logback-proc.xml") -> "conf/logback.xml")
     },
     deployResourceConfigFiles ++= Seq("deploy.conf"),
     deployArtifacts ++= Seq(
