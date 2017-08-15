@@ -618,6 +618,7 @@ Once the `deploySsh` is complete we can run the application as a Marathon job. T
 
 *Note the file sets the environment variables `$INTERFACE_PROC` that sets the host  of deployment for the http endpoint of the REST microservice. This variable is picked up by the configuration parameter `dcos.http.interface`. For the port number of the endpoint a random free port will be allocated. The value of this port number can be found from the application log file.*
 
+<<<<<<< HEAD
 ## Running the application from source
 
 ### Setup Confluent infrastructure
@@ -646,6 +647,9 @@ Each application will use its appropriate `application.conf` and `logback.xml`. 
 To trigger the ingestion operation for either app you can add new files in `directorytowatch` or use the `touch` command on any files that already exist in that directory.
 
 
+=======
+<<<<<<< HEAD
+>>>>>>> Add 'Run app from source' section to kstreams README
 ## Interfacing with Confluent Connect
 
 The dsl module of the application generates Avro data corresponding to the ingested records to a topic named `avro-topic`. We can set up Confluent Connect to consume from `avro-topic` and write to HDFS. Confluent repository offers out of the box HDFS Sink connectors that can do this. In this section we will discuss how to set this up in our DC/OS clustered environment.
@@ -704,3 +708,36 @@ Here the last URL `http://10.8.0.19:9622/connectors` refers to the host / port w
 For more details on how to configure and manage connectors, have a look at this [Confluent Page](http://docs.confluent.io/current/connect/managing.html).
 
 If the above setup steps went fine, then when you run the application for Kafka Streams DSL module, records will be generated in the `avro-topic` and will be consumed by the connector and written in HDFS.
+<<<<<<< HEAD
+=======
+
+
+=======
+## Running the application from source
+
+### Setup Confluent infrastructure
+
+If you're a developer and wish to run the applications from source you must first have a local running ZooKeeper, Confluent Kafka broker, and Schema Registry.  Confluent maintains docker images for all their solutions on their [cp-docker-images](https://github.com/confluentinc/cp-docker-images/) repository.  This repository contains an examples directory with a `docker-compose.yml` file for running the Confluent platform.  Clone the repository and run the [`cp-all-in-one`](https://github.com/confluentinc/cp-docker-images/blob/3.2.x/examples/cp-all-in-one/docker-compose.yml) example compose file to bring up the necessary infrastructure (ZooKeeper, Kafka Broker, Schema Registry).
+
+### Download & config app to use ClarkNet weblog input data
+
+Download the [Clarknet dataset](http://ita.ee.lbl.gov/html/contrib/ClarkNet-HTTP.html) to a directory of your choice.  Extract the dataset.  Optionally, you may prefer to extract a subset of the dataset to use for testing. 
+
+```bash
+head -n 100 clarknet_access_log_Aug28 > clarknet_access_log_Aug28_first_100
+```
+
+Update `dcos.kafka.loader.directorytowatch` in both the `application_dsl.conf` and `application_proc.conf` under the `./src/main/resources` directory to the directory where you extracted your weblog data.
+
+### Run the app
+
+The `build.sbt` contains two sub modules that can be used to easily run the applications from the CLI:
+
+* WeblogProcessing - `sbt dsl`
+* WeblogDriver - `sbl proc`
+
+Each application will use its appropriate `application.conf` and `logback.xml`.  Logs will be generated under `./run/dsl/logs/` and `./run/proc/logs/` respectively.
+
+To trigger the ingestion operation for either app you can add new files in `directorytowatch` or use the `touch` command on any files that already exist in that directory.
+>>>>>>> Add 'Run app from source' section to kstreams README
+>>>>>>> Add 'Run app from source' section to kstreams README
