@@ -1,34 +1,26 @@
 package com.lightbend.fdp.sample.kstream
 
-import java.io.{ StringWriter, PrintWriter }
-import java.util.{ Properties, Locale }
-import java.lang.{ Long => JLong }
+import java.io.{PrintWriter, StringWriter}
+import java.lang.{Long => JLong}
+import java.time.format.DateTimeFormatter
+import java.util.Properties
+import java.util.concurrent.Executors
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-
-import org.apache.kafka.common.serialization.{ Serde, Serdes }
-import org.apache.kafka.streams.kstream.{ KStreamBuilder, KStream, ValueMapper, KeyValueMapper, KTable }
-import org.apache.kafka.streams.kstream.{ Initializer, Aggregator, Predicate, TimeWindows, KGroupedStream, Windowed }
-import org.apache.kafka.streams.{ StreamsConfig, KafkaStreams, KeyValue }
+import com.lightbend.fdp.sample.kstream.config.KStreamConfig._
+import com.lightbend.fdp.sample.kstream.http.{HttpRequester, KeyValueFetcher, WeblogDSLHttpService, WindowValueFetcher}
+import com.lightbend.fdp.sample.kstream.models.{LogParseUtil, LogRecord}
+import com.lightbend.fdp.sample.kstream.services.{LocalStateStoreQuery, MetadataService}
+import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig
 import org.apache.kafka.clients.consumer.ConsumerConfig
-import org.apache.kafka.streams.state.{ ReadOnlyKeyValueStore, QueryableStoreTypes, QueryableStoreType }
-import org.apache.kafka.streams.errors.InvalidStateStoreException
+import org.apache.kafka.common.serialization.Serdes
+import org.apache.kafka.streams.kstream._
 import org.apache.kafka.streams.state.HostInfo
-
-import java.util.concurrent.Executors
-import java.time.format.DateTimeFormatter
+import org.apache.kafka.streams.{KafkaStreams, KeyValue, StreamsConfig}
 
 import scala.concurrent.ExecutionContext
-import scala.util.{ Success, Failure }
-
-import config.KStreamConfig._
-import serializers._
-import models.{ LogRecord, LogParseUtil }
-import http.{ WeblogDSLHttpService, HttpRequester, KeyValueFetcher, WindowValueFetcher }
-import services.{ MetadataService, LocalStateStoreQuery }
-
-import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig
+import scala.util.{Failure, Success}
 
 object WeblogProcessing extends WeblogWorkflow {
 
@@ -40,31 +32,31 @@ object WeblogProcessing extends WeblogWorkflow {
   def main(args: Array[String]): Unit = workflow()
 
   override def startRestProxy(streams: KafkaStreams, hostInfo: HostInfo,
-    actorSystem: ActorSystem, materializer: ActorMaterializer): WeblogDSLHttpService = {
+                              actorSystem: ActorSystem, materializer: ActorMaterializer): WeblogDSLHttpService = {
 
     implicit val system = actorSystem
 
     lazy val defaultParallelism: Int = {
-      val rt = Runtime.getRuntime()
+      val rt = Runtime.getRuntime
       rt.availableProcessors() * 4
     }
 
-    def defaultExecutionContext(parallelism: Int = defaultParallelism): ExecutionContext = 
+    def defaultExecutionContext(parallelism: Int = defaultParallelism): ExecutionContext =
       ExecutionContext.fromExecutor(Executors.newFixedThreadPool(parallelism))
-    
+
     val executionContext = defaultExecutionContext()
 
     // service for fetching metadata information
     val metadataService = new MetadataService(streams)
-  
+
     // service for fetching from local state store
     val localStateStoreQuery = new LocalStateStoreQuery[String, Long]
-  
+
     // http service for request handling
     val httpRequester = new HttpRequester(system, materializer, executionContext)
-  
+
     val restService = new WeblogDSLHttpService(
-      hostInfo, 
+      hostInfo,
       new KeyValueFetcher(metadataService, localStateStoreQuery, httpRequester, streams, executionContext, hostInfo),
       new WindowValueFetcher(metadataService, localStateStoreQuery, httpRequester, streams, executionContext, hostInfo),
       system, materializer, executionContext
@@ -72,9 +64,8 @@ object WeblogProcessing extends WeblogWorkflow {
     restService.start()
     restService
   }
-  
-  override def createStreams(config: ConfigData): KafkaStreams = {
 
+  override def createStreams(config: ConfigData): KafkaStreams = {
     // Kafka stream configuration
     val streamingConfig = {
       val settings = new Properties
@@ -124,126 +115,111 @@ object WeblogProcessing extends WeblogWorkflow {
     new KafkaStreams(builder, streamingConfig)
   }
 
+  /**
+    * Clean and format input data.  Redirect records that cause a parsing error to the error topic.
+    */
   def generateLogRecords(builder: KStreamBuilder, config: ConfigData): Unit = {
 
     // will read network data from `fromTopic`
     val logs: KStream[Array[Byte], String] = builder.stream(config.fromTopic)
-    
+
     // extract values after transformation
-    val extracted: KStream[Array[Byte], Extracted] = logs.mapValues(extractor)
-    
-    // need to separate labelled data and errors
-    val filtered: Array[KStream[Array[Byte], Extracted]] = extracted.branch(predicateValid, predicateErrors)
+    val extracted: KStream[Array[Byte], Extracted] = logs.mapValues { record =>
+      LogParseUtil.parseLine(record) match {
+        case Success(r) => ValidLogRecord(r)
+        case Failure(ex) => ValueError(ex, record)
+      }
+    }
+
+    val predicateValid = new Predicate[Array[Byte], Extracted] {
+      def test(key: Array[Byte], value: Extracted): Boolean = value match {
+        case ValidLogRecord(_) => true
+        case _ => false
+      }
+    }
+
+    val predicateError = new Predicate[Array[Byte], Extracted] {
+      def test(key: Array[Byte], value: Extracted): Boolean = value match {
+        case ValueError(_, _) => true
+        case _ => false
+      }
+    }
+
+    // fan out stream to create output streams for labelled data and errors
+    val filtered: Array[KStream[Array[Byte], Extracted]] = extracted.branch(predicateValid, predicateError)
 
     // push the labelled data
-    val v: KStream[Array[Byte], LogRecord] = filtered(0).mapValues(simpleMapper)
-    v.to(byteArraySerde, logRecordSerde, config.toTopic.get)
+    val validated: KStream[Array[Byte], LogRecord] = filtered(0).mapValues {
+      case ValidLogRecord(r) => r
+      case _ => ??? // should never happen since we pre-emptively filtered with `branch`
+    }
+
+    validated.to(byteArraySerde, logRecordSerde, config.toTopic.get)
 
     // push the extraction errors
-    val i: KStream[Array[Byte], (String, String)] = filtered(1).mapValues(errorMapper)
-    i.to(byteArraySerde, tuple2StringSerde, config.errorTopic)
+    val errors: KStream[Array[Byte], (String, String)] = filtered(1).mapValues {
+      case ValueError(e, v) =>
+        val writer = new StringWriter()
+        e.printStackTrace(new PrintWriter(writer))
+        (writer.toString, v)
+      case _ => ??? // should never happen since we pre-emptively filtered with `branch`
+    }
+
+    errors.to(byteArraySerde, tuple2StringSerde, config.errorTopic)
   }
 
   sealed abstract class Extracted { }
   final case class ValidLogRecord(record: LogRecord) extends Extracted
   final case class ValueError(exception: Throwable, originalRecord: String) extends Extracted
 
-  val extractor = new ValueMapper[String, Extracted] {
-    def apply(record: String): Extracted =
-      LogParseUtil.parseLine(record) match {
-        case Success(r) => ValidLogRecord(r)
-        case Failure(ex) => ValueError(ex, record)
-      }
+  def generateAvro(logRecords: KStream[Array[Byte], LogRecord], builder: KStreamBuilder,
+                   config: ConfigData): Unit = config.schemaRegistryUrl.foreach { url =>
+    val isKeySerde = false
+    logRecordAvroSerde.configure(
+      java.util.Collections.singletonMap(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, url),
+      isKeySerde)
+
+    val records: KStream[Array[Byte], LogRecordAvro] = logRecords.mapValues(makeAvro)
+    records.to(byteArraySerde, logRecordAvroSerde, config.avroTopic.get)
   }
-
-  // filters
-  val predicateValid = new Predicate[Array[Byte], Extracted] {
-    def test(key: Array[Byte], value: Extracted): Boolean = {
-      value match {
-        case ValidLogRecord(_) => true
-        case _ => false
-      }
-    }
-  }
-
-  val predicateErrors = new Predicate[Array[Byte], Extracted] {
-    def test(key: Array[Byte], value: Extracted): Boolean = {
-      value match {
-        case ValueError(_, _) => true
-        case _ => false
-      }
-    }
-  }
-
-  val simpleMapper = new ValueMapper[Extracted, LogRecord] {
-    def apply(value: Extracted): LogRecord = value match {
-      case ValidLogRecord(r) => r
-      case _ => ???
-    }
-  }
-  
-  val errorMapper = new ValueMapper[Extracted, (String, String)] {
-    def apply(value: Extracted): (String, String) = value match {
-      case ValueError(e, v) =>
-        val writer = new StringWriter()
-        e.printStackTrace(new PrintWriter(writer))
-        (writer.toString, v)
-      case _ => ???
-    }
-  }
-
-  def generateAvro(logRecords: KStream[Array[Byte], LogRecord], builder: KStreamBuilder, 
-    config: ConfigData): Unit = config.schemaRegistryUrl.foreach { url =>
-      val isKeySerde = false
-      logRecordAvroSerde.configure(
-          java.util.Collections.singletonMap(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, url),
-          isKeySerde)
-
-      val records: KStream[Array[Byte], LogRecordAvro] = logRecords.mapValues(makeAvro)
-      records.to(byteArraySerde, logRecordAvroSerde, config.avroTopic.get)
-    }
-
-  val makeAvro = new ValueMapper[LogRecord, LogRecordAvro] {
-    def apply(record: LogRecord): LogRecordAvro = {
-      LogRecordAvro.newBuilder()
-        .setHost(record.host)
-        .setClientId(record.clientId)
-        .setUser(record.user)
-        .setTimestamp(record.timestamp.format(DateTimeFormatter.ofPattern("yyyy MM dd")))
-        .setMethod(record.method)
-        .setEndpoint(record.endpoint)
-        .setProtocol(record.protocol)
-        .setHttpReplyCode(record.httpReplyCode)
-        .setPayloadSize(record.payloadSize)
-        .build()
-    }
-  }
-
 
   /**
-   * Summary count of number of times each host has been accessed
-   */ 
+    * Transform a LogRecord into an Avro SpecificRecord, LogRecordAvro, generated by the Avro compiler
+    */
+  def makeAvro(record: LogRecord): LogRecordAvro =
+    LogRecordAvro.newBuilder()
+      .setHost(record.host)
+      .setClientId(record.clientId)
+      .setUser(record.user)
+      .setTimestamp(record.timestamp.format(DateTimeFormatter.ofPattern("yyyy MM dd")))
+      .setMethod(record.method)
+      .setEndpoint(record.endpoint)
+      .setProtocol(record.protocol)
+      .setHttpReplyCode(record.httpReplyCode)
+      .setPayloadSize(record.payloadSize)
+      .build()
+
+  /**
+    * Summary count of number of times each host has been accessed
+    */
   def hostCountSummary(logRecords: KStream[Array[Byte], LogRecord], builder: KStreamBuilder, config: ConfigData): Unit = {
     // we want to compute the number of times each host is accessed, hence get the host name
-    val hosts: KStream[Array[Byte], String] = logRecords.mapValues(hostExtractor)
+    val hosts: KStream[Array[Byte], String] = logRecords.mapValues(record => record.host)
 
     // we are changing the key here so that we can do a groupByKey later
-    val hostPairs: KStream[String, String] = hosts.map(
-      new KeyValueMapper[Array[Byte], String, KeyValue[String, String]]() {
-        override def apply(key: Array[Byte], value: String): KeyValue[String, String] = new KeyValue(value, value)
-      }) 
-    
+    val hostPairs: KStream[String, String] = hosts.map ((_, value) => new KeyValue(value, value))
+
     // keys have changed - hence need new serdes
-    val groupedStream: KGroupedStream[String, String] = 
+    val groupedStream: KGroupedStream[String, String] =
       hostPairs.groupByKey(stringSerde, stringSerde)
 
     // since this is a KTable (changelog stream), only the latest summarized information
     // for a host will be the correct one - all earlier records will be considered out of date
     val counts: KTable[String, java.lang.Long] = groupedStream.count(ACCESS_COUNT_PER_HOST_STORE)
 
-    val windowedCounts: KTable[Windowed[String], java.lang.Long] = 
+    val windowedCounts: KTable[Windowed[String], java.lang.Long] =
       groupedStream.count(TimeWindows.of(60000), WINDOWED_ACCESS_COUNT_PER_HOST_STORE)
- 
+
     // materialize the summarized information into a topic
     counts.to(stringSerde, longSerde, config.summaryAccessTopic.get)
     windowedCounts.to(windowedSerde, longSerde, config.windowedSummaryAccessTopic.get)
@@ -253,49 +229,37 @@ object WeblogProcessing extends WeblogWorkflow {
     // builder.stream(windowedSerde, longSerde, config.windowedSummaryAccessTopic.get).print()
   }
 
-  val hostExtractor = new ValueMapper[LogRecord, String] {
-    def apply(record: LogRecord): String = record.host
-  }
-
   /**
-   * Aggregate value of payloadSize per host
-   */ 
+    * Aggregate value of payloadSize per host
+    */
   def totalPayloadPerHostSummary(logRecords: KStream[Array[Byte], LogRecord], builder: KStreamBuilder, config: ConfigData): Unit = {
-    // we want to compute the number of times each host is accessed, hence get the host name
-    val payloads: KStream[Array[Byte], (String, JLong)] = logRecords.mapValues(hostPayloadExtractor)
+    // extract the hostname and payload size from the record
+    val payloads: KStream[Array[Byte], (String, JLong)] =
+      logRecords.mapValues(record => (record.host, record.payloadSize))
 
     // we are changing the key here so that we can do a groupByKey later
-    val n: KStream[String, JLong] = payloads.map(
-      new KeyValueMapper[Array[Byte], (String, JLong), KeyValue[String, JLong]]() {
-        override def apply(key: Array[Byte], value: (String, JLong)): KeyValue[String, JLong] = new KeyValue(value._1, value._2)
-      }) 
-    
+    val n: KStream[String, JLong] = payloads.map {
+      case (_, (host, size)) => new KeyValue(host, size)
+    }
+
     val groupedStream: KGroupedStream[String, JLong] = n.groupByKey(stringSerde, longSerde)
 
     val payloadSize: KTable[String, JLong] = groupedStream
-     .aggregate(
-       new Initializer[JLong] {
-         def apply() = 0L
-       },
-       new Aggregator[String, JLong, JLong] {
-         def apply(k: String, s: JLong, agg: JLong) = s + agg
-       },
-       longSerde,
-       PAYLOAD_SIZE_PER_HOST_STORE
-     )
+      .aggregate(
+        () => 0L,
+        (_, s: JLong, agg: JLong) => s + agg,
+        longSerde,
+        PAYLOAD_SIZE_PER_HOST_STORE
+      )
 
     val windowedPayloadSize: KTable[Windowed[String], JLong] = groupedStream
-     .aggregate(
-       new Initializer[JLong] {
-         def apply() = 0L
-       },
-       new Aggregator[String, JLong, JLong] {
-         def apply(k: String, s: JLong, agg: JLong) = s + agg
-       },
-       TimeWindows.of(60000),
-       longSerde,
-       WINDOWED_PAYLOAD_SIZE_PER_HOST_STORE
-     )
+      .aggregate(
+        () => 0L,
+        (_, s: JLong, agg: JLong) => s + agg,
+        TimeWindows.of(60000),
+        longSerde,
+        WINDOWED_PAYLOAD_SIZE_PER_HOST_STORE
+      )
 
     // materialize the summarized information into a topic
     payloadSize.to(stringSerde, longSerde, config.summaryPayloadTopic.get)
@@ -303,9 +267,5 @@ object WeblogProcessing extends WeblogWorkflow {
 
     // print the topic info (for debugging)
     builder.stream(stringSerde, longSerde, config.summaryPayloadTopic.get).print()
-  }
-
-  val hostPayloadExtractor = new ValueMapper[LogRecord, (String, JLong)] {
-    def apply(record: LogRecord): (String, JLong) = (record.host, record.payloadSize)
   }
 }
