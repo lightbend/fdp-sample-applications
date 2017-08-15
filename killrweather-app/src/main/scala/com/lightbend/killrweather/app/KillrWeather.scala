@@ -1,8 +1,8 @@
 package com.lightbend.killrweather.app
 
-import com.lightbend.killrweather.kafka.{EmbeddedSingleNodeKafkaCluster, MessageListener}
+import com.lightbend.killrweather.kafka.{ EmbeddedSingleNodeKafkaCluster, MessageListener }
 import org.apache.spark.SparkConf
-import org.apache.spark.streaming.{Seconds, State, StateSpec, StreamingContext}
+import org.apache.spark.streaming.{ Seconds, State, StateSpec, StreamingContext }
 import com.lightbend.killrweather.settings.WeatherSettings
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
 import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
@@ -16,8 +16,8 @@ import org.apache.spark.util.StatCounter
 import scala.collection.mutable.ListBuffer
 
 /**
-  * Created by boris on 7/9/17.
-  */
+ * Created by boris on 7/9/17.
+ */
 object KillrWeather {
 
   def main(args: Array[String]): Unit = {
@@ -25,10 +25,10 @@ object KillrWeather {
     val settings = new WeatherSettings()
 
     import settings._
-     // Create embedded Kafka and topic
+    // Create embedded Kafka and topic
     EmbeddedSingleNodeKafkaCluster.start()
     EmbeddedSingleNodeKafkaCluster.createTopic(KafkaTopicRaw)
-//    val brokers = "localhost:9092"
+    //    val brokers = "localhost:9092"
     val brokers = EmbeddedSingleNodeKafkaCluster.bootstrapServers
 
     // Create context
@@ -37,13 +37,15 @@ object KillrWeather {
       .set("spark.cassandra.connection.host", CassandraHosts)
     sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .set("spark.cassandra.connection.host", CassandraHosts)
-    val ssc = new StreamingContext(sparkConf, Seconds(SparkStreamingBatchInterval/1000))
+    val ssc = new StreamingContext(sparkConf, Seconds(SparkStreamingBatchInterval / 1000))
     ssc.checkpoint(SparkCheckpointDir)
     val sc = ssc.sparkContext
 
     // Create raw data observations stream
-    val kafkaParams = MessageListener.consumerProperties(brokers,
-            KafkaGroupId, classOf[ByteArrayDeserializer].getName, classOf[ByteArrayDeserializer].getName)
+    val kafkaParams = MessageListener.consumerProperties(
+      brokers,
+      KafkaGroupId, classOf[ByteArrayDeserializer].getName, classOf[ByteArrayDeserializer].getName
+    )
     val topics = List(KafkaTopicRaw)
 
     // Initial state RDD for daily accumulator
@@ -53,7 +55,8 @@ object KillrWeather {
     val monthlyRDD = ssc.sparkContext.emptyRDD[(String, ListBuffer[DailyWeatherDataProcess])]
 
     val kafkaDataStream = KafkaUtils.createDirectStream[Array[Byte], Array[Byte]](
-      ssc, PreferConsistent, Subscribe[Array[Byte], Array[Byte]] (topics,kafkaParams))
+      ssc, PreferConsistent, Subscribe[Array[Byte], Array[Byte]](topics, kafkaParams)
+    )
 
     val kafkaStream = kafkaDataStream.map(r => WeatherRecord.parseFrom(r.value()))
 
@@ -63,22 +66,22 @@ object KillrWeather {
     // Calculate daily
     val dailyMappingFunc = (station: String, reading: Option[WeatherRecord], state: State[ListBuffer[WeatherRecord]]) => {
       val current = state.getOption().getOrElse(new ListBuffer[WeatherRecord])
-      var daily : Option[(String,DailyWeatherData)] = None
+      var daily: Option[(String, DailyWeatherData)] = None
       val last = current.lastOption.getOrElse(null.asInstanceOf[WeatherRecord])
       reading match {
         case Some(weather) => {
           current match {
-            case sequence if((sequence.size > 0) && (weather.day != last.day)) => {
+            case sequence if ((sequence.size > 0) && (weather.day != last.day)) => {
               // The day has changed
-              val dailyPrecip = sequence.foldLeft(.0) (_ + _.oneHourPrecip)
+              val dailyPrecip = sequence.foldLeft(.0)(_ + _.oneHourPrecip)
               val tempAggregate = StatCounter(sequence.map(_.temperature))
               val windAggregate = StatCounter(sequence.map(_.windSpeed))
-              val pressureAggregate = StatCounter(sequence.map(_.pressure).filter(_ > 1.0))    // remove 0 elements
-              daily = Some(last.wsid -> DailyWeatherData(last.wsid, last.year, last.month, last.day,
+              val pressureAggregate = StatCounter(sequence.map(_.pressure).filter(_ > 1.0)) // remove 0 elements
+              daily = Some((last.wsid, DailyWeatherData(last.wsid, last.year, last.month, last.day,
                 tempAggregate.max, tempAggregate.min, tempAggregate.mean, tempAggregate.stdev, tempAggregate.variance,
                 windAggregate.max, windAggregate.min, windAggregate.mean, windAggregate.stdev, windAggregate.variance,
                 pressureAggregate.max, pressureAggregate.min, pressureAggregate.mean, pressureAggregate.stdev, pressureAggregate.variance,
-                dailyPrecip))
+                dailyPrecip)))
               current.clear()
             }
             case _ =>
@@ -93,7 +96,7 @@ object KillrWeather {
 
     // Define StateSpec<KeyType,ValueType,StateType,MappedType> - types are derived from function
     val dailyStream = kafkaStream.map(r => (r.wsid, r)).mapWithState(StateSpec.function(dailyMappingFunc).initialState(dailyRDD))
-        .filter(_.isDefined).map(_.get)
+      .filter(_.isDefined).map(_.get)
 
     // Just for testing
     dailyStream.print()
@@ -124,11 +127,11 @@ object KillrWeather {
               val windAggregate = StatCounter(sequence.map(_.wind))
               val pressureAggregate = StatCounter(sequence.map(_.pressure))
               val presipAggregate = StatCounter(sequence.map(_.precip))
-              monthly = Some(last.wsid -> MonthlyWeatherData(last.wsid, last.year, last.month,
+              monthly = Some((last.wsid, MonthlyWeatherData(last.wsid, last.year, last.month,
                 tempAggregate.max, tempAggregate.min, tempAggregate.mean, tempAggregate.stdev, tempAggregate.variance,
                 windAggregate.max, windAggregate.min, windAggregate.mean, windAggregate.stdev, windAggregate.variance,
                 pressureAggregate.max, pressureAggregate.min, pressureAggregate.mean, pressureAggregate.stdev, pressureAggregate.variance,
-                presipAggregate.max, presipAggregate.min, presipAggregate.mean, presipAggregate.stdev, presipAggregate.variance))
+                presipAggregate.max, presipAggregate.min, presipAggregate.mean, presipAggregate.stdev, presipAggregate.variance)))
               current.clear()
             }
             case _ =>

@@ -1,6 +1,6 @@
 package com.lightbend.killrweather.kafka
 
-import org.apache.kafka.clients.consumer.{ConsumerConfig, KafkaConsumer}
+import org.apache.kafka.clients.consumer.{ ConsumerConfig, KafkaConsumer }
 import scala.collection.JavaConversions._
 
 object MessageListener {
@@ -8,30 +8,30 @@ object MessageListener {
   private val SESSIONTIMEOUT = "30000" // The timeout used to detect failures - should be greater then processing time
   private val MAXPOLLRECORDS = "10" // Max number of records consumed in a single poll
 
-  def consumerProperties(brokers: String, group: String, keyDeserealizer: String, valueDeserealizer: String) : Map[String, String] = {
+  def consumerProperties(brokers: String, group: String, keyDeserealizer: String, valueDeserealizer: String): Map[String, String] = {
     Map[String, String](
       ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG -> brokers,
-      ConsumerConfig.GROUP_ID_CONFIG  -> group,
-      ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG  -> "false",
-      ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG  -> AUTOCOMMITINTERVAL,
-      ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG  -> SESSIONTIMEOUT,
-      ConsumerConfig.MAX_POLL_RECORDS_CONFIG  -> MAXPOLLRECORDS,
-      ConsumerConfig.AUTO_OFFSET_RESET_CONFIG  -> "latest",
-      ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG  -> keyDeserealizer,
-      ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG  -> valueDeserealizer
+      ConsumerConfig.GROUP_ID_CONFIG -> group,
+      ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG -> "false",
+      ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG -> AUTOCOMMITINTERVAL,
+      ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG -> SESSIONTIMEOUT,
+      ConsumerConfig.MAX_POLL_RECORDS_CONFIG -> MAXPOLLRECORDS,
+      ConsumerConfig.AUTO_OFFSET_RESET_CONFIG -> "latest",
+      ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG -> keyDeserealizer,
+      ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG -> valueDeserealizer
     )
   }
 
-  def apply[K,V](brokers: String, topic: String, group: String, keyDeserealizer: String, valueDeserealizer: String,
-                 processor: RecordProcessorTrait[K, V]): MessageListener[K,V] =
-    new MessageListener[K,V](brokers, topic, group, keyDeserealizer, valueDeserealizer,processor)
+  def apply[K, V](brokers: String, topic: String, group: String, keyDeserealizer: String, valueDeserealizer: String,
+    processor: RecordProcessorTrait[K, V]): MessageListener[K, V] =
+    new MessageListener[K, V](brokers, topic, group, keyDeserealizer, valueDeserealizer, processor)
 }
 
 class MessageListener[K, V](brokers: String, topic: String, group: String, keyDeserealizer: String, valueDeserealizer: String,
-                            processor: RecordProcessorTrait[K,V]) extends Runnable {
+    processor: RecordProcessorTrait[K, V]) extends Runnable {
 
-  import  MessageListener._
-  val consumer = new KafkaConsumer[K, V](consumerProperties(brokers, group,keyDeserealizer, valueDeserealizer))
+  import MessageListener._
+  val consumer = new KafkaConsumer[K, V](consumerProperties(brokers, group, keyDeserealizer, valueDeserealizer))
   consumer.subscribe(Seq(topic))
   var completed = false
 

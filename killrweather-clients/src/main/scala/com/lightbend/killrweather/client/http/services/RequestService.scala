@@ -13,14 +13,14 @@ import akka.kafka.scaladsl.Producer
 import com.lightbend.killrweather.settings.WeatherSettings
 import com.lightbend.killrweather.WeatherClient.WeatherRecord
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 /**
-  * Created by boris on 7/17/17.
-  * based on
-  *   https://github.com/DanielaSfregola/quiz-management-service/blob/master/akka-http-crud/src/main/scala/com/danielasfregola/quiz/management/services/QuestionService.scala
-  */
-class RequestService(implicit executionContext: ExecutionContext, materializer : ActorMaterializer, system : ActorSystem) {
+ * Created by boris on 7/17/17.
+ * based on
+ *   https://github.com/DanielaSfregola/quiz-management-service/blob/master/akka-http-crud/src/main/scala/com/danielasfregola/quiz/management/services/QuestionService.scala
+ */
+class RequestService(implicit executionContext: ExecutionContext, materializer: ActorMaterializer, system: ActorSystem) {
 
   val settings = new WeatherSettings()
   import settings._
@@ -30,23 +30,22 @@ class RequestService(implicit executionContext: ExecutionContext, materializer :
     .withBootstrapServers(kafkaBrokers)
 
   def processRequest(report: RawWeatherData): Future[Unit] = Future {
-//    Source.single(report).runWith(Sink.foreach(println))
-    // DeanW: Is the body of map correct? The new PRoducerRecord is discarded, right?
+    //    Source.single(report).runWith(Sink.foreach(println))
     Source.single(report).map { r =>
       new ProducerRecord[Array[Byte], Array[Byte]](KafkaTopicRaw, convertRecord(r))
     }.runWith(Producer.plainSink(producerSettings))
   }
 }
 
-object RequestService{
+object RequestService {
 
   private val bos = new ByteArrayOutputStream()
 
-  def apply(implicit executionContext: ExecutionContext, materializer : ActorMaterializer, system : ActorSystem): RequestService = new RequestService()
+  def apply(implicit executionContext: ExecutionContext, materializer: ActorMaterializer, system: ActorSystem): RequestService = new RequestService()
 
-  def convertRecord(report: RawWeatherData) : Array[Byte] = {
+  def convertRecord(report: RawWeatherData): Array[Byte] = {
     bos.reset
-    WeatherRecord(report.wsid,report.year, report.month, report.day, report.hour, report.temperature,
+    WeatherRecord(report.wsid, report.year, report.month, report.day, report.hour, report.temperature,
       report.dewpoint, report.pressure, report.windDirection, report.windSpeed, report.skyCondition,
       report.skyConditionText, report.oneHourPrecip, report.sixHourPrecip).writeTo(bos)
     bos.toByteArray

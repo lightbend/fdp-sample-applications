@@ -3,9 +3,9 @@ package com.lightbend.killrweather.client.grpc
 import java.util.concurrent.TimeUnit
 
 import com.lightbend.killrweather.WeatherClient.WeatherListenerGrpc.WeatherListenerStub
-import com.lightbend.killrweather.WeatherClient.{WeatherListenerGrpc, WeatherRecord}
+import com.lightbend.killrweather.WeatherClient.{ WeatherListenerGrpc, WeatherRecord }
 import com.lightbend.killrweather.utils.RawWeatherData
-import io.grpc.{ManagedChannel, ManagedChannelBuilder, StatusRuntimeException}
+import io.grpc.{ ManagedChannel, ManagedChannelBuilder, StatusRuntimeException }
 
 import scala.concurrent.ExecutionContext
 
@@ -31,9 +31,10 @@ object WeatherGRPCAsynchClientTest {
   }
 }
 
-
-class WeatherGRPCAsynchClientTest(private val channel: ManagedChannel,
-                            private val asynchStub: WeatherListenerStub) {
+class WeatherGRPCAsynchClientTest(
+    private val channel: ManagedChannel,
+    private val asynchStub: WeatherListenerStub
+) {
 
   def shutdown(): Unit = {
     val result = channel.shutdown.awaitTermination(5, TimeUnit.SECONDS)
@@ -41,7 +42,7 @@ class WeatherGRPCAsynchClientTest(private val channel: ManagedChannel,
   }
 
   /** Send report to a server. */
-  def send(report: RawWeatherData) (implicit executionContext: ExecutionContext): Unit = {
+  def send(report: RawWeatherData)(implicit executionContext: ExecutionContext): Unit = {
     val request = WeatherRecord(
       wsid = report.wsid,
       year = report.year,
@@ -61,8 +62,7 @@ class WeatherGRPCAsynchClientTest(private val channel: ManagedChannel,
     try {
       val response = asynchStub.getWeatherReport(request)
       response onComplete println
-    }
-    catch {
+    } catch {
       case e: StatusRuntimeException =>
         println(s"RPC failed: ${e.getStatus}")
     }

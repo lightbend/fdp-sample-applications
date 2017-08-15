@@ -1,6 +1,6 @@
 package com.lightbend.killrweather.client.file
 
-import java.io.{BufferedReader, ByteArrayOutputStream, FileInputStream, InputStreamReader}
+import java.io.{ BufferedReader, ByteArrayOutputStream, FileInputStream, InputStreamReader }
 import java.util.zip.GZIPInputStream
 
 import com.lightbend.killrweather.WeatherClient.WeatherRecord
@@ -12,11 +12,11 @@ import org.apache.kafka.common.serialization.ByteArraySerializer
 import scala.collection.mutable.ListBuffer
 
 /**
-  * Created by boris on 7/7/17.
-  */
+ * Created by boris on 7/7/17.
+ */
 object KafkaDataIngester {
   val file = "data/load/ny-2008.csv.gz"
-  val timeInterval = 100 * 1L        // 1 sec
+  val timeInterval: Long = 100 * 1 // 1 sec
   val batchSize = 10
   private val bos = new ByteArrayOutputStream()
 
@@ -33,13 +33,13 @@ object KafkaDataIngester {
   def apply(brokers: String): KafkaDataIngester = new KafkaDataIngester(brokers)
 }
 
-class KafkaDataIngester(brokers : String){
+class KafkaDataIngester(brokers: String) {
 
   val sender = MessageSender[Array[Byte], Array[Byte]](brokers, classOf[ByteArraySerializer].getName, classOf[ByteArraySerializer].getName)
 
   import KafkaDataIngester._
 
-  def execute(file: String, topic : String) : Unit = {
+  def execute(file: String, topic: String): Unit = {
 
     val iterator = GzFileIterator(new java.io.File(file), "UTF-8")
     val batch = new ListBuffer[Array[Byte]]()
@@ -53,27 +53,26 @@ class KafkaDataIngester(brokers : String){
         batch.clear()
         pause()
       }
-      if(numrec % 100 == 0)
+      if (numrec % 100 == 0)
         println(s"Submitted $numrec records")
     })
-    if(batch.size > 0)
+    if (batch.size > 0)
       sender.batchWriteValue(topic, batch)
     println(s"Submitted $numrec records")
   }
 
-  private def pause() : Unit = {
-    try{
+  private def pause(): Unit = {
+    try {
       Thread.sleep(timeInterval)
-    }
-    catch {
+    } catch {
       case _: Throwable => // Ignore
     }
   }
 
-  def convertRecord(string: String) : Array[Byte] = {
+  def convertRecord(string: String): Array[Byte] = {
     bos.reset
     val report = RawWeatherData(string.split(","))
-    WeatherRecord(report.wsid,report.year, report.month, report.day, report.hour, report.temperature,
+    WeatherRecord(report.wsid, report.year, report.month, report.day, report.hour, report.temperature,
       report.dewpoint, report.pressure, report.windDirection, report.windSpeed, report.skyCondition,
       report.skyConditionText, report.oneHourPrecip, report.sixHourPrecip).writeTo(bos)
     bos.toByteArray
@@ -81,7 +80,7 @@ class KafkaDataIngester(brokers : String){
 }
 
 class BufferedReaderIterator(reader: BufferedReader) extends Iterator[String] {
-  override def hasNext = reader.ready()
+  override def hasNext() = reader.ready()
   override def next() = reader.readLine()
 }
 
@@ -91,6 +90,10 @@ object GzFileIterator {
       new BufferedReader(
         new InputStreamReader(
           new GZIPInputStream(
-            new FileInputStream(file)), encoding)))
+            new FileInputStream(file)
+          ), encoding
+        )
+      )
+    )
   }
 }

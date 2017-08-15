@@ -1,7 +1,7 @@
 package com.lightbend.killrweather.client.kafkatest
 
 import akka.actor.ActorSystem
-import akka.kafka.{ConsumerSettings, Subscriptions}
+import akka.kafka.{ ConsumerSettings, Subscriptions }
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
 import com.lightbend.killrweather.settings.WeatherSettings
 import org.apache.kafka.clients.consumer.ConsumerConfig
@@ -14,9 +14,9 @@ import com.lightbend.killrweather.WeatherClient.WeatherRecord
 import scala.concurrent.Future
 
 /**
-  * Created by boris on 7/7/17.
-  * This is a simple kafka listener to test messages send to kafka
-  */
+ * Created by boris on 7/7/17.
+ * This is a simple kafka listener to test messages send to kafka
+ */
 object KafkaListener {
 
   def main(args: Array[String]) {
@@ -30,14 +30,14 @@ object KafkaListener {
     import settings._
 
     // Create embedded Kafka and topic
-//    EmbeddedSingleNodeKafkaCluster.start()
-//    EmbeddedSingleNodeKafkaCluster.createTopic(KafkaTopicRaw)
+    //    EmbeddedSingleNodeKafkaCluster.start()
+    //    EmbeddedSingleNodeKafkaCluster.createTopic(KafkaTopicRaw)
 
     val consumerSettings = ConsumerSettings(system, new ByteArrayDeserializer, new ByteArrayDeserializer)
       .withBootstrapServers(kafkaBrokers)
       .withGroupId(KafkaGroupId)
       .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
     val done = Consumer.plainSource(consumerSettings, Subscriptions.topics(KafkaTopicRaw))
-      .mapAsync(1){record => Future(println(WeatherRecord.parseFrom(record.value())))}.runWith(Sink.ignore)
+      .mapAsync(1) { record => Future(println(WeatherRecord.parseFrom(record.value()))) }.runWith(Sink.ignore)
   }
 }

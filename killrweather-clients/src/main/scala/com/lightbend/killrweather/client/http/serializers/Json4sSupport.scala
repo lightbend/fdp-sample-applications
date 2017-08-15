@@ -1,10 +1,10 @@
 package com.lightbend.killrweather.client.http.serializers
 
 /**
-  * Created by boris on 7/17/17.
-  * based on
-  *   https://github.com/hseeberger/akka-http-json/blob/master/akka-http-json4s/src/main/scala/de/heikoseeberger/akkahttpjson4s/Json4sSupport.scala
-  */
+ * Created by boris on 7/17/17.
+ * based on
+ *   https://github.com/hseeberger/akka-http-json/blob/master/akka-http-json4s/src/main/scala/de/heikoseeberger/akkahttpjson4s/Json4sSupport.scala
+ */
 
 import java.lang.reflect.InvocationTargetException
 
@@ -17,25 +17,25 @@ import org.json4s.{ Formats, MappingException, Serialization }
 import scala.collection.immutable.Seq
 
 /**
-  * Automatic to and from JSON marshalling/unmarshalling using an in-scope *Json4s* protocol.
-  *
-  * Pretty printing is enabled if an implicit [[Json4sSupport.ShouldWritePretty.True]] is in scope.
-  */
+ * Automatic to and from JSON marshalling/unmarshalling using an in-scope *Json4s* protocol.
+ *
+ * Pretty printing is enabled if an implicit [[Json4sSupport.ShouldWritePretty.True]] is in scope.
+ */
 object Json4sSupport {
 
   sealed abstract class ShouldWritePretty
 
   final object ShouldWritePretty {
-    final object True  extends ShouldWritePretty
+    final object True extends ShouldWritePretty
     final object False extends ShouldWritePretty
   }
 }
 
 /**
-  * Automatic to and from JSON marshalling/unmarshalling using an in-scope *Json4s* protocol.
-  *
-  * Pretty printing is enabled if an implicit [[Json4sSupport.ShouldWritePretty.True]] is in scope.
-  */
+ * Automatic to and from JSON marshalling/unmarshalling using an in-scope *Json4s* protocol.
+ *
+ * Pretty printing is enabled if an implicit [[Json4sSupport.ShouldWritePretty.True]] is in scope.
+ */
 trait Json4sSupport {
   import Json4sSupport._
 
@@ -47,35 +47,36 @@ trait Json4sSupport {
       .forContentTypes(unmarshallerContentTypes: _*)
       .mapWithCharset {
         case (ByteString.empty, _) => throw Unmarshaller.NoContentException
-        case (data, charset)       => data.decodeString(charset.nioCharset.name)
+        case (data, charset) => data.decodeString(charset.nioCharset.name)
       }
 
   private val jsonStringMarshaller = Marshaller.stringMarshaller(`application/json`)
 
   /**
-    * HTTP entity => `A`
-    *
-    * @tparam A type to decode
-    * @return unmarshaller for `A`
-    */
-  implicit def unmarshaller[A: Manifest](implicit serialization: Serialization,
-                                         formats: Formats): FromEntityUnmarshaller[A] =
+   * HTTP entity => `A`
+   *
+   * @tparam A type to decode
+   * @return unmarshaller for `A`
+   */
+  implicit def unmarshaller[A: Manifest](implicit
+    serialization: Serialization,
+    formats: Formats): FromEntityUnmarshaller[A] =
     jsonStringUnmarshaller
       .map(s => serialization.read(s))
       .recover { _ => _ =>
-      { case MappingException(_, ite: InvocationTargetException) => throw ite.getCause }
+        { case MappingException(_, ite: InvocationTargetException) => throw ite.getCause }
       }
 
   /**
-    * `A` => HTTP entity
-    *
-    * @tparam A type to encode, must be upper bounded by `AnyRef`
-    * @return marshaller for any `A` value
-    */
-  implicit def marshaller[A <: AnyRef](implicit serialization: Serialization,
-                                       formats: Formats,
-                                       shouldWritePretty: ShouldWritePretty =
-                                       ShouldWritePretty.False): ToEntityMarshaller[A] =
+   * `A` => HTTP entity
+   *
+   * @tparam A type to encode, must be upper bounded by `AnyRef`
+   * @return marshaller for any `A` value
+   */
+  implicit def marshaller[A <: AnyRef](implicit
+    serialization: Serialization,
+    formats: Formats,
+    shouldWritePretty: ShouldWritePretty = ShouldWritePretty.False): ToEntityMarshaller[A] =
     shouldWritePretty match {
       case ShouldWritePretty.False =>
         jsonStringMarshaller.compose(serialization.write[A])

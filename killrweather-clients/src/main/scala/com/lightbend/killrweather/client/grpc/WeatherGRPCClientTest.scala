@@ -3,9 +3,9 @@ package com.lightbend.killrweather.client.grpc
 import java.util.concurrent.TimeUnit
 
 import com.lightbend.killrweather.WeatherClient.WeatherListenerGrpc.WeatherListenerBlockingStub
-import com.lightbend.killrweather.WeatherClient.{WeatherListenerGrpc, WeatherRecord}
+import com.lightbend.killrweather.WeatherClient.{ WeatherListenerGrpc, WeatherRecord }
 import com.lightbend.killrweather.utils.RawWeatherData
-import io.grpc.{ManagedChannel, ManagedChannelBuilder, StatusRuntimeException}
+import io.grpc.{ ManagedChannel, ManagedChannelBuilder, StatusRuntimeException }
 
 object WeatherGRPCClientTest {
 
@@ -26,9 +26,10 @@ object WeatherGRPCClientTest {
   }
 }
 
-
-class WeatherGRPCClientTest(private val channel: ManagedChannel,
-                                   private val blockingStub: WeatherListenerBlockingStub) {
+class WeatherGRPCClientTest(
+    private val channel: ManagedChannel,
+    private val blockingStub: WeatherListenerBlockingStub
+) {
 
   def shutdown(): Unit = {
     val result = channel.shutdown.awaitTermination(5, TimeUnit.SECONDS)
@@ -56,8 +57,7 @@ class WeatherGRPCClientTest(private val channel: ManagedChannel,
     try {
       val response = blockingStub.getWeatherReport(request)
       println(s"Report send:  ${response.status}")
-    }
-    catch {
+    } catch {
       case e: StatusRuntimeException =>
         println(s"RPC failed: ${e.getStatus}")
     }

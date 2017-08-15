@@ -15,12 +15,9 @@
  */
 package com.lightbend.killrweather.settings
 
-import java.net.InetAddress
-
 import scala.util.Try
 import com.datastax.driver.core.ConsistencyLevel
-import com.datastax.spark.connector.cql.{AuthConf, NoAuthConf, PasswordAuthConf}
-
+import com.datastax.spark.connector.cql.{ AuthConf, NoAuthConf, PasswordAuthConf }
 
 /**
  * Application settings. First attempts to acquire from the deploy environment.
@@ -44,13 +41,13 @@ import com.datastax.spark.connector.cql.{AuthConf, NoAuthConf, PasswordAuthConf}
  */
 final class WeatherSettings extends Serializable {
 
-  val localAddress = InetAddress.getLocalHost.getHostAddress
+  val localAddress = "localhost" //InetAddress.getLocalHost.getHostAddress
 
   val kafkaBrokers = "localhost:9092"
 
   val SparkMaster = "local[*]"
 
-  val SparkCleanerTtl = (3600*2)
+  val SparkCleanerTtl = (3600 * 2)
 
   val SparkStreamingBatchInterval = 2000L
 
@@ -58,7 +55,7 @@ final class WeatherSettings extends Serializable {
 
   val CassandraHosts = localAddress
 
-  val CassandraAuthUsername : Option[String] = sys.props.get("spark.cassandra.auth.username")
+  val CassandraAuthUsername: Option[String] = sys.props.get("spark.cassandra.auth.username")
 
   val CassandraAuthPassword: Option[String] = sys.props.get("spark.cassandra.auth.password")
 
@@ -70,7 +67,7 @@ final class WeatherSettings extends Serializable {
 
     credentials match {
       case Some((user, password)) => PasswordAuthConf(user, password)
-      case None                   => NoAuthConf
+      case None => NoAuthConf
     }
   }
 
@@ -106,11 +103,12 @@ final class WeatherSettings extends Serializable {
   val CassandraWriteBatchRowSize: Option[Int] = {
     val NumberPattern = "([0-9]+)".r
     CassandraWriteBatchSizeRows match {
-      case "auto"           => None
+      case "auto" => None
       case NumberPattern(x) => Some(x.toInt)
       case other =>
         throw new IllegalArgumentException(
-          s"Invalid value for 'cassandra.output.batch.size.rows': $other. Number or 'auto' expected")
+          s"Invalid value for 'cassandra.output.batch.size.rows': $other. Number or 'auto' expected"
+        )
     }
   }
 
@@ -144,7 +142,7 @@ final class WeatherSettings extends Serializable {
 
   /** Attempts to acquire from environment, then java system properties. */
   def withFallback[T](env: Try[T], key: String): Option[T] = env match {
-    case null  => None
+    case null => None
     case value => value.toOption
   }
 }
