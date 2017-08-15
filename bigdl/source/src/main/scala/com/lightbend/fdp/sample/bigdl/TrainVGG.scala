@@ -82,18 +82,14 @@ object TrainVGG {
     }
 
     trainParser.parse(args, new TrainParams()).map(param => {
-      val sc = Engine.init(param.nodeNumber, param.coreNumber, param.env == "spark").map(conf => {
-        conf.setAppName("Train Vgg on Cifar10")
-          .set("spark.akka.frameSize", 64.toString)
-          .set("spark.task.maxFailures", "1")
-        new SparkContext(conf)
-      })
+      val conf = Engine.createSparkConf().setAppName("vggtrainapp")
+          .set("spark.rpc.message.maxSize", "200")
+      val sc = new SparkContext(conf)
+      Engine.init
 
-      val trainDataSet = (sc.map {
-        DataSet.array(Utils.loadTrain(defaultFolderName), _)
-      }.getOrElse {
-        DataSet.array(Utils.loadTrain(defaultFolderName))
-      }) -> BytesToBGRImg() -> BGRImgNormalizer(trainMean, trainStd) -> BGRImgToBatch(param.batchSize)
+      val trainDataSet = DataSet.array(Utils.loadTrain(defaultFolderName), sc) ->
+        BytesToBGRImg() -> BGRImgNormalizer(trainMean, trainStd) ->
+        BGRImgToBatch(param.batchSize)
 
       val model = param.modelSnapshot.map {
         Module.load[Float](_)
@@ -119,11 +115,9 @@ object TrainVGG {
         criterion = new ClassNLLCriterion[Float]()
       )
 
-      val validateSet = (sc.map {
-        DataSet.array(Utils.loadTest(defaultFolderName), _)
-      }.getOrElse {
-        DataSet.array(Utils.loadTest(defaultFolderName))
-      }) -> BytesToBGRImg() -> BGRImgNormalizer(testMean, testStd) -> BGRImgToBatch(param.batchSize)
+      val validateSet = DataSet.array(Utils.loadTest(defaultFolderName), sc) ->
+        BytesToBGRImg() -> BGRImgNormalizer(testMean, testStd) ->
+        BGRImgToBatch(param.batchSize)
 
       if (param.checkpoint.isDefined) {
         optimizer.setCheckpoint(param.checkpoint.get, Trigger.everyEpoch)
