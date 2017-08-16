@@ -1,6 +1,16 @@
 # Kafka Streams Sample App for Weblog Processing
 
-This project consists of 2 applications that demonstrate the use of the following features of Kafka Streams:
+This project consists of 2 applications that demonstrate the use of Kafka Streams.  Both apps ingest sample web log data from the [Clarknet dataset](http://ita.ee.lbl.gov/html/contrib/ClarkNet-HTTP.html), which is described below.
+
+> These two traces contain two week's worth of all HTTP requests to the ClarkNet WWW server. ClarkNet is a full Internet access provider for the Metro Baltimore-Washington DC area.
+
+Sample Applications:
+
+* *WeblogProcessing* - An implementation of the of the Kafka Streams DSL.  Bundled using the `dslPackage` SBT submodule.
+* *WeblogDriver* - An implementation of the lower level Kafka Processor API.  Bundled using the `procPackage` SBT
+submodule.
+
+Together these samples demonstrate the following features of Kafka Streams:
 
 1. Building and configuring a Streams based topology using Kafka Streams DSL as well as the lower level processor based APIs
 2. Transformation semantics applied to streams data
@@ -8,19 +18,6 @@ This project consists of 2 applications that demonstrate the use of the followin
 4. Interactive queries in Kafka streams applied to a distributed application
 5. Implementing *custom* state stores
 6. Interactive queries over custom state stores in a distributed setting
-
-## Application Modules
-
-The project has 2 separate sbt modules - 
-
-* `dslPackage` that implements a streams application based on Kafka Streams DSL
-* `procPackage` that implements a streams application based on Kafka Streams Processor APIs
-
-Each of the modules has a separate `Main` class that drive each of the applications. The details of the packaging is in the `build.sbt` file.
-
-## Data used for weblogs
-
-This application processes [archived weblogs](http://ita.ee.lbl.gov/html/contrib/ClarkNet-HTTP.html) in Kafka Streams. The dataset will be downloaded as part of the application installation process and will be cached in the node where the application will be deployed by Marathon. More on data loading in the Ingesting Data section.
 
 ## Installing the Applications
 
@@ -124,7 +121,10 @@ Once the applications are installed as Marathon services, here's how to kickstar
 3. This needs to be done for every module deployed
 
 
-## Check output of Applications
+## Application REST API's
+
+Both examples run a self-contained http server that can be used to query information from the state stores used in the 
+Kafka Streams pipelines.  You can call these API's to determine if the sample applications have are running correctly.
 
 ### DSL based module
 
@@ -160,7 +160,6 @@ $ curl http://10.8.0.9:7070/weblog/access/check/world.std.com
 This reports `true` if the host `world.std.com` has been seen in the ingested data. Else it returns `false`.
 
 > *Note:* When deployed on the cluster, Marathon assigns random free ports to both the applications. Check the log file (`kstream-dsl.log` or `kstream-proc.log`) for the assigned port number. The log files can be found from the Mesos console by clicking into the Mesos Task corresponding to the application. Go to `http://<Master URL>/mesos` and click on the appropriate task's Sandbox link. Move to the `logs` folder and look for the pattern **REST endpoint at http://0.0.0.0:25961** in the `kstream-*.log` file. In this example, `25961` is the assigned port number.
-
 
 ## Running in Distributed mode
 
@@ -325,7 +324,7 @@ topic (`dcos.kafka.totopic`). If there's any exception processing a record, that
 In order for the application to run, we need to ingest data into the source topic (`dcos.kafka.fromtopic`). This can be done using a file watcher based implementation. The `dcos.kafka.loader` section of the configuration file describes the settings of the file watcher. As a user you need to set up the appropriate folder name in `directorytowatch` - the application pulls data from this folder and loads into the topic.
 
 
-### How to package and run the driver application
+### How to package the application
 
 The driver application is packaged using `sbt-native-packager`. The details of the packaging is in `build.sbt`. To build the package, use the following steps starting from the project root:
 
@@ -341,7 +340,7 @@ $ cd build/dsl/target/universal
 $ tar xvfz dslpackage-0.1.tgz
 ```
 
-This creates the distribution under the folder `dslpackage-0.1`. The folder has 2 subfolders:
+This creates the distribution under the folder `dslpackage-0.1`. The folder has 3 subfolders:
 
 * `bin` containing the startup scripts
 * `conf` containing the configuration file `application.conf` and the logging configuration `logback.xml`
@@ -349,7 +348,7 @@ This creates the distribution under the folder `dslpackage-0.1`. The folder has 
 
 The configuration fies in `conf` can be customized for the deployment environment.
 
-Here's how the application can be run:
+Here's how the application can be run using the generated startup script:
 
 ```
 $ pwd
@@ -540,7 +539,7 @@ $ cd build/proc/target/universal
 $ tar xvfz procpackage-0.1.tgz
 ```
 
-This creates the distribution under the folder `procpackage-0.1`. The folder has 2 subfolders:
+This creates the distribution under the folder `procpackage-0.1`. The folder has 3 subfolders:
 
 * `bin` containing the startup scripts
 * `conf` containing the configuration file `application.conf` and the logging configuration `logback.xml`
@@ -619,6 +618,34 @@ Once the `deploySsh` is complete we can run the application as a Marathon job. T
 
 *Note the file sets the environment variables `$INTERFACE_PROC` that sets the host  of deployment for the http endpoint of the REST microservice. This variable is picked up by the configuration parameter `dcos.http.interface`. For the port number of the endpoint a random free port will be allocated. The value of this port number can be found from the application log file.*
 
+## Running the application from source
+
+### Setup Confluent infrastructure
+
+If you're a developer and wish to run the applications from source you must first have a local running ZooKeeper, Confluent Kafka broker, and Schema Registry.  Confluent maintains docker images for all their solutions on their [cp-docker-images](https://github.com/confluentinc/cp-docker-images/) repository.  This repository contains an examples directory with a `docker-compose.yml` file for running the Confluent platform.  Clone the repository and run the [`cp-all-in-one`](https://github.com/confluentinc/cp-docker-images/blob/3.2.x/examples/cp-all-in-one/docker-compose.yml) example compose file to bring up the necessary infrastructure (ZooKeeper, Kafka Broker, Schema Registry).
+
+### Download & config app to use ClarkNet weblog input data
+
+Download the [Clarknet dataset](http://ita.ee.lbl.gov/html/contrib/ClarkNet-HTTP.html) to a directory of your choice.  Extract the dataset.  Optionally, you may prefer to extract a subset of the dataset to use for testing. 
+
+```bash
+head -n 100 clarknet_access_log_Aug28 > clarknet_access_log_Aug28_first_100
+```
+
+Update `dcos.kafka.loader.directorytowatch` in both the `application_dsl.conf` and `application_proc.conf` under the `./src/main/resources` directory to the directory where you extracted your weblog data.
+
+### Run the app
+
+The `build.sbt` contains two sub modules that can be used to easily run the applications from the CLI:
+
+* WeblogProcessing - `sbt dsl`
+* WeblogDriver - `sbl proc`
+
+Each application will use its appropriate `application.conf` and `logback.xml`.  Logs will be generated under `./run/dsl/logs/` and `./run/proc/logs/` respectively.
+
+To trigger the ingestion operation for either app you can add new files in `directorytowatch` or use the `touch` command on any files that already exist in that directory.
+
+
 ## Interfacing with Confluent Connect
 
 The dsl module of the application generates Avro data corresponding to the ingested records to a topic named `avro-topic`. We can set up Confluent Connect to consume from `avro-topic` and write to HDFS. Confluent repository offers out of the box HDFS Sink connectors that can do this. In this section we will discuss how to set this up in our DC/OS clustered environment.
@@ -677,5 +704,3 @@ Here the last URL `http://10.8.0.19:9622/connectors` refers to the host / port w
 For more details on how to configure and manage connectors, have a look at this [Confluent Page](http://docs.confluent.io/current/connect/managing.html).
 
 If the above setup steps went fine, then when you run the application for Kafka Streams DSL module, records will be generated in the `avro-topic` and will be consumed by the connector and written in HDFS.
-
-
