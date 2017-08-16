@@ -18,7 +18,7 @@ scalacOptions ++= Seq(
 
 mainClass in assembly := Some("com.lightbend.fdp.sample.TransformIntrusionData")
 
-val spark = "2.1.1"
+val spark = "2.2.0"
 
 libraryDependencies ++= Seq(
   "org.apache.kafka"      %   "kafka-streams"                  % "0.10.2.1",
