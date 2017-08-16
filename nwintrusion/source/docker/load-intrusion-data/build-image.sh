@@ -3,7 +3,8 @@ set -e
 
 SCRIPT=`basename ${BASH_SOURCE[0]}`
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
-DOCKER_TAG="latest"
+. "$DIR/../../../version.sh"
+DOCKER_TAG="$APP_VERSION"
 DOCKER_REPO="fdp-nw-intrusion-load-data"
 
 function build_image {

@@ -5,6 +5,7 @@ SCRIPT=`basename ${BASH_SOURCE[0]}`
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 
 . "$DIR/../../bin/common.sh"
+. "$DIR/../version.sh"
 
 HELP_MESSAGE="Installs the BigDL sample app. Assumes DC/OS authentication was successful
   using the DC/OS CLI."
@@ -52,13 +53,13 @@ EOF
   echo "$METADATA" > $APP_METADATA_FILE
 }
 
+## ./spark-submit --master local[4] --conf spark.executor.memory=8G --driver-memory 8G --class com.lightbend.fdp.sample.bigdl.TrainVGG /Users/debasishghosh/typesafehub/fdp-sample-apps/bigdl/source/target/scala-2.11/bigdlsample-assembly-0.0.2.jar -b 8
+
 function run_bigdl_vgg_job {
   local SPARK_APP_CLASS="com.lightbend.fdp.sample.bigdl.TrainVGG"
-  local SPARK_CONF="--conf spark.cores.max=2 --conf spark.executorEnv.OMP_NUM_THREADS=1 --conf spark.executorEnv.KMP_BLOCKTIME=0 --conf OMP_WAIT_POLICY=passive --conf DL_ENGINE_TYPE=mklblas --conf spark.executor.memory=8G --driver-memory 4G"
-  local core_number_per_node=4
-  local node_number=1
-  local ARGS="--core $core_number_per_node --node $node_number --env spark -f cifar-10-batches-bin -b 16"
-  local SPARK_VGG_APP_JAR="bigdlsample-assembly-0.0.1.jar"
+  local SPARK_CONF="--conf spark.executor.cores=1 --conf spark.cores.max=2 --conf spark.executorEnv.OMP_NUM_THREADS=1 --conf spark.executorEnv.KMP_BLOCKTIME=0 --conf OMP_WAIT_POLICY=passive --conf DL_ENGINE_TYPE=mklblas --conf spark.executor.memory=8G --driver-memory 4G"
+  local ARGS="-f cifar-10-batches-bin -b 16"
+  local SPARK_VGG_APP_JAR="bigdlsample-assembly-$APP_VERSION.jar"
   local SPARK_APP_JAR_URL="http://$S3_BUCKET.s3.amazonaws.com/$SPARK_VGG_APP_JAR"
   local SUBMIT="$($NOEXEC dcos spark run --submit-args="$SPARK_CONF --class $SPARK_APP_CLASS $SPARK_APP_JAR_URL $ARGS")"
 

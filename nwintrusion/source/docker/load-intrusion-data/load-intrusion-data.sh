@@ -34,7 +34,7 @@ function error {
     shift
   done
   echo >&2
-  show_help
+  usage
   exit 1
 }
 

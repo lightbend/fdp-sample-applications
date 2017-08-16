@@ -1,6 +1,7 @@
 # Utilities and definitions shared by several scripts.
 
 . "$DIR/../../bin/common.sh"
+. "$DIR/../version.sh"
 
 KAFKA_DCOS_PACKAGE="kafka"
 TRANSFORM_DATA_TEMPLATE_FILE="$DIR/transform-data.json.template"
@@ -9,7 +10,7 @@ LOAD_DATA_TEMPLATE_FILE="$DIR/load-data.json.template"
 LOAD_DATA_TEMPLATE=${LOAD_DATA_TEMPLATE_FILE%.*}
 VIS_DATA_TEMPLATE_FILE="$DIR/visualize-data.json.template"
 VIS_DATA_TEMPLATE=${VIS_DATA_TEMPLATE_FILE%.*}
-SPARK_APP_JAR="fdp-nw-intrusion-assembly-0.1.jar"
+SPARK_APP_JAR="fdp-nw-intrusion-assembly-$APP_VERSION.jar"
 AWS_ENV_FILE=$HOME/.ssh/aws.sh
 
 # load-data.json variables
