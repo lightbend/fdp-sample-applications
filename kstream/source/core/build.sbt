@@ -26,8 +26,6 @@ name in ThisBuild := "fdp-kstream"
 
 organization in ThisBuild := "lightbend"
 
-version in ThisBuild := "0.1"
-
 scalaVersion in ThisBuild := scalaVer
 
 resolvers += "Confluent Maven" at "http://packages.confluent.io/maven/"
@@ -38,11 +36,12 @@ resolvers += "Confluent Maven" at "http://packages.confluent.io/maven/"
 enablePlugins(JavaAppPackaging)
 enablePlugins(DeploySSH)
 
-// the main application
-lazy val app = project
-  .in(file("."))
+def appProject(id: String)(base:String = id) = Project(id, base = file(base))
   .enablePlugins(JavaAppPackaging)
   .enablePlugins(DeploySSH)
+
+// the main application
+lazy val app = appProject("app")(".")
   .settings(
     scalaVersion := scalaVer,
     libraryDependencies ++= Seq(
@@ -143,10 +142,7 @@ lazy val dslRun = project
   .dependsOn(app)
 
 // the package for WeblogProcessing that uses Kafka-Streams DSL
-lazy val dslPackage = project
-  .in(file("build/dsl"))
-  .enablePlugins(JavaAppPackaging)
-  .enablePlugins(DeploySSH)
+lazy val dslPackage = appProject("dslPackage")("build/dsl")
   .settings(
     scalaVersion := scalaVer,
     resourceDirectory in Compile := (resourceDirectory in (app, Compile)).value,
@@ -178,10 +174,7 @@ lazy val procRun = project
   .dependsOn(app)
 
 // the package for WeblogDriver that uses Kafka-Streams Processor APIs
-lazy val procPackage = project
-  .in(file("build/proc"))
-  .enablePlugins(JavaAppPackaging)
-  .enablePlugins(DeploySSH)
+lazy val procPackage = appProject("procPackage")("build/proc")
   .settings(
     scalaVersion := scalaVer,
     resourceDirectory in Compile := (resourceDirectory in (app, Compile)).value,
