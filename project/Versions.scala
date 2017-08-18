@@ -30,8 +30,9 @@ object Versions {
   val Logback           = "1.2.3"
   val Scala             = "2.11.11"
   val Slf4j             = "1.7.16"
-  val Spark             = "2.1.1"
+  val Spark             = "2.2.0"
   val SparkCassandra    = "2.0.2"
   val GRPCNettyVersion  = "1.4.0"
   val ScalaPBJSONVersion= "0.3.1"
+  val ScalaHTTPVersion  = "2.3.0"
 }

@@ -1,0 +1,37 @@
+{
+  "id": "/killrweatherapp",
+  "id": "/killrweatherapp",
+  "cmd": "curl http://jim-lab.marathon.mesos/spark.jar -o /tmp/spark.jar; /opt/spark/dist/bin/spark-submit --master mesos://leader.mesos:5050 --proxy-user root --deploy-mode client --conf spark.executor.memory=8g --conf spark.ui.port=$PORT0 --conf spark.driver.port=$PORT1 --conf spark.blockManager.port=$PORT2 --conf spark.executor.cores=4 --conf spark.cores.max=32 --conf driver.memory=8g --conf spark.network.timeout=10000000 --conf spark.mesos.executor.docker.image=mesosphere/spark:1.1.1-2.2.0-hadoop-2.6 --class com.lightbend.killrweather.app.KillrWeather /tmp/spark.jar",  "cpus": 2,
+  "disk": 1024,
+  "mem": 8192,
+  "container": {
+    "type": "DOCKER",
+    "volumes": [],
+    "docker": {
+      "image": "mesosphere/spark:1.1.1-2.2.0-hadoop-2.6",
+      "portMappings": [],
+      "privileged": false,
+      "parameters": [],
+      "forcePullImage": false
+    }
+  },
+  "killSelection": "YOUNGEST_FIRST",
+  "portDefinitions": [
+    {
+      "port": 0,
+      "protocol": "tcp",
+      "name": "ui"
+    },
+    {
+      "port": 0,
+      "protocol": "tcp",
+      "name": "driver"
+    },
+    {
+      "port": 0,
+      "protocol": "tcp",
+      "name": "block-manager"
+    }
+  ],
+  "requirePorts": false
+}

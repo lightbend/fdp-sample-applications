@@ -7,6 +7,8 @@ package com.lightbend.killrweather.client.http
  *   https://github.com/DanielaSfregola/quiz-management-service/blob/master/akka-http-crud/src/main/scala/com/danielasfregola/quiz/management/Main.scala
  */
 
+import java.net.InetAddress
+
 import akka.http.scaladsl.server.Route
 
 import scala.concurrent.duration._
@@ -24,7 +26,7 @@ object RestAPIs extends WeatherReportResource {
     // Create embedded Kafka and topic
     //    EmbeddedSingleNodeKafkaCluster.start()
     //    EmbeddedSingleNodeKafkaCluster.createTopic(KafkaTopicRaw)
-    val host = "localhost"
+    val host = InetAddress.getLocalHost.getHostAddress
     val port = 5000
 
     implicit val system = ActorSystem("WeatherDataIngester")

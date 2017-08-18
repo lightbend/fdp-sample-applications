@@ -67,6 +67,7 @@ lazy val clients = (project in file("./killrweather-clients"))
   .settings(
       buildInfoPackage := "build",
       mainClass in Compile := Some("com.lightbend.killrweather.client.http.RestAPIs"),
+//      mainClass in Compile := Some("com.lightbend.killrweather.client.grpc.WeatherGRPCClient"),
       maintainer := "Boris Lublinsky <boris.lublinsky@lightbend.com",
       packageSummary := "KillrWeather HTTP client",
       packageDescription := "KillrWeather HTTP client",

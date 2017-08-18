@@ -27,7 +27,7 @@ object Dependencies {
   val kafka             = "org.apache.kafka"        % "kafka_2.11"                      % Kafka                             // ApacheV2
   val sparkCore         = "org.apache.spark"        % "spark-core_2.11"                 % Spark            % "provided"     // ApacheV2
   val sparkCatalyst     = "org.apache.spark"        % "spark-catalyst_2.11"             % Spark            % "provided"     // ApacheV2
-  val sparkKafkaStreaming = "org.apache.spark"      % "spark-streaming-kafka-0-10_2.11" % Spark            % "provided"     // ApacheV2
+  val sparkKafkaStreaming = "org.apache.spark"      % "spark-streaming-kafka-0-10_2.11" % Spark                             // ApacheV2
   val sparkStreaming    = "org.apache.spark"        % "spark-streaming_2.11"            % Spark            % "provided"     // ApacheV2
   val sparkSQL          = "org.apache.spark"        % "spark-sql_2.11"                  % Spark            % "provided"     // ApacheV2
   val logback           = "ch.qos.logback"          % "logback-classic"                 % Logback                           // LGPL
@@ -39,6 +39,7 @@ object Dependencies {
   val scalaPBGRPC       =  "com.trueaccord.scalapb" %% "scalapb-runtime-grpc"           % com.trueaccord.scalapb.compiler.Version.scalapbVersion
   val grpcNetty         = "io.grpc"                 %  "grpc-netty"                     % GRPCNettyVersion
   val scalaPBJSON       = "com.trueaccord.scalapb"  %% "scalapb-json4s"                 % ScalaPBJSONVersion
+  val scalaHTTP         = "org.scalaj"              % "scalaj-http_2.11"                % ScalaHTTPVersion
 
 
   val connector = Seq(
@@ -64,10 +65,18 @@ object Dependencies {
     akkaHttpCore, akkaStream, akkaCluster, akkaStreamKafka)
   val json = Seq(json4sCore, json4sJackson, json4sNative)
   val grpc = Seq(scalaPBRuntime, scalaPBGRPC, grpcNetty, scalaPBJSON)
-  val spark = Seq(sparkCore, sparkStreaming, sparkKafkaStreaming, sparkCatalyst, sparkSQL)
+  val spark = Seq(sparkCore, sparkStreaming,
+    sparkKafkaStreaming
+      .exclude("org.apache.spark", "spark-tags_2.11")
+      .exclude("org.apache.spark", "spark-streaming_2.11")
+      .exclude("org.apache.kafka", "kafka_2.11")
+      .exclude("org.spark-project.spark", "unused")
+      .exclude("org.apache.spark", "spark-core_2.11"),
+    sparkCatalyst, sparkSQL)
 
   /** Module deps */
-  val client = logging ++ akka ++ json ++ grpc
+  val client = logging ++ akka ++ json ++ grpc ++ Seq(
+    scalaHTTP.exclude("com.fasterxml.jackson.module", "jackson-module-scala_2.11"))
   val core = logging ++ time ++ connector ++ spark ++ Seq(
     curator.
       exclude("io.netty", "netty"),

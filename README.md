@@ -138,6 +138,23 @@ To close the cql shell:
 
     cqlsh> quit;
 
+## DC/OS deployment
+
+Application itself
+
+1. Run sbt 'deploySsh killrWeatherApp'. This will package an uberJar spark.jar and push it to FDP lab
+2. Use KillrWeatherApp/src/main/resource/KillrweatherApp.json to run it as a marathon job
+4. Use http://killrweatherapp.marathon.mesos:4040/jobs/ to see execution
+5. Go to http://leader.mesos/mesos/#/frameworks and search for KillrweatherApp to get more info about executors
+
+Clients
+
+The application contains 3 clients:
+
+1. 
+
+
+
 ## Future development
 
 The obvious future developments for this applications:

@@ -27,7 +27,11 @@ class RequestService(implicit executionContext: ExecutionContext, materializer: 
   import RequestService._
 
   val producerSettings = ProducerSettings(system, new ByteArraySerializer, new ByteArraySerializer)
-    .withBootstrapServers(kafkaBrokers)
+    .withBootstrapServers(
+      kafkaBrokers
+    //      "10.8.0.24:9757"
+
+    )
 
   def processRequest(report: RawWeatherData): Future[Unit] = Future {
     //    Source.single(report).runWith(Sink.foreach(println))
@@ -45,6 +49,7 @@ object RequestService {
 
   def convertRecord(report: RawWeatherData): Array[Byte] = {
     bos.reset
+    //    println(s"got record $report")
     WeatherRecord(report.wsid, report.year, report.month, report.day, report.hour, report.temperature,
       report.dewpoint, report.pressure, report.windDirection, report.windSpeed, report.skyCondition,
       report.skyConditionText, report.oneHourPrecip, report.sixHourPrecip).writeTo(bos)
