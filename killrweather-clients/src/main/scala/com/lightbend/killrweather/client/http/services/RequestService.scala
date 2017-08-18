@@ -30,7 +30,6 @@ class RequestService(implicit executionContext: ExecutionContext, materializer: 
     .withBootstrapServers(
       kafkaBrokers
     //      "10.8.0.24:9757"
-
     )
 
   def processRequest(report: RawWeatherData): Future[Unit] = Future {

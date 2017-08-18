@@ -151,7 +151,14 @@ Clients
 
 The application contains 3 clients:
 
-1. 
+1. File client - kafkaDataIngester, that can be run locally (assuming that you are on VPN). This client writes data directly
+to the kafka queue that an app listens on
+2. HTTP client - Rest API, Rest interface on top of Kafka. It can be deployed on the cluster as a marathon service using killrweatherHTTPClient.json.
+Deploying it as a Marathon service allows to scale it (behind Marathon-LB) to increase scalability and fail over.
+KafkaDataIngesterRest.scala is a local client that can communicate with Rest APIs to send weather reports.
+3. Google RPC client, Google RPC interface on top of Kafka. It can be deployed on the cluster as a marathon service using killrweatherGRPCClient.json.
+Deploying it as a Marathon service allows to scale it (behind Marathon-LB) to increase scalability and fail over.
+KafkaDataIngesterGRPC.scala is a local client that can communicate with GRPC APIs to send weather reports.
 
 
 

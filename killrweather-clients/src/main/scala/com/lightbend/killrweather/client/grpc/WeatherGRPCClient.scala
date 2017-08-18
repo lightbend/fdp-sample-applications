@@ -7,7 +7,6 @@ import akka.kafka.ProducerSettings
 import akka.kafka.scaladsl.Producer
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
-import akka.util.Timeout
 import com.lightbend.killrweather.WeatherClient.WeatherListenerGrpc.WeatherListener
 import com.lightbend.killrweather.WeatherClient.{ Reply, WeatherListenerGrpc, WeatherRecord }
 import com.lightbend.killrweather.settings.WeatherSettings
@@ -16,18 +15,19 @@ import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.ByteArraySerializer
 
 import scala.concurrent.{ ExecutionContext, Future }
-import scala.concurrent.duration._
 
 object WeatherGRPCClient {
 
+  val settings = new WeatherSettings()
+  import settings._
+
+  implicit val system = ActorSystem("WeatherDataIngester")
+  implicit val materializer = ActorMaterializer()
+  implicit val executionContext = system.dispatcher
+
   def main(args: Array[String]): Unit = {
-    implicit val system = ActorSystem("WeatherDataIngester")
-    implicit val materializer = ActorMaterializer()
 
-    implicit val executionContext = system.dispatcher
-    implicit val timeout = Timeout(10 seconds)
-
-    val server = new WeatherGRPCClient()
+    val server = WeatherGRPCClient(KafkaTopicRaw)
     server.start()
     server.blockUntilShutdown()
   }
@@ -40,16 +40,22 @@ object WeatherGRPCClient {
 
   private val port = 50051
   private val bos = new ByteArrayOutputStream()
+  val producerSettings = ProducerSettings(system, new ByteArraySerializer, new ByteArraySerializer)
+    .withBootstrapServers(
+      kafkaBrokers
+    //      "10.8.0.24:9757"
+    )
 
+  def apply(topic: String): WeatherGRPCClient = new WeatherGRPCClient(topic)
 }
 
-class WeatherGRPCClient(implicit executionContext: ExecutionContext, materializer: ActorMaterializer, system: ActorSystem) {
+class WeatherGRPCClient(topic: String)(implicit executionContext: ExecutionContext, materializer: ActorMaterializer, system: ActorSystem) {
 
   private[this] var server: Server = null
 
   private def start(): Unit = {
     server = ServerBuilder.forPort(WeatherGRPCClient.port).addService(WeatherListenerGrpc
-      .bindService(new WeatherListenerImpl, executionContext)).build.start
+      .bindService(new WeatherListenerImpl(topic), executionContext)).build.start
     print(s"Server started, listening on  ${WeatherGRPCClient.port}")
     val hook = sys.addShutdownHook {
       System.err.println("*** shutting down gRPC server since JVM is shutting down")
@@ -71,21 +77,15 @@ class WeatherGRPCClient(implicit executionContext: ExecutionContext, materialize
   }
 }
 
-class WeatherListenerImpl(implicit executionContext: ExecutionContext, materializer: ActorMaterializer, system: ActorSystem) extends WeatherListener {
-
-  val settings = new WeatherSettings()
-  import settings._
-
-  val producerSettings = ProducerSettings(system, new ByteArraySerializer, new ByteArraySerializer)
-    .withBootstrapServers(kafkaBrokers)
+class WeatherListenerImpl(topic: String)(implicit executionContext: ExecutionContext, materializer: ActorMaterializer, system: ActorSystem) extends WeatherListener {
 
   override def getWeatherReport(report: WeatherRecord): Future[Reply] = {
 
     Source.single(report).map { r =>
-      print(s"New report $r")
-      new ProducerRecord[Array[Byte], Array[Byte]](KafkaTopicRaw, WeatherGRPCClient.convertRecord(r))
+      //      print(s"New report $r")
+      new ProducerRecord[Array[Byte], Array[Byte]](topic, WeatherGRPCClient.convertRecord(r))
     }
-      .runWith(Producer.plainSink(producerSettings))
+      .runWith(Producer.plainSink(WeatherGRPCClient.producerSettings))
     Future.successful(Reply(true))
   }
 }

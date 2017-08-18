@@ -1,11 +1,10 @@
 package com.lightbend.killrweather.client.http
 
-import java.io.{ BufferedReader, ByteArrayOutputStream, FileInputStream, InputStreamReader }
+import java.io.{ BufferedReader, FileInputStream, InputStreamReader }
 import java.util.zip.GZIPInputStream
 
 import com.lightbend.killrweather.settings.WeatherSettings
 import com.lightbend.killrweather.utils.RawWeatherData
-
 import org.json4s._
 import org.json4s.jackson.Serialization.write
 

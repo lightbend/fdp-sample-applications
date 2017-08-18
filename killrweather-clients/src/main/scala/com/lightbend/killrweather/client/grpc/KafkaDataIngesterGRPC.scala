@@ -1,22 +1,20 @@
 package com.lightbend.killrweather.client.grpc
 
-import java.io.{ BufferedReader, ByteArrayOutputStream, FileInputStream, InputStreamReader }
+import java.io.{ BufferedReader, FileInputStream, InputStreamReader }
 import java.util.zip.GZIPInputStream
 
 import com.lightbend.killrweather.settings.WeatherSettings
 import com.lightbend.killrweather.utils.RawWeatherData
+import com.lightbend.killrweather.WeatherClient.WeatherListenerGrpc.WeatherListenerBlockingStub
+import com.lightbend.killrweather.WeatherClient.{ WeatherListenerGrpc, WeatherRecord }
 
-import org.json4s._
-import org.json4s.jackson.Serialization.write
-
-import scalaj.http.Http
+import io.grpc.{ ManagedChannel, ManagedChannelBuilder, StatusRuntimeException }
 
 /**
  * Created by boris on 7/7/17.
  */
 object KafkaDataIngesterGRPC {
 
-  implicit val formats = DefaultFormats
   val file = "data/load/ny-2008.csv.gz"
   val timeInterval: Long = 100 * 1 // 1 sec
   val batchSize = 10
@@ -24,22 +22,45 @@ object KafkaDataIngesterGRPC {
   def main(args: Array[String]) {
 
     val settings = new WeatherSettings()
-//    val url = "http://10.8.0.19:5000/weather"
-    val url = "http://localhost:5000/weather"
+    //    val host = "localhost"
+    val host = "10.8.0.21"
+    val port = 50051
 
-    val ingester = KafkaDataIngesterGRPC(url)
+    val ingester = KafkaDataIngesterGRPC(host, port)
     ingester.execute(file)
   }
 
-  def apply(url: String): KafkaDataIngesterGRPC = new KafkaDataIngesterGRPC(url)
+  def apply(host: String, port: Int): KafkaDataIngesterGRPC = {
+    val channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext(true).build
+    val blockingStub = WeatherListenerGrpc.blockingStub(channel)
+    new KafkaDataIngesterGRPC(channel, blockingStub)
+  }
 
-  def convertRecord(string: String): String = {
+  def convertRecord(string: String): WeatherRecord = {
     val report = RawWeatherData(string.split(","))
-    write(report)
+    WeatherRecord(
+      wsid = report.wsid,
+      year = report.year,
+      month = report.month,
+      day = report.day,
+      hour = report.hour,
+      temperature = report.temperature,
+      dewpoint = report.dewpoint,
+      pressure = report.pressure,
+      windDirection = report.windDirection,
+      windSpeed = report.windSpeed,
+      skyCondition = report.skyCondition,
+      skyConditionText = report.skyConditionText,
+      oneHourPrecip = report.oneHourPrecip,
+      sixHourPrecip = report.sixHourPrecip
+    )
   }
 }
 
-class KafkaDataIngesterGRPC(url: String) {
+class KafkaDataIngesterGRPC(
+    private val channel: ManagedChannel,
+    private val blockingStub: WeatherListenerBlockingStub
+) {
 
   import KafkaDataIngesterGRPC._
 
@@ -48,9 +69,13 @@ class KafkaDataIngesterGRPC(url: String) {
     val iterator = GzFileIterator(new java.io.File(file), "UTF-8")
     var numrec = 0;
     iterator.foreach(record => {
-      //      println(s"Record : $record")
+      try {
+        val response = blockingStub.getWeatherReport(convertRecord(record))
+      } catch {
+        case e: StatusRuntimeException =>
+          println(s"RPC failed: ${e.getStatus}")
+      }
       numrec = numrec + 1
-      Http(url).postData(convertRecord(record)).header("content-type", "application/json").asString
       if (numrec >= batchSize)
         pause()
       if (numrec % 100 == 0)

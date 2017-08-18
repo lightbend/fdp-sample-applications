@@ -34,7 +34,7 @@ object KillrWeather {
     // Create context
 
     val sparkConf = new SparkConf().setAppName(AppName)
-      //.setMaster(SparkMaster)
+      //      .setMaster(SparkMaster)
       .set(
         "spark.cassandra.connection.host",
         CassandraHosts
@@ -66,7 +66,7 @@ object KillrWeather {
     val kafkaStream = kafkaDataStream.map(r => WeatherRecord.parseFrom(r.value()))
 
     /** Saves the raw data to Cassandra - raw table. */
-    kafkaStream.saveToCassandra(CassandraKeyspace, CassandraTableRaw)
+    //    kafkaStream.saveToCassandra(CassandraKeyspace, CassandraTableRaw)
 
     // Calculate daily
     val dailyMappingFunc = (station: String, reading: Option[WeatherRecord], state: State[ListBuffer[WeatherRecord]]) => {
@@ -118,7 +118,7 @@ object KillrWeather {
     // Save daily presipitations
     dailyStream.map(ds => DailyPrecipitation(ds._2)).saveToCassandra(CassandraKeyspace, CassandraTableDailyPrecip)
 
-    // Calculate daily
+    // Calculate monthly
     val monthlyMappingFunc = (station: String, reading: Option[DailyWeatherDataProcess], state: State[ListBuffer[DailyWeatherDataProcess]]) => {
       val current = state.getOption().getOrElse(new ListBuffer[DailyWeatherDataProcess])
       var monthly: Option[(String, MonthlyWeatherData)] = None
