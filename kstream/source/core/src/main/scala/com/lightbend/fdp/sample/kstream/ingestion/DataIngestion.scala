@@ -22,8 +22,9 @@ import scala.concurrent.Future
 
 import config.KStreamConfig._
 import serializers.Serializers
+import com.typesafe.scalalogging.LazyLogging
 
-object DataIngestion extends Serializers {
+object DataIngestion extends LazyLogging with Serializers {
   def registerForIngestion(config: ConfigData)
     (implicit system: ActorSystem, materializer: ActorMaterializer): Future[Done] = {
 
@@ -34,7 +35,7 @@ object DataIngestion extends Serializers {
         config.pollInterval, 
         maxBufferSize = 1024).runForeach {
 
-        case (path, Creation | Modification) => {
+        case (path, x@(Creation | Modification)) => {
           val _ = produce(path, config)
           ()
         }
@@ -47,7 +48,7 @@ object DataIngestion extends Serializers {
     (implicit system: ActorSystem, materializer: ActorMaterializer): NotUsed = {
 
     val MAX_CHUNK_SIZE = 25000
-    val POLLING_INTERVAL = 1 millis
+    val POLLING_INTERVAL = 250 millis
 
     val producerSettings = ProducerSettings(system, byteArraySerde.serializer, stringSerializer)
       .withBootstrapServers(config.brokers)
