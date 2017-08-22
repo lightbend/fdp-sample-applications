@@ -31,6 +31,9 @@ trait WeblogWorkflow extends LazyLogging with Serializers {
     }
 
     logger.info(s"config = $config")
+    config.schemaRegistryUrl.foreach { url =>
+      logger.info(s"Schema Registry will be used - please ensure schema registry service is up and running at $url")
+    }
 
     // setup REST endpoints
     val restEndpointPort = config.httpPort
