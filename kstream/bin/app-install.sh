@@ -206,11 +206,6 @@ keyval() {
         SSH_KEYFILE=$value
       fi
 
-      if [ "$key" == "ingestion-directory" ]
-      then
-        DIRECTORY_TO_WATCH=$value
-      fi
-
       if [ "$key" == "laboratory-mesos-path" ]
       then
         LABORATORY_MESOS_PATH=$value
@@ -242,7 +237,6 @@ keyval() {
     exit_if_not_defined_or_empty "$PUBLISH_HOST" "publish-host"
     exit_if_not_defined_or_empty "$SSH_PORT" "ssh-port"
     exit_if_not_defined_or_empty "$SSH_KEYFILE" "ssh-keyfile"
-    exit_if_not_defined_or_empty "$DIRECTORY_TO_WATCH" "ingestion-directory"
     exit_if_not_defined_or_empty "$LABORATORY_MESOS_PATH" "laboratory-mesos-path"
     set_schema_registry_url
 
@@ -358,7 +352,6 @@ function modify_dsl_json_template {
 
   declare -a arr=(
     "KAFKA_BROKERS"
-    "DIRECTORY_TO_WATCH"
     "KAFKA_FROM_TOPIC_DSL"
     "KAFKA_TO_TOPIC_DSL"
     "KAFKA_AVRO_TOPIC_DSL"
@@ -376,11 +369,6 @@ function modify_dsl_json_template {
     eval value="\$$elem"
     $NOEXEC sed -i -- "s~{$elem}~\"$value\"~g" "$KSTREAM_DSL_JSON"
   done
-
-  ## hack! Need to splice the value within a json field - hence no quotes
-  elem="DIRECTORY_TO_WATCH_NQ"
-  eval value="$DIRECTORY_TO_WATCH"
-  $NOEXEC sed -i -- "s~{$elem}~$value~g" "$KSTREAM_DSL_JSON"
 }
 
 function modify_proc_json_template {
@@ -388,7 +376,6 @@ function modify_proc_json_template {
 
   declare -a arr=(
     "KAFKA_BROKERS"
-    "DIRECTORY_TO_WATCH"
     "KAFKA_FROM_TOPIC_PROC"
     "KAFKA_ERROR_TOPIC_PROC"
     "PROC_PACKAGE_ON_MESOS"
@@ -399,11 +386,6 @@ function modify_proc_json_template {
     eval value="\$$elem"
     $NOEXEC sed -i -- "s~{$elem}~\"${value//\"}\"~g" "$KSTREAM_PROC_JSON"
   done
-
-  ## hack! Need to splice the value within a json field - hence no quotes
-  elem="DIRECTORY_TO_WATCH_NQ"
-  eval value="$DIRECTORY_TO_WATCH"
-  $NOEXEC sed -i -- "s~{$elem}~$value~g" "$KSTREAM_PROC_JSON"
 }
 
 function load_marathon_job {
@@ -494,7 +476,7 @@ function main {
   header Doing remote deployment ..
   deploy_app
 
-  ## echo Loading Marathon Jobs ..
+  echo Loading Marathon Jobs ..
   load_marathon_job
 
   echo
