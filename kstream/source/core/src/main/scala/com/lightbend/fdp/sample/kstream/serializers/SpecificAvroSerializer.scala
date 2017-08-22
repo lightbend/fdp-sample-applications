@@ -3,26 +3,18 @@ package serializers
 
 import org.apache.kafka.common.serialization.Serializer
 
-import scala.collection.JavaConverters._
-import scala.collection.immutable.Map
+import com.twitter.bijection.Injection
+import org.apache.avro.specific.SpecificRecordBase
 
 import java.util.{ Map => JMap }
 
-import io.confluent.kafka.serializers.KafkaAvroSerializer
+class SpecificAvroSerializer[T <: org.apache.avro.specific.SpecificRecordBase](injection: Injection[T, Array[Byte]]) extends Serializer[T] {
 
-import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG
+  override def configure(configs: JMap[String, _], isKey: Boolean): Unit = ()
 
-class SpecificAvroSerializer[T <: org.apache.avro.specific.SpecificRecord] extends Serializer[T] {
-
-  val inner: KafkaAvroSerializer = new KafkaAvroSerializer()
-
-  override def configure(configs: JMap[String, _], isKey: Boolean): Unit = {
-    val effectiveConfigs = Map(SPECIFIC_AVRO_READER_CONFIG -> true) ++ configs.asScala
-    inner.configure(effectiveConfigs.asJava, isKey)
+  override def serialize(topic: String, record: T): Array[Byte] = {
+    injection.apply(record)
   }
 
-  override def serialize(topic: String, record: T): Array[Byte] =
-    inner.serialize(topic, record)
-
-  override def close(): Unit = inner.close()
+  override def close(): Unit = ()
 }

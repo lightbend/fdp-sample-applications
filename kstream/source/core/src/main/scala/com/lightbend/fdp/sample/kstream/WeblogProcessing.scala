@@ -172,15 +172,9 @@ object WeblogProcessing extends WeblogWorkflow {
   final case class ValidLogRecord(record: LogRecord) extends Extracted
   final case class ValueError(exception: Throwable, originalRecord: String) extends Extracted
 
-  def generateAvro(logRecords: KStream[Array[Byte], LogRecord], builder: KStreamBuilder,
-                   config: ConfigData): Unit = config.schemaRegistryUrl.foreach { url =>
-    val isKeySerde = false
-    logRecordAvroSerde.configure(
-      java.util.Collections.singletonMap(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, url),
-      isKeySerde)
-
+  def generateAvro(logRecords: KStream[Array[Byte], LogRecord], builder: KStreamBuilder, config: ConfigData): Unit = {
     val records: KStream[Array[Byte], LogRecordAvro] = logRecords.mapValues(makeAvro)
-    records.to(byteArraySerde, logRecordAvroSerde, config.avroTopic.get)
+    records.to(byteArraySerde, logRecordAvroSerde(config.schemaRegistryUrl), config.avroTopic.get)
   }
 
   /**

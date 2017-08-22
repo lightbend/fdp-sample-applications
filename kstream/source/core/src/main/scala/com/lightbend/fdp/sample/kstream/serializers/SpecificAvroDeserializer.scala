@@ -3,25 +3,24 @@ package serializers
 
 import org.apache.kafka.common.serialization.Deserializer
 
-import scala.collection.JavaConverters._
-import scala.collection.immutable.HashMap
+import com.twitter.bijection.Injection
+import org.apache.avro.specific.SpecificRecordBase
+import org.apache.avro.Schema
+
+import scala.util.{Success, Failure}
 
 import java.util.{ Map => JMap }
 
-import io.confluent.kafka.serializers.KafkaAvroDeserializer
+class SpecificAvroDeserializer[T <: org.apache.avro.specific.SpecificRecordBase](injection: Injection[T, Array[Byte]]) extends Deserializer[T] {
 
-import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG
+  override def configure(configs: JMap[String, _], isKey: Boolean): Unit = ()
 
-class SpecificAvroDeserializer[T <: org.apache.avro.specific.SpecificRecord] extends Deserializer[T] {
-
-  val inner: KafkaAvroDeserializer = new KafkaAvroDeserializer()
-
-  override def configure(configs: JMap[String, _], isKey: Boolean): Unit = {
-    val effectiveConfigs = Map(SPECIFIC_AVRO_READER_CONFIG -> true) ++ configs.asScala
-    inner.configure(effectiveConfigs.asJava, isKey)
+  override def deserialize(s: String, bytes: Array[Byte]): T = {
+    injection.invert(bytes) match {
+      case Success(t) => t
+      case Failure(ex) => throw new Exception(ex)
+    }
   }
 
-  override def deserialize(s: String, bytes: Array[Byte]): T = inner.deserialize(s, bytes).asInstanceOf[T]
-
-  override def close(): Unit = inner.close()
+  override def close(): Unit = ()
 }
