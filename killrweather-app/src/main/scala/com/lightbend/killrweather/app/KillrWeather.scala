@@ -1,8 +1,8 @@
 package com.lightbend.killrweather.app
 
-import com.lightbend.killrweather.kafka.{ EmbeddedSingleNodeKafkaCluster, MessageListener }
+import com.lightbend.killrweather.kafka.{EmbeddedSingleNodeKafkaCluster, MessageListener}
 import org.apache.spark.SparkConf
-import org.apache.spark.streaming.{ Seconds, State, StateSpec, StreamingContext }
+import org.apache.spark.streaming.{Seconds, State, StateSpec, StreamingContext}
 import com.lightbend.killrweather.settings.WeatherSettings
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
 import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
@@ -10,6 +10,7 @@ import org.apache.spark.streaming.kafka010.KafkaUtils
 import org.apache.spark.streaming.kafka010.LocationStrategies.PreferConsistent
 import com.datastax.spark.connector.streaming._
 import com.lightbend.killrweather.WeatherClient.WeatherRecord
+import com.lightbend.killrweather.app.influxdb.InfluxDBSink
 import com.lightbend.killrweather.utils._
 import org.apache.spark.util.StatCounter
 
@@ -59,14 +60,23 @@ object KillrWeather {
     // Initial state RDD for monthly accumulator
     val monthlyRDD = ssc.sparkContext.emptyRDD[(String, ListBuffer[DailyWeatherDataProcess])]
 
+    // Create broadcast variable for the sink definition
+    val influxDBSink = sc.broadcast(InfluxDBSink())
+
+
     val kafkaDataStream = KafkaUtils.createDirectStream[Array[Byte], Array[Byte]](
       ssc, PreferConsistent, Subscribe[Array[Byte], Array[Byte]](topics, kafkaParams)
     )
 
-    val kafkaStream = kafkaDataStream.map(r => WeatherRecord.parseFrom(r.value()))
+    val ts = System.currentTimeMillis()
+    val kafkaStream = kafkaDataStream.map(r => {
+      val wr = WeatherRecord.parseFrom(r.value())
+      influxDBSink.value.write(wr,ts)
+      wr
+    })
 
     /** Saves the raw data to Cassandra - raw table. */
-    //    kafkaStream.saveToCassandra(CassandraKeyspace, CassandraTableRaw)
+    kafkaStream.saveToCassandra(CassandraKeyspace, CassandraTableRaw)
 
     // Calculate daily
     val dailyMappingFunc = (station: String, reading: Option[WeatherRecord], state: State[ListBuffer[WeatherRecord]]) => {
@@ -107,7 +117,11 @@ object KillrWeather {
     dailyStream.print()
 
     // Save daily temperature
-    dailyStream.map(ds => DailyTemperature(ds._2)).saveToCassandra(CassandraKeyspace, CassandraTableDailyTemp)
+    dailyStream.map(ds => {
+      val dt = DailyTemperature(ds._2)
+      influxDBSink.value.write(dt,ts)
+      dt
+    }).saveToCassandra(CassandraKeyspace, CassandraTableDailyTemp)
 
     // Save daily wind
     dailyStream.map(ds => DailyWindSpeed(ds._2)).saveToCassandra(CassandraKeyspace, CassandraTableDailyWind)
@@ -153,7 +167,11 @@ object KillrWeather {
       mapWithState(StateSpec.function(monthlyMappingFunc).initialState(monthlyRDD)).filter(_.isDefined).map(_.get)
 
     // Save monthly temperature
-    monthlyStream.map(ds => MonthlyTemperature(ds._2)).saveToCassandra(CassandraKeyspace, CassandraTableMonthlyTemp)
+    monthlyStream.map(ds => {
+      val mt = MonthlyTemperature(ds._2)
+      influxDBSink.value.write(mt,ts)
+      mt
+    }).saveToCassandra(CassandraKeyspace, CassandraTableMonthlyTemp)
 
     // Save monthly wind
     monthlyStream.map(ds => MonthlyWindSpeed(ds._2)).saveToCassandra(CassandraKeyspace, CassandraTableMonthlyWind)

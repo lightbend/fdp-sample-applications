@@ -41,6 +41,8 @@ object Dependencies {
   val scalaPBJSON       = "com.trueaccord.scalapb"  %% "scalapb-json4s"                 % ScalaPBJSONVersion
   val scalaHTTP         = "org.scalaj"              % "scalaj-http_2.11"                % ScalaHTTPVersion
 
+  val influxDBClient    = "org.influxdb"            % "influxdb-java"                   % influxDBClientVersion
+
 
   val connector = Seq(
     sparkCassandra
@@ -83,5 +85,5 @@ object Dependencies {
     kafka.
       exclude("org.slf4j", "slf4j-log4j12").
       exclude("io.netty", "netty"))
-  val app = connector  ++ spark
+  val app = connector  ++ spark ++ Seq(influxDBClient)
 }  
