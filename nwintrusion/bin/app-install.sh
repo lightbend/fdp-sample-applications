@@ -1,11 +1,26 @@
 #!/usr/bin/env bash
 set -e
+# set -x
 
-SCRIPT=`basename ${BASH_SOURCE[0]}`
+SCRIPT=$(basename "${BASH_SOURCE[0]}")
+
+## run directory
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 
 . "$DIR/utils.sh"
 . "$DIR/../version.sh"
+
+## project root directory
+PROJ_ROOT_DIR="$( cd "$DIR/../source/core" && pwd -P )"
+
+## deploy.conf full path
+DEPLOY_CONF_FILE="$PROJ_ROOT_DIR/deploy.conf"
+
+. "$DIR/../../bin/common.sh"
+
+ZOOKEEPER_PORT=2181
+VERSIONED_NATIVE_PACKAGE_NAME=
+VERSIONED_ASSEMBLY_NAME=
 
 # Used by show_help
 HELP_MESSAGE="Installs the network intrusion app. Assumes DC/OS authentication was successful
@@ -18,11 +33,9 @@ HELP_OPTIONS=$(cat <<EOF
                               Default: ./app-install.properties
   --start-none                Run no app, but set up the tools and data files.
   --start-only X              Only start the following apps:
-                                data-loader         Loads data from S3
-                                transform-data      Performs initial transformation
+                                transform-data      Performs data ingestion & transformation
                                 batch-k-means       Find the best K value.
                                 anomaly-detection   Find anomalies in the data.
-                                visualizer          Run the Jupyter-based visualization.
                               Repeat the option to run more than one.
                               Default: runs all of them. See also --start-none.
   --use-zeppelin              If specified, only data loader and transformer will be deployed.
@@ -31,16 +44,13 @@ HELP_OPTIONS=$(cat <<EOF
 EOF
 )
 
-
-export run_data_loader=
 export run_transform_data=
 export run_batch_k_means=
 export run_anomaly_detection=
-export run_visualizer=
 export zeppelin_flag_set=no
 apps_selected=
-config_file="./app-install.properties"
 
+config_file="./app-install.properties"
 
 function create_topics {
   declare -a topics=(
@@ -62,8 +72,6 @@ declare METADATA=$(cat <<EOF
   "ANOMALY_DETECTION_SPARK_DRIVER_SUBMIT_ID":"",
   "BATCH_KMEANS_SPARK_DRIVER_SUBMIT_ID":"",
   "TRANSFORM_DATA_APP_ID":"",
-  "LOAD_DATA_APP_ID":"",
-  "VIS_DATA_APP_ID":"",
   "TOPICS": [ ],
   "KAFKA_DCOS_PACKAGE":"$KAFKA_DCOS_PACKAGE"
 }
@@ -88,6 +96,7 @@ function modify_transform_data_template {
     "KAFKA_ERROR_TOPIC"
     "KAFKA_CLUSTERS_TOPIC"
     "KAFKA_ZOOKEEPER_URL"
+    "NATIVE_PACKAGE_ON_MESOS"
     )
 
   for elem in "${arr[@]}"
@@ -97,54 +106,9 @@ function modify_transform_data_template {
   done
 }
 
-function modify_data_loader_template {
-  cp $LOAD_DATA_TEMPLATE_FILE $LOAD_DATA_TEMPLATE
-  declare -a arr=(
-    "LOAD_DATA_APP_ID"
-    "LOAD_DATA_IMAGE"
-    "AWS_ACCESS_KEY_ID"
-    "AWS_SECRET_ACCESS_KEY"
-    "KAFKA_BROKERS"
-    "KAFKA_FROM_TOPIC"
-    "KAFKA_ZOOKEEPER_URL"
-    "S3_BUCKET_URL"
-    "WITH_IAM_ROLE"
-    )
-
-  for elem in "${arr[@]}"
-  do
-    eval value="\$$elem"
-    $NOEXEC sed -i -- "s~{$elem}~\"$value\"~g" $LOAD_DATA_TEMPLATE
-  done
-}
-
-function modify_vis_data_template {
-  cp $VIS_DATA_TEMPLATE_FILE $VIS_DATA_TEMPLATE
-  declare -a arr=(
-    "VIS_DATA_APP_ID"
-    "VIS_DATA_IMAGE"
-    )
-
-  for elem in "${arr[@]}"
-  do
-    eval value="\$$elem"
-    $NOEXEC sed -i -- "s~{$elem}~\"$value\"~g" $VIS_DATA_TEMPLATE
-  done
-}
-
 function load_transform_data_job {
   $NOEXEC dcos marathon app add $TRANSFORM_DATA_TEMPLATE
   $NOEXEC update_json_field TRANSFORM_DATA_APP_ID "$TRANSFORM_DATA_APP_ID" "$APP_METADATA_FILE"
-}
-
-function load_data_loader_job {
-  $NOEXEC dcos marathon app add $LOAD_DATA_TEMPLATE
-  $NOEXEC update_json_field LOAD_DATA_APP_ID "$LOAD_DATA_APP_ID" "$APP_METADATA_FILE"
-}
-
-function load_visualize_data_job {
-  $NOEXEC dcos marathon app add $VIS_DATA_TEMPLATE
-  $NOEXEC update_json_field VIS_DATA_APP_ID "$VIS_DATA_APP_ID" "$APP_METADATA_FILE"
 }
 
 function parse_arguments {
@@ -160,23 +124,19 @@ function parse_arguments {
       run_transform_data=
       run_batch_k_means=
       run_anomaly_detection=
-      run_visualizer=
       ;;
       --start*)
       apps_selected=yes
       shift
       case $1 in
-        data-loader)        run_data_loader=yes        ;;
         transform-data)     run_transform_data=yes     ;;
         batch-k-means)      run_batch_k_means=yes      ;;
         anomaly-detection)  run_anomaly_detection=yes  ;;
-        visualizer)         run_visualizer=yes         ;;
         *) error "Unrecognized value for --start-only: $1" ;;
       esac
       ;;
       --use-zeppelin)
       zeppelin_flag_set=yes
-      run_data_loader=yes
       run_transform_data=yes
       run_batch_k_means=yes
       run_anomaly_detection=yes
@@ -208,11 +168,9 @@ function parse_arguments {
 
   if [ -z "$apps_selected" ]
   then
-    run_data_loader=yes
     run_transform_data=yes
     run_batch_k_means=yes
     run_anomaly_detection=yes
-    run_visualizer=yes
   fi
 }
 
@@ -233,11 +191,6 @@ keyval() {
 
     while IFS='=' read -r key value
     do
-      if [ "$key" == "docker-username" ]
-      then
-        DOCKER_USERNAME=$value
-      fi
-
       if [ "$key" == "kafka-topic-partitions" ]
       then
         PARTITIONS=$value
@@ -258,52 +211,130 @@ keyval() {
         SKIP_CREATE_TOPICS=$value
       fi
 
-      if [ "$key" == "with-iam-role" ]
+      if [ "$key" == "publish-user" ]
       then
-	if [ "$value" != true ]
-	then
-	  WITH_IAM_ROLE=
-        else
-          WITH_IAM_ROLE=$value
-        fi
+        PUBLISH_USER=$value
       fi
+
+      if [ "$key" == "publish-host" ]
+      then
+        PUBLISH_HOST=$value
+      fi
+
+      if [ "$key" == "ssh-port" ]
+      then
+        SSH_PORT=$value
+      fi
+
+      if [ "$key" == "passphrase" ]
+      then
+        SSH_PASSPHRASE=$value
+      fi
+
+      if [ "$key" == "ssh-keyfile" ]
+      then
+        SSH_KEYFILE=$value
+      fi
+
+      if [ "$key" == "laboratory-mesos-path" ]
+      then
+        LABORATORY_MESOS_PATH=$value
+      fi
+
     done < "$filename"
 
-    if [ -z $DOCKER_USERNAME ]
-    then
-      error 'docker-username requires a non-empty argument.'
-    fi
-    if [ -z $DCOS_KAFKA_PACKAGE ]
+    if [ -z "${DCOS_KAFKA_PACKAGE// }" ]
     then
       DCOS_KAFKA_PACKAGE=kafka
     fi
-    if [ -z $PARTITIONS ]
+    if [ -z "${PARTITIONS// }" ]
     then
       PARTITIONS=1
     fi
-    if [ -z $REPLICATION_FACTOR ]
+    if [ -z "${REPLICATION_FACTOR// }" ]
     then
       REPLICATION_FACTOR=1
     fi
-    if [ -z $SKIP_CREATE_TOPICS ]
+    if [ -z "${SKIP_CREATE_TOPICS// }" ]
     then
       SKIP_CREATE_TOPICS=false
     fi
+    if [ -z "${PUBLISH_USER// }" ]
+    then
+      PUBLISH_USER="publisher"
+    fi
+
+    exit_if_not_defined_or_empty "$PUBLISH_HOST" "publish-host"
+    exit_if_not_defined_or_empty "$SSH_PORT" "ssh-port"
+    exit_if_not_defined_or_empty "$SSH_KEYFILE" "ssh-keyfile"
+    exit_if_not_defined_or_empty "$LABORATORY_MESOS_PATH" "laboratory-mesos-path"
+
   else
     echo "$filename not found."
     exit 6
   fi
 }
 
+function exit_if_not_defined_or_empty() {
+  value=$1
+  name=$2
+
+  if [ -z "${value// }"  ]
+  then
+    error "$name not defined .. exiting"
+  fi
+}
+
+function generate_deploy_conf {
+declare DEPLOY_CONF_DATA=$(cat <<EOF
+{
+  servers = [
+   {
+    name = "fdp-nwintrusion"
+    user = $PUBLISH_USER
+    host = $PUBLISH_HOST
+    port = $SSH_PORT
+    sshKeyFile = $SSH_KEYFILE
+   }
+  ]
+}
+EOF
+)
+  if [[ -z $NOEXEC ]]
+  then
+    echo "$DEPLOY_CONF_DATA" > "$DEPLOY_CONF_FILE"
+  else
+    $NOEXEC "$DEPLOY_CONF_DATA > $DEPLOY_CONF_FILE"
+  fi
+}
+
+function build_app {
+  $NOEXEC cd "$PROJ_ROOT_DIR"
+
+  $NOEXEC sbt clean clean-files assembly universal:packageZipTarball
+  
+  if [[ -z $NOEXEC ]]
+  then
+    TGZ_NAME=$( ls "$PROJ_ROOT_DIR"/target/universal/*.tgz )
+    VERSIONED_NATIVE_PACKAGE_NAME=$( basename "$TGZ_NAME" )
+  
+    NATIVE_PACKAGE_ON_MESOS="$LABORATORY_MESOS_PATH"/"$VERSIONED_NATIVE_PACKAGE_NAME"
+  fi
+}
+
+function deploy_app {
+  $NOEXEC cd "$PROJ_ROOT_DIR"
+  $NOEXEC sbt "deploySsh fdp-nwintrusion"
+}
+
+function load_transform_data_job {
+  $NOEXEC dcos marathon app add "$TRANSFORM_DATA_TEMPLATE"
+  $NOEXEC update_json_field TRANSFORM_DATA_APP_ID "$TRANSFORM_DATA_APP_ID" "$APP_METADATA_FILE"
+}
+
 function main {
 
   parse_arguments "$@"
-
-  : ${S3_BUCKET:="fdp-sample-apps-artifacts"}
-
-  S3_BUCKET_URL="http://$S3_BUCKET.s3.amazonaws.com"
-
-  echo "Bucket URL: $S3_BUCKET_URL"
 
   if [ ! -f $config_file ]
   then
@@ -314,16 +345,10 @@ function main {
 
   [ "$stop_point" = "config_file" ] && exit 0
 
-  if [[ "$zeppelin_flag_set" == yes ]]; then
-    run_visualizer=
-  fi
-
   echo "Running:"
-  echo "Data Loader?       $(yes_or_no $run_data_loader)"
-  echo "Transform Data?    $(yes_or_no $run_transform_data)"
-  echo "Batch K Means?     $(yes_or_no $run_batch_k_means)"
-  echo "Anomaly Detection? $(yes_or_no $run_anomaly_detection)"
-  echo "Visualizer?        $(yes_or_no $run_visualizer)"
+  echo "Ingest & Transform Data?    $(yes_or_no $run_transform_data)"
+  echo "Batch K Means?              $(yes_or_no $run_batch_k_means)"
+  echo "Anomaly Detection?          $(yes_or_no $run_anomaly_detection)"
 
   [ "$stop_point" = "start_only" ] && exit 0
 
@@ -331,10 +356,6 @@ function main {
   $NOEXEC rm -f "$APP_METADATA_FILE"
 
   KAFKA_ZOOKEEPER_URL="master.mesos:$ZOOKEEPER_PORT/dcos-service-$KAFKA_DCOS_PACKAGE"
-
-  TRANSFORM_DATA_IMAGE="$DOCKER_USERNAME/fdp-nw-intrusion-transform-data:$APP_VERSION"
-  LOAD_DATA_IMAGE="$DOCKER_USERNAME/fdp-nw-intrusion-load-data:$APP_VERSION"
-  VIS_DATA_IMAGE="$DOCKER_USERNAME/fdp-nw-intrusion-visualize-data:$APP_VERSION"
 
   header "Verifying required tools are installed...\n"
 
@@ -373,9 +394,17 @@ function main {
     done
   fi
 
-  header "Gathering Kafka connection information...\n"
+  header Generating remote deployment information ..
+  generate_deploy_conf
 
+  header Building packages to be deployed ..
+  build_app
+
+  header "Gathering Kafka connection information...\n"
   gather_kafka_connection_info
+
+  header Doing remote deployment ..
+  deploy_app
 
   if [ -n "$run_transform_data" ]
   then
@@ -394,7 +423,6 @@ function main {
     run_anomaly_detection_spark_job \
       $DEFAULT_NO_OF_CLUSTERS \
       $DEFAULT_CLUSTERING_MICRO_BATCH_DURATION \
-      $S3_BUCKET_URL \
       $zeppelin_flag_set \
   else
     echo "Skipped running the Spark application for anomaly detection."
@@ -409,30 +437,9 @@ function main {
       $DEFAULT_OPTIMAL_K_TO_CLUSTER_COUNT \
       $DEFAULT_OPTIMAL_K_INCREMENT \
       $DEFAULT_OPTIMAL_K_CLUSTERING_MICRO_BATCH_DURATION \
-      $S3_BUCKET_URL \
       $zeppelin_flag_set \
   else
     echo "Skipped running the Spark application for optimizing K for K-Means."
-  fi
-
-  if [ -n "$run_data_loader" ]
-  then
-    header "Running the data loading application... "
-    echo
-    modify_data_loader_template
-    load_data_loader_job
-  else
-    echo "Skipped running the data loading application."
-  fi
-
-  if [ -n "$run_visualizer" ]
-  then
-    header "Installing the data visualization application... "
-    echo
-    modify_vis_data_template
-    load_visualize_data_job
-  else
-    echo "Skipped installing data visualization application."
   fi
 
   echo

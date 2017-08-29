@@ -1,20 +1,6 @@
 {
   "id": {TRANSFORM_DATA_APP_ID},
-  "container":{
-    "docker":{
-      "forcePullImage":true,
-      "image":{TRANSFORM_DATA_IMAGE},
-      "network":"BRIDGE",
-      "parameters":[
-
-      ],
-      "privileged":false
-    },
-    "type":"DOCKER",
-    "volumes":[
-
-    ]
-  },
+  "cmd": "export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && mkdir $MESOS_SANDBOX/data && mv kddcup-data-10-percent.csv data && export DIRECTORY_TO_WATCH=$MESOS_SANDBOX/data && ./fdp-nw-intrusion-0.2/bin/transform-intrusion-data",
   "cpus":1,
   "mem":2048,
   "env":{
@@ -23,5 +9,10 @@
     "KAFKA_TO_TOPIC":{KAFKA_TO_TOPIC},
     "KAFKA_ERROR_TOPIC":{KAFKA_ERROR_TOPIC},
     "ZOOKEEPER_URL":{KAFKA_ZOOKEEPER_URL}
-  }
+  },
+  "fetch": [
+    { "uri": "https://downloads.mesosphere.com/java/jre-8u112-linux-x64.tar.gz" },
+    { "uri": {NATIVE_PACKAGE_ON_MESOS} },
+    { "uri": "http://fdp-sample-apps-artifacts.s3.amazonaws.com/kddcup-data-10-percent.csv" }
+  ]
 }

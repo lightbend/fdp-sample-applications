@@ -87,20 +87,6 @@ function main {
     echo "No INGESTION APP ID is available. Skipping delete.."
   fi
 
-  if [ -n "$LOAD_DATA_APP_ID" ]; then
-    echo "Deleting app with id: $LOAD_DATA_APP_ID"
-    $NOEXEC dcos marathon app remove --force $LOAD_DATA_APP_ID
-  else
-    echo "No LOAD APP ID is available. Skipping delete.."
-  fi
-
-  if [ -n "$VIS_DATA_APP_ID" ]; then
-    echo "Deleting app with id: $VIS_DATA_APP_ID"
-    $NOEXEC dcos marathon app remove --force $VIS_DATA_APP_ID
-  else
-    echo "No VISUALIZATION APP ID is available. Skipping delete.."
-  fi
-
   if [ -z $SKIP_DELETE_TOPICS ]; then
     if [ -n "$KAFKA_DCOS_PACKAGE" ]; then
       for elem in $topics

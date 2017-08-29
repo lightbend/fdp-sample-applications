@@ -1,4 +1,4 @@
-package com.lightbend.fdp.sample
+package com.lightbend.fdp.sample.nwintrusion
 
 import java.io.BufferedWriter
 import java.io.StringWriter
@@ -16,6 +16,9 @@ import org.apache.kafka.streams.KafkaStreams
 import org.apache.kafka.streams._
 import org.apache.kafka.streams.kstream.{ KStream, ValueMapper, KeyValueMapper }
 
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
+
 import NetworkIntrusionConfig._
 
 /**
@@ -32,6 +35,13 @@ object TransformIntrusionData {
       case Success(c)  => c
       case Failure(ex) => throw new Exception(ex)
     }
+
+    implicit val system = ActorSystem()
+    implicit val materializer = ActorMaterializer()
+
+    // register for data ingestion
+    // whenever we find new / changed files in the configured location, we run data loading
+    DataIngestion.registerForIngestion(config)
     
     // stream it
     try {
@@ -48,7 +58,6 @@ object TransformIntrusionData {
       val settings = new Properties
       settings.put(StreamsConfig.APPLICATION_ID_CONFIG, "transform-intrusion-data")
       settings.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, config.brokers)
-      settings.put(StreamsConfig.ZOOKEEPER_CONNECT_CONFIG, config.zk)
       settings.put(StreamsConfig.KEY_SERDE_CLASS_CONFIG, Serdes.ByteArray.getClass.getName)
       settings.put(StreamsConfig.VALUE_SERDE_CLASS_CONFIG, Serdes.String.getClass.getName)
       settings
