@@ -31,9 +31,9 @@ $ ./app-install.sh --help
   Installs the Kafka Streams sample application. Assumes DC/OS authentication was successful
   using the DC/OS CLI.
 
-  Usage: app-install.sh   [options] 
+  Usage: app-install.sh   [options]
 
-  eg: ./app-install.sh 
+  eg: ./app-install.sh
 
   Options:
   --config-file        Configuration file used to launch applications
@@ -65,7 +65,7 @@ This will install the lower level procedure based module as one of the applicati
 $ ./app-install.sh
 ```
 
-This will install both the modules as applications running under Marathon in the DC/OS cluster. 
+This will install both the modules as applications running under Marathon in the DC/OS cluster.
 
 **If you decide to install and run both the applications together, please ensure your Kafka cluster is beefy enough to handle the load.**
 
@@ -108,7 +108,7 @@ ingestion-directory=/tmp/data
 laboratory-mesos-path=http://jim-lab.marathon.mesos
 ```
 
-A few of the parameters relate to the configuration of `fdp-laboratory`, which is the basic engine for installing all sample applications of FDP. 
+A few of the parameters relate to the configuration of `fdp-laboratory`, which is the basic engine for installing all sample applications of FDP.
 
 However using `--config-file` option, you can specify your own configuration file as well.
 
@@ -123,7 +123,7 @@ Once the applications are installed as Marathon services, here's how to kickstar
 
 ## Application REST API's
 
-Both examples run a self-contained http server that can be used to query information from the state stores used in the 
+Both examples run a self-contained http server that can be used to query information from the state stores used in the
 Kafka Streams pipelines.  You can call these API's to determine if the sample applications have are running correctly.
 
 ### DSL based module
@@ -179,11 +179,11 @@ Kafka streams manages state of the application for stateful streaming in local s
 
 This application module consists of the following components:
 
-1. The application assumes that source data will be injected into the source topic by an external data loading program. 
+1. The application assumes that source data will be injected into the source topic by an external data loading program.
 2. A driver application that streams data from the Kafka topic loaded in (1), does stateful transformations on the stream data, keeps application state updated in state stores and as well writes to destination topics
 3. A microservice with http endpoints that allows users to query from Kafka Streams state stores.
 
-The state stores populated by Kafka streams are local to the instance of stream running. Hence in a distributed mode (multiple instances of the streams application running), we need to have the proper infrstructure in place to fetch meaningful results from the state stores. This is the feature of [Interactive Queries](http://docs.confluent.io/current/streams/developer-guide.html#id8) supported by Kafka Streams, where for some applications you may implement a lightweight query infrastructure for fetching necessary application state information from the state stores. 
+The state stores populated by Kafka streams are local to the instance of stream running. Hence in a distributed mode (multiple instances of the streams application running), we need to have the proper infrstructure in place to fetch meaningful results from the state stores. This is the feature of [Interactive Queries](http://docs.confluent.io/current/streams/developer-guide.html#id8) supported by Kafka Streams, where for some applications you may implement a lightweight query infrastructure for fetching necessary application state information from the state stores.
 
 The important point to note here is that the full infrastructure of querying from your application is not available out-of-the-box from Kafka Streams implementation. From the documentation:
 
@@ -204,12 +204,12 @@ In this application we develop an http based service that queries all *necessary
 The driver program is the object `WeblogProcessing` that is a plain Scala application with a `main` function. This program assumes that data will be available for streaming in the Kafka topic specified by `dcos.kafka.fromtopic`. The next section describes how you can ingest data into this topic. The full config of the application consists of the following key/value pairs:
 
 ```
-akka {                                                                         
-  loglevel = INFO                                                             
-  log-config-on-start = on                                                     
-  loggers = ["akka.event.slf4j.Slf4jLogger"]                                   
-  logging-filter = "akka.event.slf4j.Slf4jLoggingFilter"                       
-  event-handlers = ["akka.event.slf4j.Slf4jEventHandler"]                      
+akka {
+  loglevel = INFO
+  log-config-on-start = on
+  loggers = ["akka.event.slf4j.Slf4jLogger"]
+  logging-filter = "akka.event.slf4j.Slf4jLoggingFilter"
+  event-handlers = ["akka.event.slf4j.Slf4jEventHandler"]
 }
 
 dcos {
@@ -305,7 +305,7 @@ The program then does the following:
 1. Parses each record and creates an instance of `LogRecord`, which it then persists in another Kafka
 topic (`dcos.kafka.totopic`). If there's any exception processing a record, that record goes to the error topic
 (`dcos.kafka.errortopic`).
-2. Transforms and creates summary information into Kafka KTables. 
+2. Transforms and creates summary information into Kafka KTables.
 3. It creates 2 types of summary information:
   * Report summary information of the number of times each host has been accessed. The steps followed are:
        * Transforms input stream into one containing the host name
@@ -438,7 +438,7 @@ Once the `deploySsh` is complete we can run the application as a Marathon job. T
 
 This application module consists of the following components:
 
-1. The application assumes that source data will be injected into the source topic by an external data loading program. 
+1. The application assumes that source data will be injected into the source topic by an external data loading program.
 2. A driver application that streams data from the Kafka topic loaded in (1), does stateful transformations on the stream data, keeps application state updated in a *custom* state store.
 3. The main difference with the DSL based version is that this module uses the Processor APIs of Kafka Streams to build the topology. Also the state store is a custom one - a Bloom Filter based storage that checks for membership of the passed in key.
 4. A microservice with http endpoints that allows users to query from Kafka Streams state stores.
@@ -448,12 +448,12 @@ This application module consists of the following components:
 The driver program is the object `WeblogDriver` that is a plain Scala application with a `main` function. This program assumes that data will be available for streaming in the Kafka topic specified by `dcos.kafka.fromtopic`. Data ingestion can be done using the same procedure as outlined in the DSL section above. The full config of the application consists of the following key/value pairs:
 
 ```
-akka {                                                                         
-  loglevel = INFO                                                             
-  log-config-on-start = on                                                     
-  loggers = ["akka.event.slf4j.Slf4jLogger"]                                   
-  logging-filter = "akka.event.slf4j.Slf4jLoggingFilter"                       
-  event-handlers = ["akka.event.slf4j.Slf4jEventHandler"]                      
+akka {
+  loglevel = INFO
+  log-config-on-start = on
+  loggers = ["akka.event.slf4j.Slf4jLogger"]
+  logging-filter = "akka.event.slf4j.Slf4jLoggingFilter"
+  event-handlers = ["akka.event.slf4j.Slf4jEventHandler"]
 }
 
 dcos {
@@ -555,7 +555,7 @@ $ pwd
 $ bin/procpackage
 ```
 
-Before the application can be run, the kafka topics need to be created. 
+Before the application can be run, the kafka topics need to be created.
 
 In order for the application to run, data need to be loaded in the input topic (`server-log-proc` in the above example). This can be done either through a bash script or through a data loading application in case of a Mesos DC/OS clustered application. We discuss the latter later in the document.
 
@@ -589,7 +589,7 @@ servers = [
 ]
 ```
 
-This file contains the parameters for both the `dsl` and the `proc` packages. 
+This file contains the parameters for both the `dsl` and the `proc` packages.
 
 Once the `deploySsh` is complete we can run the application as a Marathon job. The project root folder contains a json file `fdp-kstream-proc.json` that contains all the relevant settings for deployment. Here's the file contents:
 
@@ -618,7 +618,6 @@ Once the `deploySsh` is complete we can run the application as a Marathon job. T
 
 *Note the file sets the environment variables `$INTERFACE_PROC` that sets the host  of deployment for the http endpoint of the REST microservice. This variable is picked up by the configuration parameter `dcos.http.interface`. For the port number of the endpoint a random free port will be allocated. The value of this port number can be found from the application log file.*
 
-<<<<<<< HEAD
 ## Running the application from source
 
 ### Setup Confluent infrastructure
@@ -627,7 +626,7 @@ If you're a developer and wish to run the applications from source you must firs
 
 ### Download & config app to use ClarkNet weblog input data
 
-Download the [Clarknet dataset](http://ita.ee.lbl.gov/html/contrib/ClarkNet-HTTP.html) to a directory of your choice.  Extract the dataset.  Optionally, you may prefer to extract a subset of the dataset to use for testing. 
+Download the [Clarknet dataset](http://ita.ee.lbl.gov/html/contrib/ClarkNet-HTTP.html) to a directory of your choice.  Extract the dataset.  Optionally, you may prefer to extract a subset of the dataset to use for testing.
 
 ```bash
 head -n 100 clarknet_access_log_Aug28 > clarknet_access_log_Aug28_first_100
@@ -647,9 +646,6 @@ Each application will use its appropriate `application.conf` and `logback.xml`. 
 To trigger the ingestion operation for either app you can add new files in `directorytowatch` or use the `touch` command on any files that already exist in that directory.
 
 
-=======
-<<<<<<< HEAD
->>>>>>> Add 'Run app from source' section to kstreams README
 ## Interfacing with Confluent Connect
 
 The dsl module of the application generates Avro data corresponding to the ingested records to a topic named `avro-topic`. We can set up Confluent Connect to consume from `avro-topic` and write to HDFS. Confluent repository offers out of the box HDFS Sink connectors that can do this. In this section we will discuss how to set this up in our DC/OS clustered environment.
@@ -659,7 +655,7 @@ The dsl module of the application generates Avro data corresponding to the inges
 In order for the interface to work, we need to ensure the following:
 
 1. HDFS is installed in the DC/OS cluster and is up 'n running.
-2. We have the custom lightbend universe running as a Marathon service. 
+2. We have the custom lightbend universe running as a Marathon service.
 3. Lightbend universe is set up as the default Universe (index = 0) in the DC/OS packaging.
 4. Modifications for running Confluent Connect with HDFS are available the installed Lightbend universe (check the `confluent-connect`package in the Universe).
 5. Of course Confluent Connect has to run as a mandatory prerequisite.
@@ -708,36 +704,3 @@ Here the last URL `http://10.8.0.19:9622/connectors` refers to the host / port w
 For more details on how to configure and manage connectors, have a look at this [Confluent Page](http://docs.confluent.io/current/connect/managing.html).
 
 If the above setup steps went fine, then when you run the application for Kafka Streams DSL module, records will be generated in the `avro-topic` and will be consumed by the connector and written in HDFS.
-<<<<<<< HEAD
-=======
-
-
-=======
-## Running the application from source
-
-### Setup Confluent infrastructure
-
-If you're a developer and wish to run the applications from source you must first have a local running ZooKeeper, Confluent Kafka broker, and Schema Registry.  Confluent maintains docker images for all their solutions on their [cp-docker-images](https://github.com/confluentinc/cp-docker-images/) repository.  This repository contains an examples directory with a `docker-compose.yml` file for running the Confluent platform.  Clone the repository and run the [`cp-all-in-one`](https://github.com/confluentinc/cp-docker-images/blob/3.2.x/examples/cp-all-in-one/docker-compose.yml) example compose file to bring up the necessary infrastructure (ZooKeeper, Kafka Broker, Schema Registry).
-
-### Download & config app to use ClarkNet weblog input data
-
-Download the [Clarknet dataset](http://ita.ee.lbl.gov/html/contrib/ClarkNet-HTTP.html) to a directory of your choice.  Extract the dataset.  Optionally, you may prefer to extract a subset of the dataset to use for testing. 
-
-```bash
-head -n 100 clarknet_access_log_Aug28 > clarknet_access_log_Aug28_first_100
-```
-
-Update `dcos.kafka.loader.directorytowatch` in both the `application_dsl.conf` and `application_proc.conf` under the `./src/main/resources` directory to the directory where you extracted your weblog data.
-
-### Run the app
-
-The `build.sbt` contains two sub modules that can be used to easily run the applications from the CLI:
-
-* WeblogProcessing - `sbt dsl`
-* WeblogDriver - `sbl proc`
-
-Each application will use its appropriate `application.conf` and `logback.xml`.  Logs will be generated under `./run/dsl/logs/` and `./run/proc/logs/` respectively.
-
-To trigger the ingestion operation for either app you can add new files in `directorytowatch` or use the `touch` command on any files that already exist in that directory.
->>>>>>> Add 'Run app from source' section to kstreams README
->>>>>>> Add 'Run app from source' section to kstreams README
