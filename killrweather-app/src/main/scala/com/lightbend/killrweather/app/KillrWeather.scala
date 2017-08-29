@@ -1,8 +1,8 @@
 package com.lightbend.killrweather.app
 
-import com.lightbend.killrweather.kafka.{EmbeddedSingleNodeKafkaCluster, MessageListener}
+import com.lightbend.killrweather.kafka.{ EmbeddedSingleNodeKafkaCluster, MessageListener }
 import org.apache.spark.SparkConf
-import org.apache.spark.streaming.{Seconds, State, StateSpec, StreamingContext}
+import org.apache.spark.streaming.{ Seconds, State, StateSpec, StreamingContext }
 import com.lightbend.killrweather.settings.WeatherSettings
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
 import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
@@ -27,7 +27,7 @@ object KillrWeather {
 
     import settings._
     // Create embedded Kafka and topic
-    //        EmbeddedSingleNodeKafkaCluster.start()
+    //       EmbeddedSingleNodeKafkaCluster.start()
     //        EmbeddedSingleNodeKafkaCluster.createTopic(KafkaTopicRaw)
     //        val brokers = "localhost:9092"
     //        val brokers = EmbeddedSingleNodeKafkaCluster.bootstrapServers
@@ -35,7 +35,7 @@ object KillrWeather {
     // Create context
 
     val sparkConf = new SparkConf().setAppName(AppName)
-      //      .setMaster(SparkMaster)
+      //           .setMaster(SparkMaster)
       .set(
         "spark.cassandra.connection.host",
         CassandraHosts
@@ -63,7 +63,6 @@ object KillrWeather {
     // Create broadcast variable for the sink definition
     val influxDBSink = sc.broadcast(InfluxDBSink())
 
-
     val kafkaDataStream = KafkaUtils.createDirectStream[Array[Byte], Array[Byte]](
       ssc, PreferConsistent, Subscribe[Array[Byte], Array[Byte]](topics, kafkaParams)
     )
@@ -71,7 +70,7 @@ object KillrWeather {
     val ts = System.currentTimeMillis()
     val kafkaStream = kafkaDataStream.map(r => {
       val wr = WeatherRecord.parseFrom(r.value())
-      influxDBSink.value.write(wr,ts)
+      influxDBSink.value.write(wr, ts)
       wr
     })
 
@@ -119,7 +118,7 @@ object KillrWeather {
     // Save daily temperature
     dailyStream.map(ds => {
       val dt = DailyTemperature(ds._2)
-      influxDBSink.value.write(dt,ts)
+      influxDBSink.value.write(dt, ts)
       dt
     }).saveToCassandra(CassandraKeyspace, CassandraTableDailyTemp)
 
@@ -169,7 +168,7 @@ object KillrWeather {
     // Save monthly temperature
     monthlyStream.map(ds => {
       val mt = MonthlyTemperature(ds._2)
-      influxDBSink.value.write(mt,ts)
+      influxDBSink.value.write(mt, ts)
       mt
     }).saveToCassandra(CassandraKeyspace, CassandraTableMonthlyTemp)
 

@@ -148,7 +148,6 @@ final class WeatherSettings extends Serializable {
   val influxDBDatabase: String = "weather"
   val retentionPolicy: String = "default"
 
-
   /** Attempts to acquire from environment, then java system properties. */
   def withFallback[T](env: Try[T], key: String): Option[T] = env match {
     case null => None
