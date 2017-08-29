@@ -117,4 +117,8 @@ Note that you need to have the 2 topics `taxiin` and `taxiout` created on Kafka 
 
 In the Flink UI accessible from the DC/OS UI, you should see the running job shown under the _Running Jobs_ tab.
 
+## A note about versioning
 
+Don't put a `version := ...` setting in your sub-project because versioning is completely
+controlled by [`sbt-dynver`](https://github.com/dwijnand/sbt-dynver) and enforced by the `Enforcer` plugin found in the `build-plugin`
+directory.

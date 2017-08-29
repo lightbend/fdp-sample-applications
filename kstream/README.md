@@ -704,3 +704,9 @@ Here the last URL `http://10.8.0.19:9622/connectors` refers to the host / port w
 For more details on how to configure and manage connectors, have a look at this [Confluent Page](http://docs.confluent.io/current/connect/managing.html).
 
 If the above setup steps went fine, then when you run the application for Kafka Streams DSL module, records will be generated in the `avro-topic` and will be consumed by the connector and written in HDFS.
+
+## A note about versioning
+
+Don't put a `version := ...` setting in your sub-project because versioning is completely
+controlled by [`sbt-dynver`](https://github.com/dwijnand/sbt-dynver) and enforced by the `Enforcer` plugin found in the `build-plugin`
+directory.
