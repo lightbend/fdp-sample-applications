@@ -1,4 +1,4 @@
-package com.lightbend.fdp.sample
+package com.lightbend.fdp.sample.nwintrusion
 
 import org.apache.kafka.common.serialization.{ Serde, Deserializer, Serializer }
 

@@ -1,16 +1,11 @@
 # Utilities and definitions shared by several scripts.
 
 . "$DIR/../../bin/common.sh"
-. "$DIR/../version.sh"
 
 KAFKA_DCOS_PACKAGE="kafka"
+
 TRANSFORM_DATA_TEMPLATE_FILE="$DIR/transform-data.json.template"
 TRANSFORM_DATA_TEMPLATE=${TRANSFORM_DATA_TEMPLATE_FILE%.*}
-LOAD_DATA_TEMPLATE_FILE="$DIR/load-data.json.template"
-LOAD_DATA_TEMPLATE=${LOAD_DATA_TEMPLATE_FILE%.*}
-VIS_DATA_TEMPLATE_FILE="$DIR/visualize-data.json.template"
-VIS_DATA_TEMPLATE=${VIS_DATA_TEMPLATE_FILE%.*}
-SPARK_APP_JAR="fdp-nw-intrusion-assembly-$APP_VERSION.jar"
 AWS_ENV_FILE=$HOME/.ssh/aws.sh
 
 # load-data.json variables
@@ -20,8 +15,6 @@ KAFKA_ERROR_TOPIC="nwerr"
 KAFKA_CLUSTERS_TOPIC="nwcls"
 # Note: underscore is not allowed as part of the id, marathon's restriction
 TRANSFORM_DATA_APP_ID="nwin-transform-data"
-LOAD_DATA_APP_ID="nwin-load-data"
-VIS_DATA_APP_ID="nwin-visualize-data"
 
 ZOOKEEPER_PORT=2181
 DOCKER_USERNAME=lightbend
@@ -46,24 +39,16 @@ function require_templates {
          "Please copy the file in $DIR or use package.sh to properly setup this app.")
     error "${msg[@]}"
   fi
-
-  # check if load data template file is available
-  if [ ! -f  "$LOAD_DATA_TEMPLATE_FILE" ]; then
-    msg=("$LOAD_DATA_TEMPLATE_FILE is missing or is not a file."
-         "Please copy the file in $DIR or use package.sh to properly setup this app.")
-    error "${msg[@]}"
-  fi
 }
 
 function run_anomaly_detection_spark_job {
   local NO_OF_CLUSTERS=$1
   local CLUSTERING_MICRO_BATCH_DURATION=$2
-  local APP_S3_URL=$3
-  local ZEPPELIN=$4
-  local SPARK_APP_CLASS="com.lightbend.fdp.sample.SparkClustering"
-  local SPARK_CONF="--conf spark.cores.max=2 --conf spark.streaming.kafka.consumer.poll.ms=10000"
+  local ZEPPELIN=$3
+  local SPARK_APP_CLASS="com.lightbend.fdp.sample.nwintrusion.SparkClustering"
+  local SPARK_CONF="--conf spark.cores.max=2 --conf spark.streaming.kafka.consumer.poll.ms=10000 --conf spark.streaming.kafka.consumer.cache.enabled=false"
   local ARGS="$KAFKA_TO_TOPIC $KAFKA_BROKERS $KAFKA_CLUSTERS_TOPIC $CLUSTERING_MICRO_BATCH_DURATION $NO_OF_CLUSTERS"
-  local SPARK_APP_JAR_URL="$APP_S3_URL/$SPARK_APP_JAR"
+  local SPARK_APP_JAR_URL="$LABORATORY_MESOS_PATH/$SPARK_APP_JAR"
 
   if [[ "$ZEPPELIN" == yes ]]; then
     printf "\nIf you want to try out the anomaly detection app in Zeppelin, set the following parameters in the Zeppelin notebook 'FDP Sample Apps/SparkClustering'
@@ -93,12 +78,11 @@ function run_batch_kmeans_spark_job {
   local TO_CLUSTER_COUNT=$2
   local INCREMENT=$3
   local CLUSTERING_MICRO_BATCH_DURATION=$4
-  local APP_S3_URL=$5
-  local ZEPPELIN=$6
-  local SPARK_APP_CLASS="com.lightbend.fdp.sample.BatchKMeans"
-  local SPARK_CONF="--conf spark.cores.max=2 --conf spark.streaming.kafka.consumer.poll.ms=10000 --driver-memory 8G"
+  local ZEPPELIN=$5
+  local SPARK_APP_CLASS="com.lightbend.fdp.sample.nwintrusion.BatchKMeans"
+  local SPARK_CONF="--conf spark.cores.max=2 --conf spark.streaming.kafka.consumer.poll.ms=10000 --conf spark.streaming.kafka.consumer.cache.enabled=false --driver-memory 8G"
   local ARGS="$KAFKA_TO_TOPIC $KAFKA_BROKERS $CLUSTERING_MICRO_BATCH_DURATION $FROM_CLUSTER_COUNT $TO_CLUSTER_COUNT $INCREMENT"
-  local SPARK_APP_JAR_URL="$APP_S3_URL/$SPARK_APP_JAR"
+  local SPARK_APP_JAR_URL="$LABORATORY_MESOS_PATH/$SPARK_APP_JAR"
 
   if [[ "$ZEPPELIN" == yes ]]; then
     printf "\nIf you want to try out the Batch K-Means app in Zeppelin, set the following parameters in the Zeppelin notebook 'FDP Sample Apps/BatchKMeans'
