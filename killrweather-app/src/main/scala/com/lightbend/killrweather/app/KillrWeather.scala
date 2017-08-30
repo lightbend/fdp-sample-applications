@@ -67,10 +67,9 @@ object KillrWeather {
       ssc, PreferConsistent, Subscribe[Array[Byte], Array[Byte]](topics, kafkaParams)
     )
 
-    val ts = System.currentTimeMillis()
     val kafkaStream = kafkaDataStream.map(r => {
       val wr = WeatherRecord.parseFrom(r.value())
-      influxDBSink.value.write(wr, ts)
+      influxDBSink.value.write(wr)
       wr
     })
 
@@ -118,7 +117,7 @@ object KillrWeather {
     // Save daily temperature
     dailyStream.map(ds => {
       val dt = DailyTemperature(ds._2)
-      influxDBSink.value.write(dt, ts)
+      influxDBSink.value.write(dt)
       dt
     }).saveToCassandra(CassandraKeyspace, CassandraTableDailyTemp)
 
@@ -168,7 +167,7 @@ object KillrWeather {
     // Save monthly temperature
     monthlyStream.map(ds => {
       val mt = MonthlyTemperature(ds._2)
-      influxDBSink.value.write(mt, ts)
+      influxDBSink.value.write(mt)
       mt
     }).saveToCassandra(CassandraKeyspace, CassandraTableMonthlyTemp)
 

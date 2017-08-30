@@ -12,8 +12,8 @@ class InfluxDBSink(createWriter: () => InfluxDB) extends Serializable {
 
   lazy val influxDB = createWriter()
 
-  def write(raw: WeatherRecord, timestamp: Long): Unit = {
-    val rawPoint = Point.measurement("raw_weather").time(timestamp, TimeUnit.MILLISECONDS)
+  def write(raw: WeatherRecord): Unit = {
+    val rawPoint = Point.measurement("raw_weather").time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
     rawPoint.addField("year", raw.year.toLong)
     rawPoint.addField("month", raw.month.toLong)
     rawPoint.addField("day", raw.day.toLong)
@@ -29,8 +29,8 @@ class InfluxDBSink(createWriter: () => InfluxDB) extends Serializable {
     //    println(rawPoint.build())
   }
 
-  def write(dailyTemp: DailyTemperature, timestamp: Long): Unit = {
-    val dailyTempPoint = Point.measurement("daily_temp_weather").time(timestamp, TimeUnit.MILLISECONDS)
+  def write(dailyTemp: DailyTemperature): Unit = {
+    val dailyTempPoint = Point.measurement("daily_temp_weather").time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
     dailyTempPoint.addField("year", dailyTemp.year.toLong)
     dailyTempPoint.addField("month", dailyTemp.month.toLong)
     dailyTempPoint.addField("day", dailyTemp.day.toLong)
@@ -44,8 +44,8 @@ class InfluxDBSink(createWriter: () => InfluxDB) extends Serializable {
     //    println(dailyTempPoint.build())
   }
 
-  def write(monthlyTemp: MonthlyTemperature, timestamp: Long): Unit = {
-    val monthlyTempPoint = Point.measurement("monthly_temp_weather").time(timestamp, TimeUnit.MILLISECONDS)
+  def write(monthlyTemp: MonthlyTemperature): Unit = {
+    val monthlyTempPoint = Point.measurement("monthly_temp_weather").time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
     monthlyTempPoint.addField("year", monthlyTemp.year.toLong)
     monthlyTempPoint.addField("month", monthlyTemp.month.toLong)
     monthlyTempPoint.addField("high", monthlyTemp.high)

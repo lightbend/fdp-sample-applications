@@ -1,12 +1,7 @@
 package com.lightbend.killrweather.client.http
 
-import java.io.{ BufferedReader, FileInputStream, InputStreamReader }
-import java.util.zip.GZIPInputStream
-
+import com.lightbend.killrweather.client.utils.{DataConvertor, GzFileIterator}
 import com.lightbend.killrweather.settings.WeatherSettings
-import com.lightbend.killrweather.utils.RawWeatherData
-import org.json4s._
-import org.json4s.jackson.Serialization.write
 
 import scalaj.http.Http
 
@@ -15,7 +10,6 @@ import scalaj.http.Http
  */
 object KafkaDataIngesterRest {
 
-  implicit val formats = DefaultFormats
   val file = "data/load/ny-2008.csv.gz"
   val timeInterval: Long = 100 * 1 // 1 sec
   val batchSize = 10
@@ -31,11 +25,6 @@ object KafkaDataIngesterRest {
   }
 
   def apply(url: String): KafkaDataIngesterRest = new KafkaDataIngesterRest(url)
-
-  def convertRecord(string: String): String = {
-    val report = RawWeatherData(string.split(","))
-    write(report)
-  }
 }
 
 class KafkaDataIngesterRest(url: String) {
@@ -49,7 +38,7 @@ class KafkaDataIngesterRest(url: String) {
     iterator.foreach(record => {
       //      println(s"Record : $record")
       numrec = numrec + 1
-      Http(url).postData(convertRecord(record)).header("content-type", "application/json").asString
+      Http(url).postData(DataConvertor.convertToJson(record)).header("content-type", "application/json").asString
       if (numrec >= batchSize)
         pause()
       if (numrec % 100 == 0)
@@ -64,24 +53,5 @@ class KafkaDataIngesterRest(url: String) {
     } catch {
       case _: Throwable => // Ignore
     }
-  }
-}
-
-class BufferedReaderIterator(reader: BufferedReader) extends Iterator[String] {
-  override def hasNext() = reader.ready()
-  override def next() = reader.readLine()
-}
-
-object GzFileIterator {
-  def apply(file: java.io.File, encoding: String) = {
-    new BufferedReaderIterator(
-      new BufferedReader(
-        new InputStreamReader(
-          new GZIPInputStream(
-            new FileInputStream(file)
-          ), encoding
-        )
-      )
-    )
   }
 }
