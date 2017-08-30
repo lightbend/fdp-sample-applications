@@ -313,24 +313,24 @@ EOF
 function build_app {
   $NOEXEC cd "$PROJ_ROOT_DIR"
 
-  $NOEXEC sbt clean clean-files assembly universal:packageZipTarball
-  
-  if [[ -z $NOEXEC ]]
-  then
-    TGZ_NAME=$( ls "$PROJ_ROOT_DIR"/target/universal/*.tgz )
-    VERSIONED_NATIVE_PACKAGE_NAME=$( basename "$TGZ_NAME" )
-	  
-    VERSION=$(echo ${TGZ_NAME%.*} | cut -d- -f4-)
-
-    NATIVE_PACKAGE_ON_MESOS="$LABORATORY_MESOS_PATH"/"$VERSIONED_NATIVE_PACKAGE_NAME"
-    VERSIONED_PROJECT_NAME="fdp-nw-intrusion-$VERSION"
-    SPARK_APP_JAR="fdp-nw-intrusion-assembly-$VERSION.jar"
-  fi
+  $NOEXEC sbt clean clean-files assembly 
 }
 
 function deploy_app {
   $NOEXEC cd "$PROJ_ROOT_DIR"
   $NOEXEC sbt "deploySsh fdp-nwintrusion"
+
+  if [[ -z $NOEXEC ]]
+  then
+    TGZ_NAME=$( ls "$PROJ_ROOT_DIR"/target/universal/*.tgz )
+    VERSIONED_NATIVE_PACKAGE_NAME=$( basename "$TGZ_NAME" )
+	  
+    VERSION=$(echo ${VERSIONED_NATIVE_PACKAGE_NAME%.*} | cut -d- -f4-)
+
+    NATIVE_PACKAGE_ON_MESOS="$LABORATORY_MESOS_PATH"/"$VERSIONED_NATIVE_PACKAGE_NAME"
+    VERSIONED_PROJECT_NAME="fdp-nw-intrusion-$VERSION"
+    SPARK_APP_JAR="fdp-nw-intrusion-assembly-$VERSION.jar"
+  fi
 }
 
 function load_transform_data_job {
