@@ -7,8 +7,8 @@ SCRIPT=$(basename "${BASH_SOURCE[0]}")
 ## run directory
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 
+. "$DIR/../../bin/common.sh"
 . "$DIR/utils.sh"
-. "$DIR/../version.sh"
 
 ## project root directory
 PROJ_ROOT_DIR="$( cd "$DIR/../source/core" && pwd -P )"
@@ -16,11 +16,10 @@ PROJ_ROOT_DIR="$( cd "$DIR/../source/core" && pwd -P )"
 ## deploy.conf full path
 DEPLOY_CONF_FILE="$PROJ_ROOT_DIR/deploy.conf"
 
-. "$DIR/../../bin/common.sh"
-
 ZOOKEEPER_PORT=2181
+
+VERSIONED_PROJECT_NAME=
 VERSIONED_NATIVE_PACKAGE_NAME=
-VERSIONED_ASSEMBLY_NAME=
 
 # Used by show_help
 HELP_MESSAGE="Installs the network intrusion app. Assumes DC/OS authentication was successful
@@ -104,6 +103,9 @@ function modify_transform_data_template {
     eval value="\$$elem"
     $NOEXEC sed -i -- "s~{$elem}~\"$value\"~g" $TRANSFORM_DATA_TEMPLATE
   done
+
+  ## without quotes substitution
+  $NOEXEC sed -i -- "s~{VERSIONED_PROJECT_NAME}~$VERSIONED_PROJECT_NAME~g" $TRANSFORM_DATA_TEMPLATE
 }
 
 function load_transform_data_job {
@@ -317,8 +319,12 @@ function build_app {
   then
     TGZ_NAME=$( ls "$PROJ_ROOT_DIR"/target/universal/*.tgz )
     VERSIONED_NATIVE_PACKAGE_NAME=$( basename "$TGZ_NAME" )
-  
+	  
+    VERSION=$(echo ${TGZ_NAME%.*} | cut -d- -f4-)
+
     NATIVE_PACKAGE_ON_MESOS="$LABORATORY_MESOS_PATH"/"$VERSIONED_NATIVE_PACKAGE_NAME"
+    VERSIONED_PROJECT_NAME="fdp-nw-intrusion-$VERSION"
+    SPARK_APP_JAR="fdp-nw-intrusion-assembly-$VERSION.jar"
   fi
 }
 

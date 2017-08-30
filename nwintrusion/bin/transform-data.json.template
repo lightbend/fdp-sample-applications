@@ -1,6 +1,6 @@
 {
   "id": {TRANSFORM_DATA_APP_ID},
-  "cmd": "export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && mkdir $MESOS_SANDBOX/data && mv kddcup-data-10-percent.csv data && export DIRECTORY_TO_WATCH=$MESOS_SANDBOX/data && ./fdp-nw-intrusion-0.2/bin/transform-intrusion-data",
+  "cmd": "export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && mkdir $MESOS_SANDBOX/data && mv kddcup-data-10-percent.csv data && export DIRECTORY_TO_WATCH=$MESOS_SANDBOX/data && ./{VERSIONED_PROJECT_NAME}/bin/transform-intrusion-data",
   "cpus":1,
   "mem":2048,
   "env":{

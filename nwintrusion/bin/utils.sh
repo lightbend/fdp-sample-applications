@@ -1,12 +1,11 @@
 # Utilities and definitions shared by several scripts.
 
 . "$DIR/../../bin/common.sh"
-. "$DIR/../version.sh"
 
 KAFKA_DCOS_PACKAGE="kafka"
+
 TRANSFORM_DATA_TEMPLATE_FILE="$DIR/transform-data.json.template"
 TRANSFORM_DATA_TEMPLATE=${TRANSFORM_DATA_TEMPLATE_FILE%.*}
-SPARK_APP_JAR="fdp-nw-intrusion-assembly-$APP_VERSION.jar"
 AWS_ENV_FILE=$HOME/.ssh/aws.sh
 
 # load-data.json variables
