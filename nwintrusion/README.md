@@ -65,9 +65,15 @@ laboratory-mesos-path=http://fdp-apps-lab.marathon.mesos
 
 > The installation process fetches the data required from a pre-configured S3 bucket `fdp-sample-apps-artifacts`.
 
-Once the installation is complete, the required services and Spark drrivers should be seen available on the DC/OS console.
+Once the installation is complete, the required services and Spark drrivers should be seen available on the DC/OS console. One Marathon service will be up named `nwin-transform-data` and there will be 2 Spark drivers - one for Spark Clustering and the other for Batch K-Means.
 
-### Removing the app
+## Running the application
+
+Once the required services are up, we need to kickstart the pipeline by touching the data file already downloaded in the Mesos sandbox area. Do an ssh into the node that runs the `nwin-transform-data`, go to the Mesos sandbox area, the path of which can be found if you click on the running process from the Mesos Console (http://<mesos-master>/mesos). The folder named `data` will contain the data file. Simply do a `touch <filename>` (you may need to sudo for this) and the whole pipeline should start running.
+
+Data ingested from data file -> Write to topic `nwin` -> `nwin-transform-data` does the transformation into topic `nwout` -> Anomaly detection Spark streaming process does online clustering into topic `nwcls`. Parallely on the data from topic `nwout`, a batch k-means process starts that tries to do a batch k-means clustering on the data.
+
+## Removing the application
 
 Just run `./app-remove.sh`.
 
