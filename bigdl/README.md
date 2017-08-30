@@ -74,3 +74,9 @@ All of these can be changed but changing one may require changes to others. For 
 We use the [BigDL Analytics library](https://github.com/intel-analytics/BigDL) from Intel for the training. In fact the class `com.lightbend.fdp.sample.bigdl.TrainVGG` is based on a similar class in the library itself. The only change made here is that the downloading of the cifar-10 data is now done automatically as part of the running program. And it gets downloaded only if it has not been downloaded already.
 
 The program can be used for checkpointing as well. Add the checkpointing option while invoking it as part of `app-install.sh`.
+
+## A note about versioning
+
+Don't put a `version := ...` setting in your sub-project because versioning is completely
+controlled by [`sbt-dynver`](https://github.com/dwijnand/sbt-dynver) and enforced by the `Enforcer` plugin found in the `build-plugin`
+directory.
