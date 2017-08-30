@@ -10,3 +10,6 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.2.0")
 addSbtPlugin("com.github.shmishleniy" %% "sbt-deploy-ssh" % "0.1.3")
 addSbtPlugin("com.cavorite" % "sbt-avro-1-7" % "1.1.2")
 
+addSbtPlugin("com.dwijnand" % "sbt-dynver" % "2.0.0")
+
+dependsOn(RootProject(file("../../../build-plugin/").toURI))

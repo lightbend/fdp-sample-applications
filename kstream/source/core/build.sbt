@@ -2,6 +2,32 @@ import sbtassembly.MergeStrategy
 import NativePackagerHelper._
 import deployssh.DeploySSH._
 
+// NOTE: Versioning of all artifacts is under the control of the `sbt-dynver` plugin and
+// enforced by `EnforcerPlugin` found in the `build-plugin` directory.
+//
+// sbt-dynver: https://github.com/dwijnand/sbt-dynver
+//
+// The versions emitted follow the following rules:
+// |  allowSnapshot  | Case                                                                 | version                        |
+// |-----------------| -------------------------------------------------------------------- | ------------------------------ |
+// | false (default) | when on tag v1.0.0, w/o local changes                                | 1.0.0                          |
+// | true            | when on tag v1.0.0 with local changes                                | 1.0.0+20140707-1030            |
+// | true            | when on tag v1.0.0 +3 commits, on commit 1234abcd, w/o local changes | 1.0.0+3-1234abcd               |
+// | true            | when on tag v1.0.0 +3 commits, on commit 1234abcd with local changes | 1.0.0+3-1234abcd+20140707-1030 |
+// | true            | when there are no tags, on commit 1234abcd, w/o local changes        | 1234abcd                       |
+// | true            | when there are no tags, on commit 1234abcd with local changes        | 1234abcd+20140707-1030         |
+// | true            | when there are no commits, or the project isn't a git repo           | HEAD+20140707-1030             |
+//
+// This means DO NOT set or define a `version := ...` setting.
+//
+// If you have pending changes or a missing tag on the HEAD you will need to set
+// `allowSnapshot` to true in order to run `packageBin`.  Otherwise you will get an error
+// with the following information:
+//   ---------------
+// 1. You have uncommmited changes (unclean directory) - Fix: commit your changes and set a tag on HEAD.
+// 2. You have a clean directory but no tag on HEAD - Fix: tag the head with a version that satisfies the regex: 'v[0-9][^+]*'
+// 3. You have uncommmited changes (a dirty directory) but have not set `allowSnapshot` to `true` - Fix: `set (allowSnapshot in ThisBuild) := true`""".stripMargin)
+
 val circeVersion = "0.8.0"
 val catsVersion = "0.9.0"
 val configVersion = "1.3.1"
@@ -26,8 +52,6 @@ name in ThisBuild := "fdp-kstream"
 
 organization in ThisBuild := "lightbend"
 
-version in ThisBuild := "0.1"
-
 scalaVersion in ThisBuild := scalaVer
 
 resolvers += "Confluent Maven" at "http://packages.confluent.io/maven/"
@@ -38,11 +62,12 @@ resolvers += "Confluent Maven" at "http://packages.confluent.io/maven/"
 enablePlugins(JavaAppPackaging)
 enablePlugins(DeploySSH)
 
-// the main application
-lazy val app = project
-  .in(file("."))
+def appProject(id: String)(base:String = id) = Project(id, base = file(base))
   .enablePlugins(JavaAppPackaging)
   .enablePlugins(DeploySSH)
+
+// the main application
+lazy val app = appProject("app")(".")
   .settings(
     scalaVersion := scalaVer,
     libraryDependencies ++= Seq(
@@ -143,10 +168,7 @@ lazy val dslRun = project
   .dependsOn(app)
 
 // the package for WeblogProcessing that uses Kafka-Streams DSL
-lazy val dslPackage = project
-  .in(file("build/dsl"))
-  .enablePlugins(JavaAppPackaging)
-  .enablePlugins(DeploySSH)
+lazy val dslPackage = appProject("dslPackage")("build/dsl")
   .settings(
     scalaVersion := scalaVer,
     resourceDirectory in Compile := (resourceDirectory in (app, Compile)).value,
@@ -178,10 +200,7 @@ lazy val procRun = project
   .dependsOn(app)
 
 // the package for WeblogDriver that uses Kafka-Streams Processor APIs
-lazy val procPackage = project
-  .in(file("build/proc"))
-  .enablePlugins(JavaAppPackaging)
-  .enablePlugins(DeploySSH)
+lazy val procPackage = appProject("procPackage")("build/proc")
   .settings(
     scalaVersion := scalaVer,
     resourceDirectory in Compile := (resourceDirectory in (app, Compile)).value,
