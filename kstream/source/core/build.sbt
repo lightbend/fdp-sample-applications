@@ -43,7 +43,7 @@ val akkaHttpCirceVersion = "1.17.0"
 val algebirdVersion = "0.13.0"
 val chillVersion = "0.9.2"
 val alpakkaFileVersion = "0.10"
-val reactiveKafkaVersion = "0.17"
+val reactiveKafkaVersion = "0.16"
 val bijectionVersion = "0.9.5"
 
 val scalaVer = "2.12.2"
