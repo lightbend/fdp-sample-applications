@@ -25,8 +25,7 @@ class InfluxDBSink(createWriter: () => InfluxDB) extends Serializable {
     rawPoint.addField("windSpeed", raw.windSpeed)
     rawPoint.addField("skyConditions", raw.skyCondition.toLong)
     rawPoint.tag("station", raw.wsid)
-    influxDB.write(rawPoint.build())
-    //    println(rawPoint.build())
+    write(rawPoint.build())
   }
 
   def write(dailyTemp: DailyTemperature): Unit = {
@@ -40,8 +39,7 @@ class InfluxDBSink(createWriter: () => InfluxDB) extends Serializable {
     dailyTempPoint.addField("variance", dailyTemp.variance)
     dailyTempPoint.addField("stdev", dailyTemp.stdev)
     dailyTempPoint.tag("station", dailyTemp.wsid)
-    influxDB.write(dailyTempPoint.build())
-    //    println(dailyTempPoint.build())
+    write(dailyTempPoint.build())
   }
 
   def write(monthlyTemp: MonthlyTemperature): Unit = {
@@ -54,8 +52,14 @@ class InfluxDBSink(createWriter: () => InfluxDB) extends Serializable {
     monthlyTempPoint.addField("variance", monthlyTemp.variance)
     monthlyTempPoint.addField("stdev", monthlyTemp.stdev)
     monthlyTempPoint.tag("station", monthlyTemp.wsid)
-    influxDB.write(monthlyTempPoint.build())
-    //    println(monthlyTempPoint.build())
+    write(monthlyTempPoint.build())
+  }
+
+  private def write(point: Point): Unit = {
+    try {
+      influxDB.write(point)
+      //      println(s"written to influx $point")
+    } catch { case t: Throwable => println(s"Exception writing to Influx $t") }
   }
 }
 

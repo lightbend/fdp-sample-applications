@@ -87,15 +87,15 @@
               "groupBy": [
                 {
                   "params": [
-                    "$interval"
-                  ],
-                  "type": "time"
-                },
-                {
-                  "params": [
                     "station"
                   ],
                   "type": "tag"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
                 }
               ],
               "measurement": "raw_weather",
@@ -130,7 +130,7 @@
           },
           "yaxes": [
             {
-              "format": "bytes",
+              "format": "short",
               "label": null,
               "logBase": 1,
               "max": null,
@@ -191,15 +191,15 @@
               "groupBy": [
                 {
                   "params": [
-                    "$interval"
-                  ],
-                  "type": "time"
-                },
-                {
-                  "params": [
                     "station"
                   ],
                   "type": "tag"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
                 }
               ],
               "measurement": "raw_weather",
@@ -234,7 +234,7 @@
           },
           "yaxes": [
             {
-              "format": "bytes",
+              "format": "short",
               "label": null,
               "logBase": 1,
               "max": null,
@@ -295,15 +295,15 @@
               "groupBy": [
                 {
                   "params": [
-                    "$interval"
-                  ],
-                  "type": "time"
-                },
-                {
-                  "params": [
                     "station"
                   ],
                   "type": "tag"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
                 }
               ],
               "measurement": "raw_weather",
@@ -338,7 +338,7 @@
           },
           "yaxes": [
             {
-              "format": "bytes",
+              "format": "short",
               "label": null,
               "logBase": 1,
               "max": null,
@@ -408,15 +408,15 @@
               "groupBy": [
                 {
                   "params": [
-                    "$interval"
-                  ],
-                  "type": "time"
-                },
-                {
-                  "params": [
                     "station"
                   ],
                   "type": "tag"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
                 }
               ],
               "measurement": "daily_temp_weather",
@@ -463,7 +463,7 @@
           },
           "yaxes": [
             {
-              "format": "bytes",
+              "format": "short",
               "label": null,
               "logBase": 1,
               "max": null,
@@ -524,15 +524,15 @@
               "groupBy": [
                 {
                   "params": [
-                    "$interval"
-                  ],
-                  "type": "time"
-                },
-                {
-                  "params": [
                     "station"
                   ],
                   "type": "tag"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
                 }
               ],
               "measurement": "monthly_temp_weather",
@@ -579,7 +579,7 @@
           },
           "yaxes": [
             {
-              "format": "bytes",
+              "format": "short",
               "label": null,
               "logBase": 1,
               "max": null,
@@ -600,7 +600,7 @@
       "showTitle": true,
       "title": "Derived Data"
     }
-  ]
+  ],
   "time": {
     "from": "now-1h",
     "to": "now"

@@ -77,7 +77,9 @@ object Dependencies {
     sparkCatalyst, sparkSQL)
 
   /** Module deps */
-  val client = logging ++ akka ++ json ++ grpc ++ Seq(
+  val clientHTTP = logging ++ akka ++ json
+  val clientGRPC = logging ++ akka ++ grpc
+  val loaders = json ++ Seq(
     scalaHTTP.exclude("com.fasterxml.jackson.module", "jackson-module-scala_2.11"))
   val core = logging ++ time ++ connector ++ spark ++ Seq(
     curator.

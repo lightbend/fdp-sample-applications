@@ -63,24 +63,45 @@ lazy val appLocalRunner = (project in file("./killrweather-app-local"))
     .settings(dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.7")
     .dependsOn(killrWeatherApp)
 
-lazy val clients = (project in file("./killrweather-clients"))
+lazy val httpclient = (project in file("./killrweather-httpclient"))
   .settings(defaultSettings:_*)
   .settings(
-      buildInfoPackage := "build",
-//      mainClass in Compile := Some("com.lightbend.killrweather.client.http.RestAPIs"),
-      mainClass in Compile := Some("com.lightbend.killrweather.client.grpc.WeatherGRPCClient"),
-      maintainer := "Boris Lublinsky <boris.lublinsky@lightbend.com",
-      packageSummary := "KillrWeather HTTP client",
-      packageDescription := "KillrWeather HTTP client",
-      deployResourceConfigFiles ++= Seq("deploy.conf"),
-      deployArtifacts ++= Seq(
-          ArtifactSSH((packageZipTarball in Universal).value, "/var/www/html/")
-      ),
-      libraryDependencies ++= client)
+    buildInfoPackage := "build",
+    mainClass in Compile := Some("com.lightbend.killrweather.client.http.RestAPIs"),
+    maintainer := "Boris Lublinsky <boris.lublinsky@lightbend.com",
+    packageSummary := "KillrWeather HTTP client",
+    packageDescription := "KillrWeather HTTP client",
+    deployResourceConfigFiles ++= Seq("deploy.conf"),
+    deployArtifacts ++= Seq(
+      ArtifactSSH((packageZipTarball in Universal).value, "/var/www/html/")
+    ),
+    libraryDependencies ++= clientHTTP)
   .dependsOn(killrweatherCore, protobufs)
   .enablePlugins(DeploySSH)
   .enablePlugins(JavaAppPackaging)
 
+lazy val grpcclient = (project in file("./killrweather-grpclient"))
+  .settings(defaultSettings:_*)
+  .settings(
+    buildInfoPackage := "build",
+    mainClass in Compile := Some("com.lightbend.killrweather.client.grpc.WeatherGRPCClient"),
+    maintainer := "Boris Lublinsky <boris.lublinsky@lightbend.com",
+    packageSummary := "KillrWeather GRPC client",
+    packageDescription := "KillrWeather GRPC client",
+    deployResourceConfigFiles ++= Seq("deploy.conf"),
+    deployArtifacts ++= Seq(
+      ArtifactSSH((packageZipTarball in Universal).value, "/var/www/html/")
+    ),
+    libraryDependencies ++= clientGRPC)
+  .dependsOn(killrweatherCore, protobufs)
+  .enablePlugins(DeploySSH)
+  .enablePlugins(JavaAppPackaging)
+
+lazy val loader = (project in file("./killrweather-loader"))
+  .settings(defaultSettings:_*)
+  .settings(libraryDependencies ++= loaders)
+  .dependsOn(killrweatherCore, protobufs)
+
 lazy val root = (project in file("."))
-  .aggregate(killrweatherCore, killrWeatherApp, clients, protobufs)
+  .aggregate(killrweatherCore, killrWeatherApp, httpclient, grpcclient, loader, protobufs)
 
