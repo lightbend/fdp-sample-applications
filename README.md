@@ -1,7 +1,7 @@
 # KillrWeather
 
 KillrWeather is a reference application (which is adopted from Datastax's https://github.com/killrweather/killrweather) showing how to easily leverage and integrate [Apache Spark](http://spark.apache.org),
-[Apache Cassandra](http://cassandra.apache.org), and [Apache Kafka](http://kafka.apache.org) for fast, streaming computations in asynchronous. This application focuses on the use case of  **[time series data](https://github.com/killrweather/killrweather/wiki/4.-Time-Series-Data-Model)**.
+[Apache Cassandra](http://cassandra.apache.org), [Apache Kafka](http://kafka.apache.org) and [InfluxDB](https://www.influxdata.com/) for fast, streaming computations. This application focuses on the use case of  **[time series data](https://github.com/killrweather/killrweather/wiki/4.-Time-Series-Data-Model)**.
 This application also can be viewed as a prototypical IoT (or sensors) data collection and storing data in the form of time series 
   
 ## Sample Use Case
@@ -18,27 +18,40 @@ Apache Cassandra is a NoSQL database platform particularly suited for these type
 
 There are many flavors of time series data. Some can be windowed in the stream, others can not be windowed in the stream because queries are not by time slice but by specific year,month,day,hour. Spark Streaming lets you do both.
 
+In addition to Cassandra application also demonstrates integration with InfluxDB/Grafana. This toolset is used mostly for DevOps purposes, but can be also
+very useful for real-time visualization of stream processing. Data is written to influxDB as it gets ingested in the application and Grafana provides real time view
+of temperature, pressure and dewpoint values as the reports come in. Additionally application provides results of data rollups - daily and monthly mean, low and high values.
+
 ## Start Here
-* [KillrWeather Wiki](https://github.com/killrweather/killrweather/wiki) 
-* com.datastax.killrweather [Spark, Kafka and Cassandra workers](http://github.com/killrweather/killrweather/tree/master/killrweather-app/src/it/scala/com/datastax/killrweather)
+Original [KillrWeather Wiki](https://github.com/killrweather/killrweather/wiki) still is a great source of information
 
 
 ### Build the code 
-If this is your first time running SBT, you will be downloading the internet.
+
+We recommend using of Intellij for managing and building code. The project is organized as several modules:
+* Data - some data files for running applications including commands for initializing Cassandra and actual measurement data
+* Diagrams - original diagrams for overall architecture - obsolete
+* Killrweather-app - actual Spark application for data processing - ready to run in Spark
+* Killrweather-app-local - actual Spark application for data processing - ready to run locally. If running in Intellij make sure that `use classpath of module` is set up to this module
+* KillrweatherCore - some support code used throughout an application. Also includes Embedded Kafka allowing to run everything locally
+* Killrweather-grcpclient - client for exposing Killrweather app over [GRPC](https://grpc.io/). This client accepts GRPC messages and publishes them to Kafka for application consumption. 
+* Killrweather-httpclient - client for exposing Killrweather app over HTTP. This client accepts HTTP messages (in JSON) and publishes them to Kafka for application consumption.
+* KillrWeather-loader - a collection of loaders reading reports data (from data directory) and publishing it (via Kafka, GRPC and HTTP) to the application.
+
+Build is done via SBT
+
+
 
     cd killrweather
     sbt compile
-    # For IntelliJ users, this creates Intellij project files, but as of
-    # version 14x you should not need this, just import a new sbt project.
-    sbt gen-idea
+    # For IntelliJ users, just import a project and use IntelliJ commands
+ 
 
-### Setup (for Linux & Mac) - 3 Steps
-1.[Download the latest Cassandra](http://cassandra.apache.org/download/) and open the compressed file.
+### Setup Locally on Linux or Mac
 
-2.Start Cassandra - you may need to prepend with sudo, or chown /var/lib/cassandra. On the command line:
+1.[Download the latest Cassandra](http://cassandra.apache.org/download/) and open the compressed file. For Mac users - use brew
 
-
-    ./apache-cassandra-{version}/bin/cassandra -f
+2.Start Cassandra 
 
 3.Run the setup cql scripts to create the schema and populate the weather stations table.
 On the command line start a cqlsh shell:
@@ -46,24 +59,13 @@ On the command line start a cqlsh shell:
     cd /path/to/killrweather/data
     path/to/apache-cassandra-{version}/bin/cqlsh
 
-### Setup (for Windows) - 3 Steps
-1. [Download the latest Cassandra](http://www.planetcassandra.org/cassandra) and double click the installer.
+4.Comment out InluxDB support - go to `com.lightbend.killrweather.app.influxdb.InfluxDBSink` class (in `Killrweather-app`) and in the `write` method
+comment out `influxDB.write(point)` line. Also comment out content of the `f` function implementation to return `null.asInstanceOf[InfluxDB]`
 
-2. Chose to run the Cassandra automatically during start-up
 
-3. Download the latest version of CQLSH (use PIP)
+### Cassandra setup:
 
-3. Run the setup cql scripts to create the schema and populate the weather stations table.
-On the command line start a `cqlsh` shell:
-
-```
-    cd c:/path/to/killrweather
-    c:/pat/to/cassandara/bin/cqlsh
-    [cassandra-dir]/bin/cqlsh
-```
-
-### In CQL Shell:
-You should see:
+Start `CQLSH`. You should see something similar to:
 
      Connected to Test Cluster at 127.0.0.1:9042.
      [cqlsh {latest.version} | Cassandra {latest.version} | CQL spec {latest.version} | Native protocol {latest.version}]
@@ -89,91 +91,91 @@ List out all tables installed:
 Weather stations table should be populated
      
      select * from weather_station limit 5;
-
-### Run
-#### Logging
-You will see this in all 3 app shells because log4j has been explicitly taken off the classpath:
-
-    log4j:WARN No appenders could be found for logger (kafka.utils.VerifiableProperties).
-    log4j:WARN Please initialize the log4j system properly.
-
-What we are really trying to isolate here is what is happening in the apps with regard to the event stream.
-You can add log4j locally.
-
-To change any package log levels and see more activity, simply modify
-- [logback.xml](http://github.com/killrweather/killrweather/tree/master/killrweather-core/src/resources/logback.xml)
-
-#### From Command Line
-1.Start `KillrWeather`
-
-    cd /path/to/killrweather
-    sbt app/run
-
-As the `KillrWeather` app initializes, you will see Spark Cluster start, Zookeeper and the Kafka servers start (Application is packaged with in process Kafka, but it can work with external Kafka as well).
-
-
-2.Start the Kafka data feed app
-In a second shell run:
-
-    sbt clients/run
-
-After a few seconds you should see data by entering this in the cqlsh shell:
-
-    cqlsh> select * from isd_weather_data.raw_weather_data;
-    cqlsh> select * from daily_aggregate_temperature;
-    cqlsh> select * from daily_aggregate_precip;
-    
-
-This confirms that data from the ingestion app has published to Kafka, and that both raw and cummulative data is
-streaming from Spark to Cassandra from the `KillrWeather` app.
-
-Current implementation only populate daily aggregates. In addition to this, monthly and yearly aggregates can be added 
-in a similar fashion
-
+     
 To clean up data in Cassandra, type:
 
-    cqlsh> DROP KEYSPACE isd_weather_data;
+     
+     cqlsh> DROP KEYSPACE isd_weather_data;
+     
+
 
 To close the cql shell:
 
-    cqlsh> quit;
+
+     
+     cqlsh> quit;
+     
+
+ 
 
 ## DC/OS deployment
 
-Application itself
+1. Install Kafka, InfluxDB, Grafana and Cassandra (from DC/OS universe)
 
-1. Run sbt 'deploySsh killrWeatherApp'. This will package an uberJar spark.jar and push it to FDP lab
-2. Use KillrWeatherApp/src/main/resource/KillrweatherApp.json to run it as a marathon job
+2. Application and clients are set up using FDP-Lab as described [here](https://docs.google.com/document/d/1eMG8I4z6mQ0C4Llg1VHnpV7isnVAtnk-pOkDo8tIubI/edit#heading=h.izl4k6rmh4c0)
+
+
+####Application itself
+
+1. Run `sbt 'deploySsh killrWeatherApp'`. This will package an uberJar spark.jar and push it to FDP lab
+2. Use `KillrWeatherApp/src/main/resource/KillrweatherApp.json` to run it as a marathon job
 4. Use http://killrweatherapp.marathon.mesos:4040/jobs/ to see execution
 5. Go to http://leader.mesos/mesos/#/frameworks and search for KillrweatherApp to get more info about executors
 
-Clients
+####Clients
 
-The application contains 3 clients:
+The application contains 2 clients:
 
-1. File client - kafkaDataIngester, that can be run locally (assuming that you are on VPN). This client writes data directly
-to the kafka queue that an app listens on
-2. HTTP client - Rest API, Rest interface on top of Kafka. It can be deployed on the cluster as a marathon service using killrweatherHTTPClient.json.
+1. HTTP client - Rest API, Rest interface on top of Kafka. It can be deployed on the cluster as a marathon service using `killrweatherHTTPClient.json`.
 Deploying it as a Marathon service allows to scale it (behind Marathon-LB) to increase scalability and fail over.
 KafkaDataIngesterRest.scala is a local client that can communicate with Rest APIs to send weather reports.
-3. Google RPC client, Google RPC interface on top of Kafka. It can be deployed on the cluster as a marathon service using killrweatherGRPCClient.json.
+2. Google RPC client, Google RPC interface on top of Kafka. It can be deployed on the cluster as a marathon service using `killrweatherGRPCClient.json`.
 Deploying it as a Marathon service allows to scale it (behind Marathon-LB) to increase scalability and fail over.
 KafkaDataIngesterGRPC.scala is a local client that can communicate with GRPC APIs to send weather reports.
 
 
 
-## Future development
+## Loading data
+Application can use 3 different loaders:
+1 Direct Kafka loader `com.lightbend.killrweather.loader.kafka.KafkaDataIngester` pushes data directly to the Kafka queue
+that an application is listening on.
+2. HTTP loader `com.lightbend.killrweather.loader.kafka.KafkaDataIngesterRest` writes data to Killrweather HTTP client.
+3. GRPC loader `com.lightbend.killrweather.loader.kafka.KafkaDataIngesterGRPC` writes data to Killrweather GRPC client.
 
-The obvious future developments for this applications:
-1. Current implementation KafkaDataIngester reads data from file and publish to Kafka. A more realistic implementation should be 
-HTTP listener, recieving REST messages and writing them to Kafka
-A request to such client will look like
+## Monitoring and viewing results
 
+Monitoring is done using InfluxDB/Grafana (Grafana definition is in `grafana.json`). For setting up 
+Grafana/InfluxDB see this [article](https://mesosphere.com/blog/monitoring-dcos-cadvisor-influxdb-grafana/)
+Viewing of the execution results is based on Zeppelin - see current support 
+for [Cassandra in Zeppelin](https://zeppelin.apache.org/docs/0.7.0/interpreter/cassandra.html).
 
-    curl -v -H "Content-Type: application/json" POST http://localhost:5000/weather 
-    -d'{"wsid": "wsid", "year": 2008, "month":1, "day": 15, "hour": 3, "temperature": 15, "dewpoint": 10, "pressure": 10, "windDirection": 1, "windSpeed": 2, "skyCondition": 3, "skyConditionText": "blue", "oneHourPrecip": 1.0, "sixHourPrecip": 1.0}'
+To configure Zeppeling for use of Cassandra, make sure that interpreter is configured correctly. The most important ones are:
 
-2. Current implementation includes only daily cummulative data. Both monthly and yearly aggregates can be added to the existing application, 
-following the approach implemented here (THe underlying approach here relies on information coming in order. For hourly observations this is quite realistic).
-3. Current implementation concentrates on ingestion. Additional data processing can be implemented, based on the data collected to Cassandra.
-Current support for [Cassandra in Zeppelin](https://zeppelin.apache.org/docs/0.7.0/interpreter/cassandra.html) makes Zeppelin a great choice for such implementation
+```
+
+name	                            value
+cassandra.cluster	                cassandra
+cassandra.hosts	                    node.cassandra.l4lb.thisdcos.directory
+cassandra.native.port	            9042
+
+```
+
+A sample notebook can look something like follows
+
+```
+%cassandra
+use isd_weather_data;
+
+%cassandra
+select day, wsid, high, low, mean,stdev,variance from daily_aggregate_temperature WHERE year=2008 and month=6 allow filtering;
+
+%cassandra
+select wsid, day, high, low, mean,stdev,variance from daily_aggregate_pressure  WHERE year=2008 and month=6 allow filtering;
+
+%cassandra
+select wsid, month, high, low, mean,stdev,variance from monthly_aggregate_temperature WHERE year=2008  allow filtering;
+
+%cassandra
+select wsid, month, high, low, mean,stdev,variance from monthly_aggregate_pressure WHERE year=2008  allow filtering;
+
+```

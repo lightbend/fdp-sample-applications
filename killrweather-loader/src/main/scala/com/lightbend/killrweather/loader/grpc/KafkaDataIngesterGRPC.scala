@@ -1,9 +1,8 @@
 package com.lightbend.killrweather.loader.grpc
 
 import com.lightbend.killrweather.settings.WeatherSettings
-import com.lightbend.killrweather.WeatherClient.WeatherListenerGrpc.WeatherListenerBlockingStub
 import com.lightbend.killrweather.WeatherClient.{WeatherListenerGrpc, WeatherRecord}
-import com.lightbend.killrweather.loader.utils.{DataConvertor, FilesIterator, GzFileIterator}
+import com.lightbend.killrweather.loader.utils.{DataConvertor, FilesIterator}
 import io.grpc.{ManagedChannel, ManagedChannelBuilder, StatusRuntimeException}
 
 /**
