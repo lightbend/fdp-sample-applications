@@ -115,14 +115,14 @@ To close the cql shell:
 2. Application and clients are set up using FDP-Lab as described [here](https://docs.google.com/document/d/1eMG8I4z6mQ0C4Llg1VHnpV7isnVAtnk-pOkDo8tIubI/edit#heading=h.izl4k6rmh4c0)
 
 
-####Application itself
+#### Application itself
 
 1. Run `sbt 'deploySsh killrWeatherApp'`. This will package an uberJar spark.jar and push it to FDP lab
 2. Use `KillrWeatherApp/src/main/resource/KillrweatherApp.json` to run it as a marathon job
 4. Use http://killrweatherapp.marathon.mesos:4040/jobs/ to see execution
 5. Go to http://leader.mesos/mesos/#/frameworks and search for KillrweatherApp to get more info about executors
 
-####Clients
+#### Clients
 
 The application contains 2 clients:
 
@@ -137,7 +137,7 @@ KafkaDataIngesterGRPC.scala is a local client that can communicate with GRPC API
 
 ## Loading data
 Application can use 3 different loaders:
-1 Direct Kafka loader `com.lightbend.killrweather.loader.kafka.KafkaDataIngester` pushes data directly to the Kafka queue
+1. Direct Kafka loader `com.lightbend.killrweather.loader.kafka.KafkaDataIngester` pushes data directly to the Kafka queue
 that an application is listening on.
 2. HTTP loader `com.lightbend.killrweather.loader.kafka.KafkaDataIngesterRest` writes data to Killrweather HTTP client.
 3. GRPC loader `com.lightbend.killrweather.loader.kafka.KafkaDataIngesterGRPC` writes data to Killrweather GRPC client.
@@ -146,6 +146,8 @@ that an application is listening on.
 
 Monitoring is done using InfluxDB/Grafana (Grafana definition is in `grafana.json`). For setting up 
 Grafana/InfluxDB see this [article](https://mesosphere.com/blog/monitoring-dcos-cadvisor-influxdb-grafana/)
+
+
 Viewing of the execution results is based on Zeppelin - see current support 
 for [Cassandra in Zeppelin](https://zeppelin.apache.org/docs/0.7.0/interpreter/cassandra.html).
 
@@ -154,7 +156,7 @@ To configure Zeppeling for use of Cassandra, make sure that interpreter is confi
 ```
 
 name	                            value
-cassandra.cluster	                cassandra
+cassandra.cluster                   cassandra
 cassandra.hosts	                    node.cassandra.l4lb.thisdcos.directory
 cassandra.native.port	            9042
 
