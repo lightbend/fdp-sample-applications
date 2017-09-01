@@ -25,12 +25,20 @@ object KafkaDataIngester {
     ingester.execute(file, KafkaTopicRaw)
   }
 
+  def pause(): Unit = {
+    try {
+      Thread.sleep(timeInterval)
+    } catch {
+      case _: Throwable => // Ignore
+    }
+  }
+
   def apply(brokers: String): KafkaDataIngester = new KafkaDataIngester(brokers)
 }
 
 class KafkaDataIngester(brokers: String) {
 
-  val sender = MessageSender[Array[Byte], Array[Byte]](brokers, classOf[ByteArraySerializer].getName, classOf[ByteArraySerializer].getName)
+  var sender = MessageSender[Array[Byte], Array[Byte]](brokers, classOf[ByteArraySerializer].getName, classOf[ByteArraySerializer].getName)
 
   import KafkaDataIngester._
 
@@ -43,8 +51,18 @@ class KafkaDataIngester(brokers: String) {
       numrec += 1
       batch += DataConvertor.convertToGPB(record)
       if (batch.size >= batchSize) {
-        sender.batchWriteValue(topic, batch)
-        batch.clear()
+        try {
+          if(sender == null)
+            sender = MessageSender[Array[Byte], Array[Byte]](brokers, classOf[ByteArraySerializer].getName, classOf[ByteArraySerializer].getName)
+          sender.batchWriteValue(topic, batch)
+          batch.clear()
+        }catch{
+          case e: Throwable =>
+            println(s"Kafka failed: ${e.printStackTrace()}")
+            if(sender != null)
+              sender.close()
+            sender = null
+        }
         pause()
       }
       if (numrec % 100 == 0)
@@ -53,13 +71,5 @@ class KafkaDataIngester(brokers: String) {
     if (batch.size > 0)
       sender.batchWriteValue(topic, batch)
     println(s"Submitted $numrec records")
-  }
-
-  private def pause(): Unit = {
-    try {
-      Thread.sleep(timeInterval)
-    } catch {
-      case _: Throwable => // Ignore
-    }
   }
 }

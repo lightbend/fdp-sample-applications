@@ -24,6 +24,14 @@ object KafkaDataIngesterGRPC {
     val ingester = new KafkaDataIngesterGRPC(host, port)
     ingester.execute(file)
   }
+
+  def pause(): Unit = {
+    try {
+      Thread.sleep(timeInterval)
+    } catch {
+      case _: Throwable => // Ignore
+    }
+  }
 }
 
 class KafkaDataIngesterGRPC(host: String, port: Int) {
@@ -45,14 +53,6 @@ class KafkaDataIngesterGRPC(host: String, port: Int) {
     })
     println(s"Submitted $numrec records")
   }
-
-  private def pause(): Unit = {
-    try {
-      Thread.sleep(timeInterval)
-    } catch {
-      case _: Throwable => // Ignore
-    }
-  }
 }
 
 class GRPCSender(host: String, port: Int) {
@@ -62,10 +62,11 @@ class GRPCSender(host: String, port: Int) {
 
   def send(record : WeatherRecord) : Unit = {
     try {
-      val response = blockingStub.getWeatherReport(record)
+      blockingStub.getWeatherReport(record)
     } catch {
-      case e: StatusRuntimeException =>
-        println(s"RPC failed: ${e.getStatus}")
+      case e: Throwable =>
+        println(s"RPC failed: ${e.printStackTrace()}")
+        KafkaDataIngesterGRPC.pause()
     }
   }
 }

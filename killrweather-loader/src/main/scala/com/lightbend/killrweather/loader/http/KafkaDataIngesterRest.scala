@@ -22,6 +22,14 @@ object KafkaDataIngesterRest {
     ingester.execute(file)
   }
 
+  def pause(): Unit = {
+    try {
+      Thread.sleep(timeInterval)
+    } catch {
+      case _: Throwable => // Ignore
+    }
+  }
+
   def apply(url: String): KafkaDataIngesterRest = new KafkaDataIngesterRest(url)
 }
 
@@ -45,24 +53,25 @@ class KafkaDataIngesterRest(url: String) {
     })
     println(s"Submitted $numrec records")
   }
-
-  private def pause(): Unit = {
-    try {
-      Thread.sleep(timeInterval)
-    } catch {
-      case _: Throwable => // Ignore
-    }
-  }
 }
 
 class HTTPSender(url : String){
   val http = Http(url)
 
   def send(string: String) : Unit = {
-    val response: HttpResponse[String] = http.postData(string).header("content-type", "application/json").asString
-    response.code match {
-      case status if status / 10 == 20 =>
-      case _ => println(s"Unexpected return code ${response.code} with body ${response.body}")
+    try {
+      val response: HttpResponse[String] = http.postData(string).header("content-type", "application/json").asString
+      response.code match {
+        case status if status / 10 == 20 =>
+        case _ => {
+          println(s"Unexpected return code ${response.code} with body ${response.body}")
+        }
+      }
+    } catch {
+      case e: Throwable => {
+        println(s"Rest failed: ${e.printStackTrace()}")
+        KafkaDataIngesterRest.pause()
+      }
     }
   }
 }
