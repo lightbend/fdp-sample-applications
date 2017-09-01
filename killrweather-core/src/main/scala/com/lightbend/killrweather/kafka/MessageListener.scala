@@ -5,14 +5,14 @@ import scala.collection.JavaConversions._
 
 object MessageListener {
   private val AUTOCOMMITINTERVAL = "1000" // Frequency off offset commits
-  private val SESSIONTIMEOUT = "30000" // The timeout used to detect failures - should be greater then processing time
-  private val MAXPOLLRECORDS = "10" // Max number of records consumed in a single poll
+  private val SESSIONTIMEOUT = "30000"    // The timeout used to detect failures - should be greater then processing time
+  private val MAXPOLLRECORDS = "10"       // Max number of records consumed in a single poll
 
   def consumerProperties(brokers: String, group: String, keyDeserealizer: String, valueDeserealizer: String): Map[String, String] = {
     Map[String, String](
       ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG -> brokers,
       ConsumerConfig.GROUP_ID_CONFIG -> group,
-      ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG -> "false",
+      ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG -> "true",
       ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG -> AUTOCOMMITINTERVAL,
       ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG -> SESSIONTIMEOUT,
       ConsumerConfig.MAX_POLL_RECORDS_CONFIG -> MAXPOLLRECORDS,
