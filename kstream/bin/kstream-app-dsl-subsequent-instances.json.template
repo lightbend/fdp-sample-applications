@@ -1,6 +1,6 @@
 {
   "id": "/kstream-app-dsl-1",
-  "cmd": "export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && ./dslpackage-0.1/bin/dslpackage",
+  "cmd": "export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && ./{VERSIONED_PROJECT_NAME}/bin/dslpackage",
   "env": {
     "INTERFACE_DSL": "0.0.0.0",
     "KAFKA_BROKERS": {KAFKA_BROKERS},

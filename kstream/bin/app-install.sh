@@ -35,7 +35,7 @@ HELP_OPTIONS=$(cat <<EOF
 EOF
 )
 
-config_file="./app-install.properties"
+config_file="$DIR/app-install.properties"
 
 ## kafka topics for the dsl module
 KAFKA_FROM_TOPIC_DSL=${KAFKA_FROM_TOPIC_DSL:-server-log-dsl}
@@ -306,13 +306,17 @@ function build_app {
   then
     $NOEXEC rm -rf build/dsl
   
-    $NOEXEC sbt clean dslPackage/universal:packageZipTarball
+    # $NOEXEC sbt clean dslPackage/universal:packageZipTarball
+    $NOEXEC sbt clean "dslPackage/deploySsh fdp-kstream-dsl"
   
     if [[ -z $NOEXEC ]]
     then
       DSL_TGZ_NAME=$( ls "$PROJ_ROOT_DIR"/build/dsl/target/universal/*.tgz )
       VERSIONED_DSL_PACKAGE_NAME=$( basename "$DSL_TGZ_NAME" )
-  
+
+      VERSION=$(echo ${VERSIONED_DSL_PACKAGE_NAME%.*} | cut -d- -f2-)
+
+      VERSIONED_PROJECT_NAME="dslpackage-$VERSION"
       DSL_PACKAGE_ON_MESOS="$LABORATORY_MESOS_PATH"/"$VERSIONED_DSL_PACKAGE_NAME"
     fi
   fi
@@ -321,13 +325,17 @@ function build_app {
   then
     $NOEXEC rm -rf build/proc
   
-    $NOEXEC sbt clean procPackage/universal:packageZipTarball
+    # $NOEXEC sbt clean procPackage/universal:packageZipTarball
+    $NOEXEC sbt clean "procPackage/deploySsh fdp-kstream-proc"
   
     if [[ -z $NOEXEC ]]
     then
       PROC_TGZ_NAME=$( ls "$PROJ_ROOT_DIR"/build/proc/target/universal/*.tgz )
       VERSIONED_PROC_PACKAGE_NAME=$( basename "$PROC_TGZ_NAME" )
-  
+
+      VERSION=$(echo ${VERSIONED_PROC_PACKAGE_NAME%.*} | cut -d- -f2-)
+
+      VERSIONED_PROJECT_NAME="procpackage-$VERSION"
       PROC_PACKAGE_ON_MESOS="$LABORATORY_MESOS_PATH"/"$VERSIONED_PROC_PACKAGE_NAME"
     fi
   fi
@@ -369,6 +377,9 @@ function modify_dsl_json_template {
     eval value="\$$elem"
     $NOEXEC sed -i -- "s~{$elem}~\"$value\"~g" "$KSTREAM_DSL_JSON"
   done
+
+  ## without quotes substitution
+  $NOEXEC sed -i -- "s~{VERSIONED_PROJECT_NAME}~$VERSIONED_PROJECT_NAME~g" $KSTREAM_DSL_JSON
 }
 
 function modify_proc_json_template {
@@ -386,6 +397,9 @@ function modify_proc_json_template {
     eval value="\$$elem"
     $NOEXEC sed -i -- "s~{$elem}~\"${value//\"}\"~g" "$KSTREAM_PROC_JSON"
   done
+
+  ## without quotes substitution
+  $NOEXEC sed -i -- "s~{VERSIONED_PROJECT_NAME}~$VERSIONED_PROJECT_NAME~g" $KSTREAM_PROC_JSON
 }
 
 function load_marathon_job {
@@ -473,8 +487,8 @@ function main {
 
   [ "$stop_point" = "marathon_json" ] && exit 0
 
-  header Doing remote deployment ..
-  deploy_app
+  # header Doing remote deployment ..
+  # deploy_app
 
   echo Loading Marathon Jobs ..
   load_marathon_job
