@@ -43,7 +43,9 @@ object Utils {
     maxEpoch: Int = 90,
     overWriteCheckpoint: Boolean = false,
     learningRate: Double = 0.01,
-    weightDecay: Double = 0.0005
+    weightDecay: Double = 0.0005,
+    laboratoryURL: Option[String] = None,
+    downloadRootFolder: String = "/tmp"
   )
 
   val trainParser = new OptionParser[TrainParams]("BigDL Vgg on Cifar10 Example") {
@@ -74,6 +76,12 @@ object Utils {
     opt[Double]('l', "learningRate")
       .text("inital learning rate")
       .action((x, c) => c.copy(learningRate = x))
+    opt[String]("lab")
+      .text("data ingestion source")
+      .action((x, c) => c.copy(laboratoryURL = Some(x)))
+    opt[String]("download")
+      .text("data download root")
+      .action((x, c) => c.copy(downloadRootFolder = x))
   }
 
   case class TestParams(

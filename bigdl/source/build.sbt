@@ -1,4 +1,5 @@
 import sbtassembly.MergeStrategy
+import deployssh.DeploySSH._
 
 // NOTE: Versioning of all artifacts is under the control of the `sbt-dynver` plugin and
 // enforced by `EnforcerPlugin` found in the `build-plugin` directory.
@@ -27,6 +28,11 @@ import sbtassembly.MergeStrategy
 // 3. You have uncommmited changes (a dirty directory) but have not set `allowSnapshot` to `true` - Fix: `set (allowSnapshot in ThisBuild) := true`""".stripMargin)
 
 val spark = "2.1.1"
+
+allowSnapshot in ThisBuild := true
+
+enablePlugins(DeploySSH)
+
 lazy val commonSettings = Seq(
   resolvers ++= Seq(
       Resolver.mavenLocal
@@ -46,8 +52,6 @@ lazy val commonSettings = Seq(
       "org.rauschig"                  % "jarchivelib"       % "0.7.1"
     )
 )
-
-enablePlugins(JavaAppPackaging)
 
 mainClass in assembly := Some("com.lightbend.fdp.sample.bigdl.TrainVGG")
 
@@ -77,3 +81,9 @@ assemblyMergeStrategy in assembly := {
     val oldStrategy = (assemblyMergeStrategy in assembly).value
     oldStrategy(x)
 }
+
+deployResourceConfigFiles ++= Seq("deploy.conf")
+
+deployArtifacts ++= Seq(
+  ArtifactSSH(assembly.value, "/var/www/html/")
+)
