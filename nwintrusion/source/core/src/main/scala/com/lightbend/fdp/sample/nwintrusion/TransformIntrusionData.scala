@@ -6,6 +6,8 @@ import java.io.PrintWriter
 import java.util.Properties
 
 import scala.util.{ Try, Success, Failure }
+import scala.concurrent.duration._
+import sys.process._
 import com.typesafe.config.ConfigFactory
 
 import org.apache.kafka.streams.kstream.KStreamBuilder
@@ -38,10 +40,15 @@ object TransformIntrusionData {
 
     implicit val system = ActorSystem()
     implicit val materializer = ActorMaterializer()
+    import system.dispatcher
 
     // register for data ingestion
     // whenever we find new / changed files in the configured location, we run data loading
     DataIngestion.registerForIngestion(config)
+
+    system.scheduler.scheduleOnce(1 minute) {
+      Seq("/bin/sh", "-c", s"touch ${config.directoryToWatch}/*.csv").!
+    }
     
     // stream it
     try {

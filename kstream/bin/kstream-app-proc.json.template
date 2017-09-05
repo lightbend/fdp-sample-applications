@@ -1,6 +1,6 @@
 {
   "id": "/kstream-app-proc",
-  "cmd": "export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && mkdir $MESOS_SANDBOX/data && mv clarknet_access_log_Sep4/data && export DIRECTORY_TO_WATCH=$MESOS_SANDBOX/data && ./dslpackage-0.1/bin/procpackage",
+  "cmd": "export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && mkdir $MESOS_SANDBOX/data && mv clarknet_access_log_Sep4/data && export DIRECTORY_TO_WATCH=$MESOS_SANDBOX/data && ./{VERSIONED_PROJECT_NAME}/bin/procpackage",
 
   "env": {
     "INTERFACE_PROC": "0.0.0.0",

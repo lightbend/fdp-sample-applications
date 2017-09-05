@@ -49,7 +49,7 @@ export run_anomaly_detection=
 export zeppelin_flag_set=no
 apps_selected=
 
-config_file="./app-install.properties"
+config_file="$DIR/app-install.properties"
 
 function create_topics {
   declare -a topics=(

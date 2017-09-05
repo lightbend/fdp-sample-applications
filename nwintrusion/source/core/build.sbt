@@ -11,6 +11,8 @@ val catsVersion = "0.9.0"
 val spark = "2.2.0"
 val logbackVersion = "1.2.3"
 
+allowSnapshot in ThisBuild := true
+
 name := "fdp-nw-intrusion"
 
 organization := "lightbend"

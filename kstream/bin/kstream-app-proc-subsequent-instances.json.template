@@ -1,6 +1,6 @@
 {
   "id": "/kstream-app-proc-1",
-  "cmd": "export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && ./procpackage-0.1/bin/procpackage",
+  "cmd": "export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && ./{VERSIONED_PROJECT_NAME}/bin/procpackage",
   "env": {
     "INTERFACE_PROC": "0.0.0.0",
     "KAFKA_BROKERS": {KAFKA_BROKERS},

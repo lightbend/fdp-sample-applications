@@ -38,13 +38,15 @@ val scalaCheckVersion = "1.12.4"
 val scalaLoggingVersion = "3.5.0"
 val logbackVersion = "1.2.3"
 val akkaVersion = "2.5.3"
-val akkaHttpVersion = "10.0.9"
+val akkaHttpVersion = "10.0.10"
 val akkaHttpCirceVersion = "1.17.0"
 val algebirdVersion = "0.13.0"
 val chillVersion = "0.9.2"
 val alpakkaFileVersion = "0.10"
 val reactiveKafkaVersion = "0.16"
 val bijectionVersion = "0.9.5"
+
+allowSnapshot in ThisBuild := true
 
 val scalaVer = "2.12.2"
 
@@ -132,7 +134,7 @@ lazy val app = appProject("app")(".")
       "-Ywarn-infer-any",                  // Warn when a type argument is inferred to be `Any`.
       "-Ywarn-nullary-override",           // Warn when non-nullary `def f()' overrides nullary `def f'.
       "-Ywarn-nullary-unit",               // Warn when nullary methods return Unit.
-      "-Ywarn-unused:implicits",           // Warn if an implicit parameter is unused.
+      // "-Ywarn-unused:implicits",           // Warn if an implicit parameter is unused.
       // "-Ywarn-unused:locals",              // Warn if a local definition is unused.
       // "-Ywarn-unused:params",              // Warn if a value parameter is unused.
       // "-Ywarn-unused:patvars",             // Warn if a variable bound in a pattern is unused.

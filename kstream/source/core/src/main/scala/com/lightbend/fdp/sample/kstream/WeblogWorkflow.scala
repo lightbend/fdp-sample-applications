@@ -11,6 +11,8 @@ import org.apache.kafka.streams.KafkaStreams
 import org.apache.kafka.streams.state.HostInfo
 
 import scala.util.{ Success, Failure }
+import scala.concurrent.duration._
+import sys.process._
 import com.typesafe.scalalogging.LazyLogging
 
 import config.KStreamConfig._
@@ -46,15 +48,24 @@ trait WeblogWorkflow extends LazyLogging with Serializers {
     implicit val system = ActorSystem()
     implicit val materializer = ActorMaterializer()
 
+    import system.dispatcher
+
     // register for data ingestion
     // whenever we find new / changed files in the configured location, we run data loading
     // However `directoryToWatch` may not be set if we are trying to run the application in
     // distributed mode with multiple instances. In that case only one instance will do the ingestion
     // and for subsequent instances of the application, we don't need to do the ingestion.
     // Ingestion can be done only from one instance
-    config.directoryToWatch.foreach { _ =>
+    config.directoryToWatch.foreach { d =>
       DataIngestion.registerForIngestion(config)
+
+      // schedule a run by touching the data folder
+      system.scheduler.scheduleOnce(1 minute) {
+        Seq("/bin/sh", "-c", s"touch $d/*").!
+        ()
+      }
     }
+
 
     // set up the topology
     val streams: KafkaStreams = createStreams(config)
