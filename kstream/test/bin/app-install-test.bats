@@ -27,6 +27,9 @@ normal_properties="${test_support}/normal.app-install.properties"
   run bin/app-install.sh --config-file $normal_properties --start-only dsl --stop-at start_only
 
   [ $status -eq 0 ]
+  echo "${lines[0]}"
+  echo "${lines[1]}"
+  echo "${lines[2]}"
 
   [[ "${lines[0]}" =~ "$normal_properties found" ]]
   [[ "${lines[2]}" =~ "DSL based" && "${lines[2]}" =~ "yes" ]]
@@ -51,15 +54,4 @@ normal_properties="${test_support}/normal.app-install.properties"
   [[ "${lines[0]}" =~ "$normal_properties found" ]]
   [[ "${lines[2]}" =~ "DSL based" && "${lines[2]}" =~ "yes" ]]
   [[ "${lines[3]}" =~ "Procedure based" && "${lines[3]}" =~ "yes" ]]
-}
-
-@test "pass if json files for marathon deployment are generated" {
-  run bin/app-install.sh --config-file $normal_properties --stop-at marathon_json
-
-  [[ $( basename `ls source/core/deploy.conf` ) == "deploy.conf" ]]
-  [[ $( basename `ls source/core/build/dsl/target/universal/*.tgz` ) == "dslpackage-0.1.tgz" ]]
-  [[ $( basename `ls source/core/build/proc/target/universal/*.tgz` ) == "procpackage-0.1.tgz" ]]
-  [[ $( basename `ls bin/kstream-app-dsl.json` ) == "kstream-app-dsl.json" ]]
-  [[ $( basename `ls bin/kstream-app-proc.json` ) == "kstream-app-proc.json" ]]
-  [ $status -eq 0 ]
 }
