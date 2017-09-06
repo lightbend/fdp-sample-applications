@@ -90,12 +90,12 @@ kafka-topic-replication-factor=1
 publish-user="publisher"
 
 ## the IP address of the publish machine
-publish-host="10.8.0.14"
+publish-host="jim-lab.marathon.mesos"
 
 ## port for the SSH connection. The default configuration is 9022
 ssh-port=9022
 
-## passphrase for your SSH key.  Remove this entry if you don't need a passphrase
+## passphrase for your SSH key. Remove this entry if you don't need a passphrase
 passphrase=
 
 ## the key file in ~/.ssh/ that is to be used to connect to the deployment host
@@ -114,12 +114,20 @@ However using `--config-file` option, you can specify your own configuration fil
 
 ### Starting the data ingestion process
 
-Once the applications are installed as Marathon services, here's how to kickstart the data ingestion process for each module. This ingestion will actually start the streams topology and the application itself.
+Once the applications are installed as Marathon services, data ingestion will start within some time. Data is ingested from a folder named `data` within the Mesos Sandbox (`$MESOS_SANDBOX/data`). The application starts the first time ingestion automatically within 1 minute of the installation. If you want to restart the ingestion process then you need to touch the data file within the folder. 
 
-1. Data needed to run the application have been packaged as part of the installation. Data downloaded from the source site is made available in the folder specified under `ingestion-directory` in the configuration file.
-2. Login to the node where the application is running and `touch` the file available under that folder to kickstart the ingestion process.
-3. This needs to be done for every module deployed
+## Removing the Applications
 
+The `bin` folder contains the script to remove the applications. This script works on the metadata files that the install script generates. 
+
+> Make sure that you run the remove script from the same folder you ran the install script
+
+```bash
+$ cd bin
+$ ./app-remove.sh [--stop-only dsl] [--stop-only procedure] [--skip-delete-topics]
+```
+
+The above script cleans most of the data that the application generates including (optionally) the topics in Kafka. Still being a Kafka streams application, some of the state that it creates on the local filesystem has to be cleaned manually. Kafka has a utility that helps in this process. Please have a look in this [wiki page](https://cwiki.apache.org/confluence/display/KAFKA/Kafka+Streams+Application+Reset+Tool) for more details.
 
 ## Application REST API's
 
