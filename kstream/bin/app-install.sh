@@ -18,6 +18,8 @@ DEPLOY_CONF_FILE="$PROJ_ROOT_DIR/deploy.conf"
 ZOOKEEPER_PORT=2181
 VERSIONED_DSL_PACKAGE_NAME=
 VERSIONED_PROC_PACKAGE_NAME=
+APP_METADATA_FILE_DSL="$DIR/app.metadata.dsl.json"
+APP_METADATA_FILE_PROC="$DIR/app.metadata.proc.json"
 
 # Used by show_help
 HELP_MESSAGE="Installs the Kafka Streams sample application. Assumes DC/OS authentication was successful
@@ -78,6 +80,7 @@ function create_topics {
     for topic in "${topics[@]}"
     do
       $NOEXEC dcos "$KAFKA_DCOS_PACKAGE" topic create "$topic" --partitions "$PARTITIONS" --replication "$REPLICATION_FACTOR"
+      $NOEXEC add_to_json_array TOPICS $topic $APP_METADATA_FILE_DSL
     done
   fi
 
@@ -91,7 +94,42 @@ function create_topics {
     for topic in "${topics[@]}"
     do
       $NOEXEC dcos "$KAFKA_DCOS_PACKAGE" topic create "$topic" --partitions "$PARTITIONS" --replication "$REPLICATION_FACTOR"
+      $NOEXEC add_to_json_array TOPICS $topic $APP_METADATA_FILE_PROC
     done
+  fi
+}
+
+function generate_app_uninstall_metadata_dsl {
+declare METADATA=$(cat <<EOF
+{
+  "KSTREAM_DSL_APP_ID":"",
+  "TOPICS": [ ],
+  "KAFKA_DCOS_PACKAGE":"$KAFKA_DCOS_PACKAGE"
+}
+EOF
+)
+  if [[ -z $NOEXEC ]]
+  then
+    echo "$METADATA" > $APP_METADATA_FILE_DSL
+  else
+    $NOEXEC "$METADATA > $APP_METADATA_FILE_DSL"
+  fi
+}
+
+function generate_app_uninstall_metadata_proc {
+declare METADATA=$(cat <<EOF
+{
+  "KSTREAM_PROC_APP_ID":"",
+  "TOPICS": [ ],
+  "KAFKA_DCOS_PACKAGE":"$KAFKA_DCOS_PACKAGE"
+}
+EOF
+)
+  if [[ -z $NOEXEC ]]
+  then
+    echo "$METADATA" > $APP_METADATA_FILE_PROC
+  else
+    $NOEXEC "$METADATA > $APP_METADATA_FILE_PROC"
   fi
 }
 
@@ -306,7 +344,6 @@ function build_app {
   then
     $NOEXEC rm -rf build/dsl
   
-    # $NOEXEC sbt clean dslPackage/universal:packageZipTarball
     $NOEXEC sbt clean "dslPackage/deploySsh fdp-kstream-dsl"
   
     if [[ -z $NOEXEC ]]
@@ -316,7 +353,7 @@ function build_app {
 
       VERSION=$(echo ${VERSIONED_DSL_PACKAGE_NAME%.*} | cut -d- -f2-)
 
-      VERSIONED_PROJECT_NAME="dslpackage-$VERSION"
+      VERSIONED_DSL_PROJECT_NAME="dslpackage-$VERSION"
       DSL_PACKAGE_ON_MESOS="$LABORATORY_MESOS_PATH"/"$VERSIONED_DSL_PACKAGE_NAME"
     fi
   fi
@@ -325,7 +362,6 @@ function build_app {
   then
     $NOEXEC rm -rf build/proc
   
-    # $NOEXEC sbt clean procPackage/universal:packageZipTarball
     $NOEXEC sbt clean "procPackage/deploySsh fdp-kstream-proc"
   
     if [[ -z $NOEXEC ]]
@@ -335,23 +371,9 @@ function build_app {
 
       VERSION=$(echo ${VERSIONED_PROC_PACKAGE_NAME%.*} | cut -d- -f2-)
 
-      VERSIONED_PROJECT_NAME="procpackage-$VERSION"
+      VERSIONED_PROC_PROJECT_NAME="procpackage-$VERSION"
       PROC_PACKAGE_ON_MESOS="$LABORATORY_MESOS_PATH"/"$VERSIONED_PROC_PACKAGE_NAME"
     fi
-  fi
-}
-
-function deploy_app {
-  $NOEXEC cd "$PROJ_ROOT_DIR"
-
-  if [ -n "$run_dsl" ]
-  then
-    $NOEXEC sbt "dslPackage/deploySsh fdp-kstream-dsl"
-  fi
-
-  if [ -n "$run_proc" ]
-  then
-    $NOEXEC sbt "procPackage/deploySsh fdp-kstream-proc"
   fi
 }
 
@@ -379,7 +401,7 @@ function modify_dsl_json_template {
   done
 
   ## without quotes substitution
-  $NOEXEC sed -i -- "s~{VERSIONED_PROJECT_NAME}~$VERSIONED_PROJECT_NAME~g" $KSTREAM_DSL_JSON
+  $NOEXEC sed -i -- "s~{VERSIONED_DSL_PROJECT_NAME}~$VERSIONED_DSL_PROJECT_NAME~g" $KSTREAM_DSL_JSON
 }
 
 function modify_proc_json_template {
@@ -399,18 +421,20 @@ function modify_proc_json_template {
   done
 
   ## without quotes substitution
-  $NOEXEC sed -i -- "s~{VERSIONED_PROJECT_NAME}~$VERSIONED_PROJECT_NAME~g" $KSTREAM_PROC_JSON
+  $NOEXEC sed -i -- "s~{VERSIONED_PROC_PROJECT_NAME}~$VERSIONED_PROC_PROJECT_NAME~g" $KSTREAM_PROC_JSON
 }
 
 function load_marathon_job {
   if [ -n "$run_dsl" ]
   then
     $NOEXEC dcos marathon app add "$KSTREAM_DSL_JSON"
+    $NOEXEC update_json_field KSTREAM_DSL_APP_ID "kstream-app-dsl" "$APP_METADATA_FILE_DSL"
   fi
 
   if [ -n "$run_proc" ]
   then
     $NOEXEC dcos marathon app add "$KSTREAM_PROC_JSON"
+    $NOEXEC update_json_field KSTREAM_PROC_APP_ID "kstream-app-proc" "$APP_METADATA_FILE_PROC"
   fi
 }
 
@@ -457,12 +481,60 @@ function main {
   require_jq
   require_templates
 
+  header "Generating metadata for subsequent uninstalls...\n"
+
+  if [ -n "$run_dsl" ]
+  then
+    # remove metadata file
+    $NOEXEC rm -f "$APP_METADATA_FILE_DSL"
+    generate_app_uninstall_metadata_dsl
+  fi
+
+  if [ -n "$run_proc" ]
+  then
+    # remove metadata file
+    $NOEXEC rm -f "$APP_METADATA_FILE_PROC"
+    generate_app_uninstall_metadata_proc
+  fi
+
   if [ "$SKIP_CREATE_TOPICS" = false ]; then
     header "Creating Kafka topics..."
     echo
     create_topics
   else
     echo "Skipped creating Kafka topics"
+
+    ## generate uninstall information for topic delete
+    if [ -n "$run_dsl" ]
+    then
+      # fill in topics we know
+      declare -a topics=(
+        $KAFKA_FROM_TOPIC_DSL
+        $KAFKA_TO_TOPIC_DSL
+        $KAFKA_AVRO_TOPIC_DSL
+        $KAFKA_SUMMARY_ACCESS_TOPIC_DSL
+        $KAFKA_WINDOWED_SUMMARY_ACCESS_TOPIC_DSL
+        $KAFKA_SUMMARY_PAYLOAD_TOPIC_DSL
+        $KAFKA_WINDOWED_SUMMARY_PAYLOAD_TOPIC_DSL
+        $KAFKA_ERROR_TOPIC_DSL
+        )
+      for topic in "${topics[@]}"
+      do
+        $NOEXEC add_to_json_array TOPICS $topic $APP_METADATA_FILE_DSL
+      done
+    fi
+    if [ -n "$run_proc" ]
+    then
+      # fill in topics we know
+      declare -a topics=(
+        $KAFKA_FROM_TOPIC_PROC
+        $KAFKA_ERROR_TOPIC_PROC
+        )
+      for topic in "${topics[@]}"
+      do
+        $NOEXEC add_to_json_array TOPICS $topic $APP_METADATA_FILE_PROC
+      done
+    fi
   fi
 
   header Generating remote deployment information ..
@@ -486,9 +558,6 @@ function main {
   fi
 
   [ "$stop_point" = "marathon_json" ] && exit 0
-
-  # header Doing remote deployment ..
-  # deploy_app
 
   echo Loading Marathon Jobs ..
   load_marathon_job

@@ -21,7 +21,7 @@ normal_properties="${test_support}/normal.app-install.properties"
 
   [[ "${lines[0]}" =~ "$fake_properties found" ]]
   [[ "${lines[1]}" =~ "ERROR" ]]
-  [[ "${lines[2]}" =~ "s3-bucket-url requires a non-empty argument" ]]
+  [[ "${lines[2]}" =~ "publish-host not defined" ]]
 }
 
 @test "fail if docker-username set to empty in configuration properties" {
@@ -31,33 +31,27 @@ normal_properties="${test_support}/normal.app-install.properties"
 
   [[ "${lines[0]}" =~ "$fake1_properties found" ]]
   [[ "${lines[1]}" =~ "ERROR" ]]
-  [[ "${lines[2]}" =~ "docker-username requires a non-empty argument" ]]
+  [[ "${lines[2]}" =~ "ssh-port not defined" ]]
 }
 
 @test "check only jobs in --start_only are starting - start one job only" {
-  run bin/app-install.sh --config-file $normal_properties --start-only data-loader --stop-at start_only
-  echo "${lines[3]}"
+  run bin/app-install.sh --config-file $normal_properties --start-only transform-data --stop-at start_only
 
   [ $status -eq 0 ]
 
   [[ "${lines[0]}" =~ "$normal_properties found" ]]
-  [[ "${lines[2]}" =~ "Data Loader" && "${lines[2]}" =~ "yes" ]]
-  [[ "${lines[3]}" =~ "Transform Data" && "${lines[3]}" =~ "no" ]]
-  [[ "${lines[4]}" =~ "Batch K Means" && "${lines[4]}" =~ "no" ]]
-  [[ "${lines[5]}" =~ "Anomaly Detection" && "${lines[5]}" =~ "no" ]]
-  [[ "${lines[6]}" =~ "Visualizer" && "${lines[6]}" =~ "no" ]]
+  [[ "${lines[2]}" =~ "Transform Data?" && "${lines[2]}" =~ "yes" ]]
+  [[ "${lines[3]}" =~ "Batch K Means" && "${lines[3]}" =~ "no" ]]
+  [[ "${lines[4]}" =~ "Anomaly Detection" && "${lines[4]}" =~ "no" ]]
 }
 
 @test "check only jobs in --start_only are starting - start multiple jobs" {
-  run bin/app-install.sh --config-file $normal_properties --start-only data-loader --start-only transform-data --stop-at start_only
-  echo "${lines[3]}"
+  run bin/app-install.sh --config-file $normal_properties --start-only anomaly-detection --start-only transform-data --stop-at start_only
 
   [ $status -eq 0 ]
 
   [[ "${lines[0]}" =~ "$normal_properties found" ]]
-  [[ "${lines[2]}" =~ "Data Loader" && "${lines[2]}" =~ "yes" ]]
-  [[ "${lines[3]}" =~ "Transform Data" && "${lines[3]}" =~ "yes" ]]
-  [[ "${lines[4]}" =~ "Batch K Means" && "${lines[4]}" =~ "no" ]]
-  [[ "${lines[5]}" =~ "Anomaly Detection" && "${lines[5]}" =~ "no" ]]
-  [[ "${lines[6]}" =~ "Visualizer" && "${lines[6]}" =~ "no" ]]
+  [[ "${lines[2]}" =~ "Transform Data?" && "${lines[2]}" =~ "yes" ]]
+  [[ "${lines[3]}" =~ "Batch K Means" && "${lines[3]}" =~ "no" ]]
+  [[ "${lines[4]}" =~ "Anomaly Detection" && "${lines[4]}" =~ "yes" ]]
 }

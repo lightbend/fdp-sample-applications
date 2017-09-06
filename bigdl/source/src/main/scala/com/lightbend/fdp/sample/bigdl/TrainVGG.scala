@@ -29,7 +29,7 @@ import org.apache.spark.SparkContext
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric._
 import com.intel.analytics.bigdl.models.vgg._
 
-import scala.util.Try
+import scala.util.{ Try, Success, Failure }
 
 object TrainVGG {
   Logger.getLogger("org").setLevel(Level.ERROR)
@@ -42,52 +42,60 @@ object TrainVGG {
   import sys.process._
   import java.net.URL
   import java.io.File
-  import org.rauschig.jarchivelib._
   import scala.language.postfixOps
+  import org.rauschig.jarchivelib._
   import scala.util.{ Try, Success, Failure }
 
-  def download(): Try[Unit] = Try {
-    val cifarDataUri = "https://www.cs.toronto.edu/~kriz/cifar-10-binary.tar.gz"
-    new URL(cifarDataUri) #> new File("/tmp/cifar-10-binary.tar.gz") !!
+  def download(labURL: Option[String], downloadRoot: String): Try[Unit] = Try {
+    val cifarDataUri = labURL.map { lurl =>
+      val trylab = s"curl --output /dev/null --silent --head --fail $lurl/cifar-10-binary.tar.gz".!
+
+      if (trylab != 0) "https://www.cs.toronto.edu/~kriz/cifar-10-binary.tar.gz"
+      else s"${lurl}/cifar-10-binary.tar.gz"
+
+    }.getOrElse("https://www.cs.toronto.edu/~kriz/cifar-10-binary.tar.gz")
+
+    println(s"cifarDataURI = $cifarDataUri")
+
+    new URL(cifarDataUri) #> new File(s"$downloadRoot/cifar-10-binary.tar.gz") !!
   }
 
-  def unarchive(gzippedArchiveName: String): Try[Unit] = Try {
+  def unarchive(gzippedArchiveName: String, downloadRootFolder: String): Try[Unit] = Try {
     val archive = new File(gzippedArchiveName)
-    val destination = new File("/tmp/")
+    val destination = new File(s"$downloadRootFolder/")
 
     val archiver = ArchiverFactory.createArchiver("tar", "gz")
     archiver.extract(archive, destination)
     ()
   }
 
-  def extractCifarData(): Try[Unit] = for {
-    _ <- download()
-    _ <- unarchive("/tmp/cifar-10-binary.tar.gz")
+  def extractCifarData(labURL: Option[String], downloadRootFolder: String): Try[Unit] = for {
+    _ <- download(labURL, downloadRootFolder)
+    _ <- unarchive(s"$downloadRootFolder/cifar-10-binary.tar.gz", downloadRootFolder)
   } yield ()
 
   def main(args: Array[String]): Unit = {
 
-    val defaultFolderName = "/tmp/cifar-10-batches-bin"
-
-    if (Files.notExists(Paths.get(defaultFolderName))) {
-      println(s"cifar-10 data does not exist .. going to download")
-      extractCifarData() match {
-        case Success(_) => ()
-        case Failure(ex) => throw ex
-      }
-    }
-
-    if (Files.notExists(Paths.get(defaultFolderName))) {
-      throw new Exception("CIFAR data has not been downloaded")
-    }
-
     trainParser.parse(args, new TrainParams()).map(param => {
+
+      if (Files.notExists(Paths.get(param.folder))) {
+        println(s"cifar-10 data does not exist .. going to download")
+        extractCifarData(param.laboratoryURL, param.downloadRootFolder) match {
+          case Success(_) => ()
+          case Failure(ex) => throw ex
+        }
+      }
+  
+      if (Files.notExists(Paths.get(param.folder))) {
+        throw new Exception("CIFAR data has not been downloaded")
+      }
+
       val conf = Engine.createSparkConf().setAppName("vggtrainapp")
           .set("spark.rpc.message.maxSize", "200")
       val sc = new SparkContext(conf)
       Engine.init
 
-      val trainDataSet = DataSet.array(Utils.loadTrain(defaultFolderName), sc) ->
+      val trainDataSet = DataSet.array(Utils.loadTrain(param.folder), sc) ->
         BytesToBGRImg() -> BGRImgNormalizer(trainMean, trainStd) ->
         BGRImgToBatch(param.batchSize)
 
@@ -115,7 +123,7 @@ object TrainVGG {
         criterion = new ClassNLLCriterion[Float]()
       )
 
-      val validateSet = DataSet.array(Utils.loadTest(defaultFolderName), sc) ->
+      val validateSet = DataSet.array(Utils.loadTest(param.folder), sc) ->
         BytesToBGRImg() -> BGRImgNormalizer(testMean, testStd) ->
         BGRImgToBatch(param.batchSize)
 
