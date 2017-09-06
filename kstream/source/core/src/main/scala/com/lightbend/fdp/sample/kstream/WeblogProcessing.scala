@@ -76,8 +76,8 @@ object WeblogProcessing extends WeblogWorkflow {
         settings.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, url)
       }
 
-      settings.put(StreamsConfig.KEY_SERDE_CLASS_CONFIG, Serdes.ByteArray.getClass.getName)
-      settings.put(StreamsConfig.VALUE_SERDE_CLASS_CONFIG, Serdes.String.getClass.getName)
+      settings.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.ByteArray.getClass.getName)
+      settings.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String.getClass.getName)
 
       // setting offset reset to earliest so that we can re-run the demo code with the same pre-loaded data
       // Note: To re-run the demo, you need to use the offset reset tool:
@@ -240,16 +240,16 @@ object WeblogProcessing extends WeblogWorkflow {
 
     val payloadSize: KTable[String, JLong] = groupedStream
       .aggregate(
-        () => 0L,
-        (_, s: JLong, agg: JLong) => s + agg,
+        (() => 0L): Initializer[JLong],
+        ((_, s: JLong, agg: JLong) => s + agg): Aggregator[String, JLong, JLong],
         longSerde,
         PAYLOAD_SIZE_PER_HOST_STORE
       )
 
     val windowedPayloadSize: KTable[Windowed[String], JLong] = groupedStream
       .aggregate(
-        () => 0L,
-        (_, s: JLong, agg: JLong) => s + agg,
+        (() => 0L): Initializer[JLong],
+        ((_, s: JLong, agg: JLong) => s + agg): Aggregator[String, JLong, JLong],
         TimeWindows.of(60000),
         longSerde,
         WINDOWED_PAYLOAD_SIZE_PER_HOST_STORE

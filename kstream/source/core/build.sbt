@@ -31,8 +31,14 @@ import deployssh.DeploySSH._
 val circeVersion = "0.8.0"
 val catsVersion = "0.9.0"
 val configVersion = "1.3.1"
-val kafkaVersion = "0.10.2.1"
-val confluentKafkaVersion = "3.2.2"
+// In rare cases it may be necessary to use confluent packages in place of apache kafka packages.  This may be required
+// when you depend on a fix that confluent has only made in their branch (rare).  If this is required then to reference
+// the confluent artifact the maven group and project coordinate are the same as apache Kafka, but the version is
+// suffixed with `-cp1`
+// i.e) 0.11.0.0-cp1
+// http://docs.confluent.io/current/installation.html#installation-maven
+val kafkaVersion = "0.11.0.0"
+val confluentPlatformVersion = "3.3.0"
 val specs2Version = "3.8.9"
 val scalaCheckVersion = "1.12.4"
 val scalaLoggingVersion = "3.5.0"
@@ -43,7 +49,7 @@ val akkaHttpCirceVersion = "1.17.0"
 val algebirdVersion = "0.13.0"
 val chillVersion = "0.9.2"
 val alpakkaFileVersion = "0.10"
-val reactiveKafkaVersion = "0.16"
+val reactiveKafkaVersion = "0.17"
 val bijectionVersion = "0.9.5"
 
 allowSnapshot in ThisBuild := true
@@ -74,7 +80,7 @@ lazy val app = appProject("app")(".")
     scalaVersion := scalaVer,
     libraryDependencies ++= Seq(
       "org.apache.kafka"              % "kafka-streams"            % kafkaVersion,
-      "io.confluent"                  % "kafka-avro-serializer"    % confluentKafkaVersion exclude("org.slf4j", "slf4j-log4j12"),
+      "io.confluent"                  % "kafka-avro-serializer"    % confluentPlatformVersion exclude("org.slf4j", "slf4j-log4j12"),
       "com.twitter"                  %% "bijection-avro"           % bijectionVersion,
       "com.typesafe"                  % "config"                   % configVersion,
       "com.typesafe.scala-logging"   %% "scala-logging"            % scalaLoggingVersion,

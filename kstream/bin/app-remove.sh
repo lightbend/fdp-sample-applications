@@ -84,13 +84,14 @@ function main {
   then
     KSTREAM_DSL_APP_ID="$(jq -r '.KSTREAM_DSL_APP_ID' $APP_METADATA_FILE_DSL)"
     KAFKA_DCOS_PACKAGE="$(jq -r '.KAFKA_DCOS_PACKAGE' $APP_METADATA_FILE_DSL)"
+    KAFKA_DCOS_SERVICE_NAME="$(jq -r '.KAFKA_DCOS_SERVICE_NAME' $APP_METADATA_FILE_DSL)"
     topics="$(jq -r '.TOPICS[]' $APP_METADATA_FILE_DSL)"
 
     if [ ! -f "$APP_METADATA_FILE_DSL" ]; then
       echo "$APP_METADATA_FILE_DSL is missing or is not a file."
       exit 1
     fi
-  
+
     if [ -n "$KSTREAM_DSL_APP_ID" ]; then
       echo "Deleting app with id: $KSTREAM_DSL_APP_ID"
       $NOEXEC dcos marathon app remove --force $KSTREAM_DSL_APP_ID
@@ -103,14 +104,14 @@ function main {
         for elem in $topics
         do
           echo "Deleting topic $elem..."
-          $NOEXEC dcos $KAFKA_DCOS_PACKAGE topic delete $elem
+          $NOEXEC dcos $KAFKA_DCOS_PACKAGE topic delete $elem --name="$KAFKA_DCOS_SERVICE_NAME"
         done
 
-	## delete stateful streaming topics created by Kafka
-	for elem in $(dcos $KAFKA_DCOS_PACKAGE topic list | grep "kstream-weblog-processing" | cut -d"," -f1 | tr -d \") 
-	do 
+      	## delete stateful streaming topics created by Kafka
+      	for elem in $(dcos $KAFKA_DCOS_PACKAGE topic list | grep "kstream-weblog-processing" | cut -d"," -f1 | tr -d \")
+      	do
           echo "Deleting topic $elem..."
-	  $NOEXEC dcos $KAFKA_DCOS_PACKAGE topic delete $elem 
+          $NOEXEC dcos $KAFKA_DCOS_PACKAGE topic delete $elem --name="$KAFKA_DCOS_SERVICE_NAME"
         done
 
       else
@@ -125,13 +126,14 @@ function main {
   then
     KSTREAM_PROC_APP_ID="$(jq -r '.KSTREAM_PROC_APP_ID' $APP_METADATA_FILE_PROC)"
     KAFKA_DCOS_PACKAGE="$(jq -r '.KAFKA_DCOS_PACKAGE' $APP_METADATA_FILE_PROC)"
+    KAFKA_DCOS_SERVICE_NAME="$(jq -r '.KAFKA_DCOS_SERVICE_NAME' $APP_METADATA_FILE_DSL)"
     topics="$(jq -r '.TOPICS[]' $APP_METADATA_FILE_PROC)"
 
     if [ ! -f "$APP_METADATA_FILE_PROC" ]; then
       echo "$APP_METADATA_FILE_PROC is missing or is not a file."
       exit 1
     fi
-  
+
     if [ -n "$KSTREAM_PROC_APP_ID" ]; then
       echo "Deleting app with id: $KSTREAM_PROC_APP_ID"
       $NOEXEC dcos marathon app remove --force $KSTREAM_PROC_APP_ID
@@ -144,14 +146,14 @@ function main {
         for elem in $topics
         do
           echo "Deleting topic $elem..."
-          $NOEXEC dcos $KAFKA_DCOS_PACKAGE topic delete $elem
+          $NOEXEC dcos $KAFKA_DCOS_PACKAGE topic delete $elem --name="$KAFKA_DCOS_SERVICE_NAME"
         done
 
-	## delete stateful streaming topics created by Kafka
-	for elem in $(dcos $KAFKA_DCOS_PACKAGE topic list | grep "kstream-log-count" | cut -d"," -f1 | tr -d \") 
-	do 
+      	## delete stateful streaming topics created by Kafka
+      	for elem in $(dcos $KAFKA_DCOS_PACKAGE topic list | grep "kstream-log-count" | cut -d"," -f1 | tr -d \")
+      	do
           echo "Deleting topic $elem..."
-	  $NOEXEC dcos $KAFKA_DCOS_PACKAGE topic delete $elem 
+          $NOEXEC dcos $KAFKA_DCOS_PACKAGE topic delete $elem --name="$KAFKA_DCOS_SERVICE_NAME"
         done
 
       else
@@ -172,4 +174,3 @@ function main {
 
 main "$@"
 exit 0
-

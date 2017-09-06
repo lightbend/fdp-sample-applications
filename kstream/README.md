@@ -74,8 +74,11 @@ This will install both the modules as applications running under Marathon in the
 The default configuration information is from `app-install.properties`, which has the following format:
 
 ```bash
-## dcos kafka package - valid values : kafka | confluent-kafka
-kafka-dcos-package=confluent-kafka
+## dcos kafka package - valid values : beta-kafka | confluent-kafka | kafka (currently obsolete)
+kafka-dcos-package=beta-kafka
+
+## dcos service name. beta-kafka is installed as kafka by default. default is value of kafka-dcos-package
+kafka-dcos-service-name=kafka
 
 ## whether to skip creation of kafka topics - valid values : true | false
 skip-create-topics=false
@@ -114,11 +117,11 @@ However using `--config-file` option, you can specify your own configuration fil
 
 ### Starting the data ingestion process
 
-Once the applications are installed as Marathon services, data ingestion will start within some time. Data is ingested from a folder named `data` within the Mesos Sandbox (`$MESOS_SANDBOX/data`). The application starts the first time ingestion automatically within 1 minute of the installation. If you want to restart the ingestion process then you need to touch the data file within the folder. 
+Once the applications are installed as Marathon services, data ingestion will start within some time. Data is ingested from a folder named `data` within the Mesos Sandbox (`$MESOS_SANDBOX/data`). The application starts the first time ingestion automatically within 1 minute of the installation. If you want to restart the ingestion process then you need to touch the data file within the folder.
 
 ## Removing the Applications
 
-The `bin` folder contains the script to remove the applications. This script works on the metadata files that the install script generates. 
+The `bin` folder contains the script to remove the applications. This script works on the metadata files that the install script generates.
 
 > Make sure that you run the remove script from the same folder you ran the install script
 
