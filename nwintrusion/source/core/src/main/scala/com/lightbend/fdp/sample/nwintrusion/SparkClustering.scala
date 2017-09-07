@@ -15,27 +15,37 @@ import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
 import org.apache.spark.streaming.kafka010.LocationStrategies.PreferConsistent
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 
+import java.io.File
+import com.typesafe.config.ConfigFactory
+import scala.util.{ Success, Failure }
+import InfluxConfig._
+
 object SparkClustering {
 
   /**
    * argv(0) - topic to read from
    * argv(1) - kafka broker
-   * argv(2) - topic to write clustering info to
-   * argv(3) - micro batch duration in seconds 
-   * argv(4) - k 
+   * argv(2) - micro batch duration in seconds 
+   * argv(3) - k 
    **/ 
   def main(args: Array[String]) {
 
     if (args.length != 5) sys.error(usage())
+
+    // 
+    // get config info
+    val config: ConfigData = fromConfig(ConfigFactory.parseFile(new File(args(0))).resolve()) match {
+      case Success(c)  => c
+      case Failure(ex) => throw new Exception(ex)
+    }
 
     val sparkConf = new SparkConf().setAppName(getClass.getName)
     val microbatchDuration = Seconds(args(3).toInt)
     val streamingContext = new StreamingContext(sparkConf, microbatchDuration)
     streamingContext.checkpoint("checkpoint")
 
-    val topicToReadFrom = Array(args(0))
-    val broker = args(1)
-    val clusterTopic = args(2)
+    val topicToReadFrom = Array(args(1))
+    val broker = args(2)
     val noOfClusters = args(4).toInt
 
     val kafkaParams = Map[String, Object](
@@ -101,9 +111,9 @@ object SparkClustering {
       streamingContext.stop(true, true)
     }
 
-    // publish cluster info to a kafka topic
-    KafkaPublisher.publishClusterInfoToKafka(
-      projected, model, streamingContext, clusterTopic, broker)
+    // publish anomaly to Influx
+    InfluxPublisher.publishAnomaly(
+      projected, model, streamingContext, config)
 
     streamingContext.start()
     streamingContext.awaitTermination()
@@ -112,7 +122,7 @@ object SparkClustering {
   private def usage() = """
     |Run SparkClustering to iterate over the data set in micro batches and generate clustering information with anomalies
     |
-    |Usage: SparkClustering <topic to read from> <broker> <cluster topic to write to> <micro batch duration in secs> <k>
+    |Usage: SparkClustering <topic to read from> <broker> <micro batch duration in secs> <k>
     |
     |This will run on streaming data from the specified Kafka topic in microbatches of the specified duration.
     |The result will tag every data point with a cluster number and also flag as anomaly for the anomalous data point.

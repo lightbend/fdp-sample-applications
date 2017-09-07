@@ -110,6 +110,38 @@ Both the record of cluster centroids and the cluster details go to topic `nwcls`
 
 The idea behind batch k-means is to use it as a tool to fine tune the clustering process of anomaly detection. In other words, running `BatchKMeans` will give you an idea of what to pass as the value of `k` in the anomaly detection application (`SparkClustering`). Currently `BatchKMeans` iterates on the cluster number (`k`) range passed to it and prints the mean squared error for each of the values of `k` in the standard output. The optimal value an be detected using the elbow method.
 
+## Visualization
+
+The anomaly detection application finds out probable intrusion records through a heuristics model. The current model identifies those points as probable intrusion which are at a distance that exceeds the 100th farthest point from the nearest centroid. Obviously this heuristics will not work on all data sets. The current application displays all such probable intrusions to a Grafana dashboard via an InfluxDB instance running in the cluster. The displayed points are the distance of the points from the nearest centroid. These are only hints and the ones on the higher side of the plots have a higher probability of being the actual intrusion.
+
+The distribution includes a configuration file for InfluxDB named `influx.conf`:
+
+```
+influxdb {
+  server = "http://influx-db.marathon.l4lb.thisdcos.directory"
+  server = ${?INFLUXDB_SERVER}
+
+  port = 8086
+  port = ${?INFLUXDB_PORT}
+
+  user = "root"
+  user = ${?INFLUXDB_USER}
+
+  password = "root"
+  password = ${?INFLUXDB_PASSWORD}
+
+  database = "anomaly"
+  database = ${?INFLUXDB_DATABASE}
+
+  retentionPolicy = "default"
+  retentionPolicy = ${?INFLUXDB_RETENTION_POLICY}
+}
+```
+
+The InfluxDB instance in the cluster is pre-created with a database named `anomaly` and a retention policy named `default`.
+
+The distribution also contains a sample dashboard json for Grafana named `nwintrusion-grafana-dashboard.json.sample`. This can be copied and imported to Grafana to set up a sample dashboard.
+
 ## Access the Sample Apps from Zeppelin
 Instead of deploying the sample apps using the procedure outlined above, you can also try them out in a notebook environment. FDP bundles a custom build of Apache Zeppelin that contains source code for these sample apps adapted to notebooks formats.
 

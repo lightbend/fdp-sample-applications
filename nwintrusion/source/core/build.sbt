@@ -10,6 +10,7 @@ val configVersion = "1.3.1"
 val catsVersion = "0.9.0"
 val spark = "2.2.0"
 val logbackVersion = "1.2.3"
+val influxDBClientVersion = "2.7"
 
 allowSnapshot in ThisBuild := true
 
@@ -45,7 +46,9 @@ libraryDependencies ++= Seq(
   "org.apache.spark"             %%   "spark-core"                     % spark % "provided",
   "org.apache.spark"             %%   "spark-streaming"                % spark % "provided",
   "org.apache.spark"             %%   "spark-mllib"                    % spark % "provided",
-  "org.apache.spark"             %%   "spark-sql"                      % spark % "provided"
+  "org.apache.spark"             %%   "spark-sql"                      % spark % "provided",
+  "org.influxdb"                  % "influxdb-java"                    % influxDBClientVersion
+
 )
 
 //some exclusions and merge strategies for assembly
@@ -73,10 +76,12 @@ mappings in Universal ++= {
 scriptClasspath := Seq("../conf/") ++ scriptClasspath.value
 
 mainClass in Compile := Some("com.lightbend.fdp.sample.TransformIntrusionData")
+excludeFilter in Compile := "influx.conf"
 
 deployResourceConfigFiles ++= Seq("deploy.conf")
 
 deployArtifacts ++= Seq(
   ArtifactSSH((packageZipTarball in Universal).value, "/var/www/html/"),
-  ArtifactSSH(assembly.value, "/var/www/html/")
+  ArtifactSSH(assembly.value, "/var/www/html/"),
+  ArtifactSSH((resourceDirectory in Compile).value / "influx.conf", "/var/www/html") 
 )

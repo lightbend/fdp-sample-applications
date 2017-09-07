@@ -12,7 +12,6 @@ AWS_ENV_FILE=$HOME/.ssh/aws.sh
 KAFKA_FROM_TOPIC="nwin"
 KAFKA_TO_TOPIC="nwout"
 KAFKA_ERROR_TOPIC="nwerr"
-KAFKA_CLUSTERS_TOPIC="nwcls"
 # Note: underscore is not allowed as part of the id, marathon's restriction
 TRANSFORM_DATA_APP_ID="nwin-transform-data"
 
@@ -22,7 +21,7 @@ KAFKA_BROKERS=
 
 # Default command-line arguments for the Spark Streaming
 # anomaly detection app.
-DEFAULT_NO_OF_CLUSTERS=30
+DEFAULT_NO_OF_CLUSTERS=150
 DEFAULT_CLUSTERING_MICRO_BATCH_DURATION=1
 
 # Default command-line arguments for the Spark app to determine
@@ -41,13 +40,16 @@ function require_templates {
   fi
 }
 
+## dcos spark run --submit-args='--conf spark.mesos.uris=https://s3-us-west-2.amazonaws.com/andrey-so-36323287/pi.conf --class JavaSparkPiConf https://s3-us-west-2.amazonaws.com/andrey-so-36323287/sparkPi_without_config_file.jar /mnt/mesos/sandbox/pi.conf'
+
+
 function run_anomaly_detection_spark_job {
   local NO_OF_CLUSTERS=$1
   local CLUSTERING_MICRO_BATCH_DURATION=$2
   local ZEPPELIN=$3
   local SPARK_APP_CLASS="com.lightbend.fdp.sample.nwintrusion.SparkClustering"
-  local SPARK_CONF="--conf spark.cores.max=2 --conf spark.streaming.kafka.consumer.poll.ms=10000 --conf spark.streaming.kafka.consumer.cache.enabled=false"
-  local ARGS="$KAFKA_TO_TOPIC $KAFKA_BROKERS $KAFKA_CLUSTERS_TOPIC $CLUSTERING_MICRO_BATCH_DURATION $NO_OF_CLUSTERS"
+  local SPARK_CONF="--conf spark.cores.max=2 --conf spark.streaming.kafka.consumer.poll.ms=10000 --conf spark.streaming.kafka.consumer.cache.enabled=false --conf spark.mesos.uris=$LABORATORY_MESOS_PATH/influx.conf"
+  local ARGS="/mnt/mesos/sandbox/influx.conf $KAFKA_TO_TOPIC $KAFKA_BROKERS $CLUSTERING_MICRO_BATCH_DURATION $NO_OF_CLUSTERS"
   local SPARK_APP_JAR_URL="$LABORATORY_MESOS_PATH/$SPARK_APP_JAR"
 
   if [[ "$ZEPPELIN" == yes ]]; then
@@ -55,7 +57,6 @@ function run_anomaly_detection_spark_job {
 val noOfClusters = $NO_OF_CLUSTERS
 val topicToReadFrom = Array(\"$KAFKA_TO_TOPIC\")
 val broker = \"$KAFKA_BROKERS\"
-val clusterTopic = \"$KAFKA_CLUSTERS_TOPIC\"
 val duration = Seconds($CLUSTERING_MICRO_BATCH_DURATION)\n"
   else
       echo "  k = $DEFAULT_NO_OF_CLUSTERS"

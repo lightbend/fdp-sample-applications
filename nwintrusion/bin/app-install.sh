@@ -56,7 +56,6 @@ function create_topics {
     $KAFKA_FROM_TOPIC
     $KAFKA_TO_TOPIC
     $KAFKA_ERROR_TOPIC
-    $KAFKA_CLUSTERS_TOPIC
     )
   for topic in "${topics[@]}"
   do
@@ -93,7 +92,6 @@ function modify_transform_data_template {
     "KAFKA_FROM_TOPIC"
     "KAFKA_TO_TOPIC"
     "KAFKA_ERROR_TOPIC"
-    "KAFKA_CLUSTERS_TOPIC"
     "KAFKA_ZOOKEEPER_URL"
     "NATIVE_PACKAGE_ON_MESOS"
     )
@@ -390,7 +388,6 @@ function main {
       "KAFKA_FROM_TOPIC"
       "KAFKA_TO_TOPIC"
       "KAFKA_ERROR_TOPIC"
-      "KAFKA_CLUSTERS_TOPIC"
     )
 
     for elem in "${arr[@]}"
