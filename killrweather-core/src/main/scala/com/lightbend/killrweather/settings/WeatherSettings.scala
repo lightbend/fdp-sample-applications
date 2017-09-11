@@ -43,7 +43,7 @@ final class WeatherSettings extends Serializable {
 
   val localAddress = "localhost" //InetAddress.getLocalHost.getHostAddress
 
-  val kafkaBrokers = /*"localhost:9092"*/ "broker.confluent-kafka.l4lb.thisdcos.directory:9092" // for dc/os
+  val kafkaBrokers = /*"localhost:9092"*/ "broker.kafka.l4lb.thisdcos.directory:9092" // for dc/os
 
   val SparkMaster = "local[*]"
 
@@ -51,7 +51,7 @@ final class WeatherSettings extends Serializable {
 
   val SparkStreamingBatchInterval = 5000L
 
-  val SparkCheckpointDir = "hdfs://name-1-node.hdfs.mesos:9001/cpt/"
+  val SparkCheckpointDir = "hdfs://name-0-node.hdfs.mesos:9001/cpt/"
 
   val CassandraHosts = /*localAddress*/ "node.cassandra.l4lb.thisdcos.directory" // This will work only on cluster
 
