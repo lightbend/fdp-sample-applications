@@ -18,7 +18,7 @@ object Versions {
 
   val Akka              = "2.4.19"
   val AkkaStreams       = "2.4.19"
-  val AkkaStreamsKafka  = "0.16"
+  val AkkaStreamsKafka  = "0.17"
   val AkkaHTTP          = "10.0.9"
   val Cassandra         = "2.1.3"
   val Curator           = "3.2.0"
@@ -26,7 +26,7 @@ object Versions {
   val JodaConvert       = "1.8.2"
   val JodaTime          = "2.9.9"
   val Json4s            = "3.2.11"
-  val Kafka             = "0.10.2.1"
+  val Kafka             = "0.11.0.0"
   val Logback           = "1.2.3"
   val Scala             = "2.11.11"
   val Slf4j             = "1.7.16"
