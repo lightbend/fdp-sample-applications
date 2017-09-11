@@ -59,7 +59,7 @@ function create_topics {
     )
   for topic in "${topics[@]}"
   do
-    $NOEXEC dcos $KAFKA_DCOS_PACKAGE topic create $topic --partitions $PARTITIONS --replication $REPLICATION_FACTOR
+    $NOEXEC dcos $KAFKA_DCOS_PACKAGE topic create $topic --partitions $PARTITIONS --replication $REPLICATION_FACTOR --name "$KAFKA_DCOS_SERVICE_NAME"
     $NOEXEC add_to_json_array TOPICS $topic $APP_METADATA_FILE
   done
 }
@@ -71,7 +71,8 @@ declare METADATA=$(cat <<EOF
   "BATCH_KMEANS_SPARK_DRIVER_SUBMIT_ID":"",
   "TRANSFORM_DATA_APP_ID":"",
   "TOPICS": [ ],
-  "KAFKA_DCOS_PACKAGE":"$KAFKA_DCOS_PACKAGE"
+  "KAFKA_DCOS_PACKAGE":"$KAFKA_DCOS_PACKAGE",
+  "KAFKA_DCOS_SERVICE_NAME":"$KAFKA_DCOS_SERVICE_NAME"
 }
 EOF
 )
@@ -206,6 +207,11 @@ keyval() {
         KAFKA_DCOS_PACKAGE=$value
       fi
 
+      if [ "$key" == "kafka-dcos-service-name" ]
+      then
+        KAFKA_DCOS_SERVICE_NAME=$value
+      fi
+
       if [ "$key" == "skip-create-topics" ]
       then
         SKIP_CREATE_TOPICS=$value
@@ -246,6 +252,10 @@ keyval() {
     if [ -z "${DCOS_KAFKA_PACKAGE// }" ]
     then
       DCOS_KAFKA_PACKAGE=kafka
+    fi
+    if [ -z "${KAFKA_DCOS_SERVICE_NAME// }" ]
+    then
+      KAFKA_DCOS_SERVICE_NAME="${KAFKA_DCOS_PACKAGE}"
     fi
     if [ -z "${PARTITIONS// }" ]
     then
@@ -311,7 +321,7 @@ EOF
 function build_app {
   $NOEXEC cd "$PROJ_ROOT_DIR"
 
-  $NOEXEC sbt clean clean-files assembly 
+  $NOEXEC sbt clean clean-files assembly
 }
 
 function deploy_app {
@@ -322,7 +332,7 @@ function deploy_app {
   then
     TGZ_NAME=$( ls "$PROJ_ROOT_DIR"/target/universal/*.tgz )
     VERSIONED_NATIVE_PACKAGE_NAME=$( basename "$TGZ_NAME" )
-	  
+
     VERSION=$(echo ${VERSIONED_NATIVE_PACKAGE_NAME%.*} | cut -d- -f4-)
 
     NATIVE_PACKAGE_ON_MESOS="$LABORATORY_MESOS_PATH"/"$VERSIONED_NATIVE_PACKAGE_NAME"
@@ -359,7 +369,7 @@ function main {
   # remove metadata file
   $NOEXEC rm -f "$APP_METADATA_FILE"
 
-  KAFKA_ZOOKEEPER_URL="master.mesos:$ZOOKEEPER_PORT/dcos-service-$KAFKA_DCOS_PACKAGE"
+  KAFKA_ZOOKEEPER_URL="master.mesos:$ZOOKEEPER_PORT/dcos-service-$KAFKA_DCOS_SERVICE_NAME"
 
   header "Verifying required tools are installed...\n"
 

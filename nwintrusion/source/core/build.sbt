@@ -4,8 +4,8 @@ import deployssh.DeploySSH._
 
 val scalaLoggingVersion = "3.5.0"
 val alpakkaFileVersion = "0.10"
-val reactiveKafkaVersion = "0.16"
-val kafkaVersion = "0.10.2.1"
+val reactiveKafkaVersion = "0.17"
+val kafkaVersion = "0.11.0.0"
 val configVersion = "1.3.1"
 val catsVersion = "0.9.0"
 val spark = "2.2.0"

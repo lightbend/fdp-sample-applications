@@ -79,7 +79,7 @@ function create_topics {
       )
     for topic in "${topics[@]}"
     do
-      $NOEXEC dcos "$KAFKA_DCOS_PACKAGE" topic create "$topic" --partitions "$PARTITIONS" --replication "$REPLICATION_FACTOR"
+      $NOEXEC dcos "$KAFKA_DCOS_PACKAGE" topic create "$topic" --partitions "$PARTITIONS" --replication "$REPLICATION_FACTOR" --name "$KAFKA_DCOS_SERVICE_NAME"
       $NOEXEC add_to_json_array TOPICS $topic $APP_METADATA_FILE_DSL
     done
   fi
@@ -93,7 +93,7 @@ function create_topics {
       )
     for topic in "${topics[@]}"
     do
-      $NOEXEC dcos "$KAFKA_DCOS_PACKAGE" topic create "$topic" --partitions "$PARTITIONS" --replication "$REPLICATION_FACTOR"
+      $NOEXEC dcos "$KAFKA_DCOS_PACKAGE" topic create "$topic" --partitions "$PARTITIONS" --replication "$REPLICATION_FACTOR" --name "$KAFKA_DCOS_SERVICE_NAME"
       $NOEXEC add_to_json_array TOPICS $topic $APP_METADATA_FILE_PROC
     done
   fi
@@ -104,7 +104,8 @@ declare METADATA=$(cat <<EOF
 {
   "KSTREAM_DSL_APP_ID":"",
   "TOPICS": [ ],
-  "KAFKA_DCOS_PACKAGE":"$KAFKA_DCOS_PACKAGE"
+  "KAFKA_DCOS_PACKAGE":"$KAFKA_DCOS_PACKAGE",
+  "KAFKA_DCOS_SERVICE_NAME":"$KAFKA_DCOS_SERVICE_NAME"
 }
 EOF
 )
@@ -121,7 +122,8 @@ declare METADATA=$(cat <<EOF
 {
   "KSTREAM_PROC_APP_ID":"",
   "TOPICS": [ ],
-  "KAFKA_DCOS_PACKAGE":"$KAFKA_DCOS_PACKAGE"
+  "KAFKA_DCOS_PACKAGE":"$KAFKA_DCOS_PACKAGE",
+  "KAFKA_DCOS_SERVICE_NAME":"$KAFKA_DCOS_SERVICE_NAME"
 }
 EOF
 )
@@ -214,6 +216,11 @@ keyval() {
         KAFKA_DCOS_PACKAGE=$value
       fi
 
+      if [ "$key" == "kafka-dcos-service-name" ]
+      then
+        KAFKA_DCOS_SERVICE_NAME=$value
+      fi
+
       if [ "$key" == "skip-create-topics" ]
       then
         SKIP_CREATE_TOPICS=$value
@@ -251,9 +258,13 @@ keyval() {
 
     done < "$filename"
 
-    if [ -z "${DCOS_KAFKA_PACKAGE// }" ]
+    if [ -z "${KAFKA_DCOS_PACKAGE// }" ]
     then
-      DCOS_KAFKA_PACKAGE=kafka
+      KAFKA_DCOS_PACKAGE=kafka
+    fi
+    if [ -z "${KAFKA_DCOS_SERVICE_NAME// }" ]
+    then
+      KAFKA_DCOS_SERVICE_NAME="${KAFKA_DCOS_PACKAGE}"
     fi
     if [ -z "${PARTITIONS// }" ]
     then
@@ -271,6 +282,7 @@ keyval() {
     then
       PUBLISH_USER="publisher"
     fi
+
 
     exit_if_not_defined_or_empty "$PUBLISH_HOST" "publish-host"
     exit_if_not_defined_or_empty "$SSH_PORT" "ssh-port"
@@ -343,9 +355,9 @@ function build_app {
   if [ -n "$run_dsl" ]
   then
     $NOEXEC rm -rf build/dsl
-  
+
     $NOEXEC sbt clean "dslPackage/deploySsh fdp-kstream-dsl"
-  
+
     if [[ -z $NOEXEC ]]
     then
       DSL_TGZ_NAME=$( ls "$PROJ_ROOT_DIR"/build/dsl/target/universal/*.tgz )
@@ -361,9 +373,9 @@ function build_app {
   if [ -n "$run_proc" ]
   then
     $NOEXEC rm -rf build/proc
-  
+
     $NOEXEC sbt clean "procPackage/deploySsh fdp-kstream-proc"
-  
+
     if [[ -z $NOEXEC ]]
     then
       PROC_TGZ_NAME=$( ls "$PROJ_ROOT_DIR"/build/proc/target/universal/*.tgz )
@@ -472,7 +484,7 @@ function main {
 
   [ "$stop_point" = "start_only" ] && exit 0
 
-  KAFKA_ZOOKEEPER_URL="master.mesos:$ZOOKEEPER_PORT/dcos-service-$KAFKA_DCOS_PACKAGE"
+  KAFKA_ZOOKEEPER_URL="master.mesos:$ZOOKEEPER_PORT/dcos-service-$KAFKA_DCOS_SERVICE_NAME"
 
   header "Verifying required tools are installed...\n"
 

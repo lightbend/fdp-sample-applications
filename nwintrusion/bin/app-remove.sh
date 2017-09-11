@@ -12,6 +12,7 @@ TRANSFORM_DATA_APP_ID="$(jq -r '.TRANSFORM_DATA_APP_ID' $APP_METADATA_FILE)"
 LOAD_DATA_APP_ID="$(jq -r '.LOAD_DATA_APP_ID' $APP_METADATA_FILE)"
 VIS_DATA_APP_ID="$(jq -r '.VIS_DATA_APP_ID' $APP_METADATA_FILE)"
 KAFKA_DCOS_PACKAGE="$(jq -r '.KAFKA_DCOS_PACKAGE' $APP_METADATA_FILE)"
+KAFKA_DCOS_SERVICE_NAME="$(jq -r '.KAFKA_DCOS_SERVICE_NAME' $APP_METADATA_FILE)"
 topics="$(jq -r '.TOPICS[]' $APP_METADATA_FILE)"
 
 # Used by show_help
@@ -92,7 +93,7 @@ function main {
       for elem in $topics
       do
         echo "Deleting topic $elem..."
-        $NOEXEC dcos $KAFKA_DCOS_PACKAGE topic delete $elem
+        $NOEXEC dcos $KAFKA_DCOS_PACKAGE topic delete $elem --name="$KAFKA_DCOS_SERVICE_NAME"
       done
     else
       echo "KAFKA_DCOS_PACKAGE is not defined in $APP_METADATA_FILE. Skipping topic deletion.."

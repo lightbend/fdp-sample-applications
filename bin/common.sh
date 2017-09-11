@@ -64,7 +64,12 @@ function env_error {
 }
 
 function gather_kafka_connection_info {
-  KAFKA_CONN_INFO="$($NOEXEC dcos $KAFKA_DCOS_PACKAGE connection)"
+  if [ $KAFKA_DCOS_PACKAGE = "beta-kafka" ]; then
+    KAFKA_CONN_INFO="$($NOEXEC dcos $KAFKA_DCOS_PACKAGE endpoints broker --name=$KAFKA_DCOS_SERVICE_NAME)"
+  else
+    KAFKA_CONN_INFO="$($NOEXEC dcos $KAFKA_DCOS_PACKAGE connection --name=$KAFKA_DCOS_SERVICE_NAME)"
+  fi
+
   KAFKA_BROKERS="$(echo $KAFKA_CONN_INFO | $NOEXEC jq -r '.dns[0]')"
 }
 
@@ -85,7 +90,7 @@ function add_to_json_array {
 function require_kafka {
   set +e
   case "$KAFKA_DCOS_PACKAGE" in
-    kafka|confluent-kafka) ;;  # okay
+    kafka|beta-kafka|confluent-kafka) ;;  # okay
     *)
       msg=(
         "Invalid value for Kafka DC/OS package: $KAFKA_DCOS_PACKAGE"
@@ -94,7 +99,7 @@ function require_kafka {
       ;;
   esac
 
-  dcos $KAFKA_DCOS_PACKAGE --version > /dev/null 2>&1 || {
+  dcos package list --cli --json | jq -e ".[] | select(.command.name == \"$KAFKA_DCOS_PACKAGE\")" > /dev/null 2>&1 || {
     error "The dcos $KAFKA_DCOS_PACKAGE subcommand is required but it is not installed. Please install and retry..."
   }
   set -e

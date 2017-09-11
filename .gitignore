@@ -26,3 +26,4 @@ project/plugins/project/
 ingest-intrusion-data/ingest-intrusiondata-tmp/*
 bigdl/source/lib
 release/staging/
+deploy.conf
