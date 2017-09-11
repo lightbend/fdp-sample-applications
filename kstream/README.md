@@ -74,8 +74,11 @@ This will install both the modules as applications running under Marathon in the
 The default configuration information is from `app-install.properties`, which has the following format:
 
 ```bash
-## dcos kafka package - valid values : kafka | confluent-kafka
-kafka-dcos-package=confluent-kafka
+## dcos kafka package - valid values : beta-kafka | confluent-kafka | kafka (currently obsolete)
+kafka-dcos-package=beta-kafka
+
+## dcos service name. beta-kafka is installed as kafka by default. default is value of kafka-dcos-package
+kafka-dcos-service-name=kafka
 
 ## whether to skip creation of kafka topics - valid values : true | false
 skip-create-topics=false
@@ -114,11 +117,11 @@ However using `--config-file` option, you can specify your own configuration fil
 
 ### Starting the data ingestion process
 
-Once the applications are installed as Marathon services, data ingestion will start within some time. Data is ingested from a folder named `data` within the Mesos Sandbox (`$MESOS_SANDBOX/data`). The application starts the first time ingestion automatically within 1 minute of the installation. If you want to restart the ingestion process then you need to touch the data file within the folder. 
+Once the applications are installed as Marathon services, data ingestion will start within some time. Data is ingested from a folder named `data` within the Mesos Sandbox (`$MESOS_SANDBOX/data`). The application starts the first time ingestion automatically within 1 minute of the installation. If you want to restart the ingestion process then you need to touch the data file within the folder.
 
 ## Removing the Applications
 
-The `bin` folder contains the script to remove the applications. This script works on the metadata files that the install script generates. 
+The `bin` folder contains the script to remove the applications. This script works on the metadata files that the install script generates.
 
 > Make sure that you run the remove script from the same folder you ran the install script
 
@@ -674,25 +677,45 @@ In order for the interface to work, we need to ensure the following:
 This has to be installed from the Lightbend Universe, which should be the default universe once we ensure Step 3 in the last section. Before installing the package, a bunch of internal topics need to be created manually. These topics are used by the Connect worker.
 
 ```bash
-$ dcos confluent-kafka topic create dcos-connect-configs --replication 3 --partitions 1
-
-$ dcos confluent-kafka topic create dcos-connect-offsets --replication 3 --partitions 30
-
-$ dcos confluent-kafka topic create dcos-connect-status --replication 3 --partitions 10
+dcos beta-kafka topic create dcos-connect-configs --replication 3 --partitions 1 --name=kafka
+dcos beta-kafka topic create dcos-connect-offsets --replication 3 --partitions 30 --name=kafka
+dcos beta-kafka topic create dcos-connect-status --replication 3 --partitions 10 --name=kafka
 ```
 
 Check that the topics have been created without error.
 
 ```bash
-$ dcos confluent-kafka topic list
+dcos beta-kafka topic list --name=kafka
 ```
 
-The next step is to install the worker from the Universe. Here are some of the steps to install the worker from the Universe:
+The next step is to install the worker from the Universe. Here are some of the steps to install the worker from the DC/OS UI:
 
 1. Select package `confluent-connect v1.0.0-3.2.2` from the Universe
 2. Select Advanced Installation since we need to supply the hdfs URL
 3. The installation page has a link named *hdfs* in the left pane. Click on the link and fill out *config-url* with the value `http://api.hdfs.marathon.l4lb.thisdcos.directory/v1/endpoints`
 4. Complete the installation
+
+Or install from the DC/OS CLI:
+
+Create a DC/OS service override json file `options.json`.  Note that `connect.zookeeper-connect` should be the ZK namespace of the Kafka cluster you wish to use.  `connect.kafka-service` should be the DC/OS service name of the Kafka DC/OS service you wish to use.
+
+```json
+{
+  "connect": {
+    "kafka-service": "kafka",
+    "zookeeper-connect": "master.mesos:2181/dcos-service-kafka"
+  },
+  "hdfs": {
+    "config-url": "http://api.hdfs.marathon.l4lb.thisdcos.directory/v1/endpoints"
+  }
+}
+```
+
+Install `confluent-connect`:
+
+```
+dcos package install confluent-connect --package-version=1.0.0-3.2.2 --options=options.json
+```
 
 The `connect` package should now be available as a Marathon job in the DC/OS UI.
 
@@ -705,13 +728,26 @@ Once the worker and the internal topics are created, the next step is to create 
 The only way to install the connector is by using the REST APIs which Connect offers. Here's an example to install our `HdfsSinkConnector`:
 
 ```bash
-$ curl -X POST -H "Content-Type: application/json" --data '{"name": "ks-hdfs-sink", "config": {"connector.class":"HdfsSinkConnector", "tasks.max":"1", "hdfs.url":"hdfs://hdfs", "topics":"avro-topic", "flush.size":"1000" }}' http://10.8.0.19:9622/connectors
+curl -X POST -H "Content-Type: application/json" --data '{"name": "ks-hdfs-sink", "config": {"connector.class":"HdfsSinkConnector", "tasks.max":"1", "hdfs.url":"hdfs://hdfs", "topics":"avro-topic", "flush.size":"1000" }}' http://10.8.0.19:9622/connectors
 ```
 Here the last URL `http://10.8.0.19:9622/connectors` refers to the host / port where the `connect` runs.
 
 For more details on how to configure and manage connectors, have a look at this [Confluent Page](http://docs.confluent.io/current/connect/managing.html).
 
-If the above setup steps went fine, then when you run the application for Kafka Streams DSL module, records will be generated in the `avro-topic` and will be consumed by the connector and written in HDFS.
+If the above setup steps went fine, then when you run the application for Kafka Streams DSL module, records will be generated in the `hdfs://hdfs/topics/avro-topic` directory.
+
+Note: To view the contents of avro filese from the command line you can use `avrocat`, which comes with the avro distribution.  There's also a tool called [`fastavro`](https://github.com/tebeka/fastavro) which is more lightweight and easier to get going by installing the pip.
+
+Example)
+
+```bash
+# Install fastavro package with pip
+pip install fastavro
+# Pluck a test file from HDFS
+hdfs dfs -get /topics/avro-topic/partition=0/avro-topic+0+0000292000+0000292999.avro avro-topic+0+0000292000+0000292999.avro
+# Pretty print the contents
+fastavro avro-topic+0+0000292000+0000292999.avro --pretty
+```
 
 ## A note about versioning
 
