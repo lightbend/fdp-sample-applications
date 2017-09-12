@@ -1,7 +1,5 @@
 package com.lightbend.fdp.sample.nwintrusion
 
-import org.apache.kafka.common.serialization.{ ByteArraySerializer, StringSerializer }
-
 import org.apache.spark.mllib.linalg.{ Vectors, Vector }
 import org.apache.spark.mllib.clustering.{ StreamingKMeans, StreamingKMeansModel }
 import org.apache.spark.mllib.feature.StandardScaler
@@ -10,37 +8,17 @@ import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.StreamingContext
 
 
-object KafkaPublisher {
-  /**
-   * Predict cluster from `labeledData` and publish to Kafka. 
-   *
-   * The following elements are published separated by comma:
-   *
-   * a. predicted cluster number
-   * b. centroid of the cluster
-   * c. distance of the point from the centroid
-   * d. the label of the point
-   * e. if anomalous
-   * f. the point vector as a comma separated string
-   *
-   * For every microbatch, a separate record is written to the same topic, which contains
-   * the pattern : "Centroids:/<centroid1>/<centroid2>/..."
-   */ 
-  def publishClusterInfoToKafka(labeledData: DStream[(String, Vector)], model: StreamingKMeans,
-    streamingContext: StreamingContext, clusterTopic: String, broker: String) = {
+object InfluxPublisher {
+  def publishAnomaly(labeledData: DStream[(String, Vector)], model: StreamingKMeans,
+    streamingContext: StreamingContext, c: InfluxConfig.ConfigData) = {
 
-    val kafkaParams = new java.util.HashMap[String, Object]()
-    kafkaParams.put("key.serializer", classOf[ByteArraySerializer])
-    kafkaParams.put("value.serializer", classOf[StringSerializer])
-    kafkaParams.put("bootstrap.servers", broker)
-
-    val sink = KafkaSink(kafkaParams)
-    val broadcastedSink = streamingContext.sparkContext.broadcast(sink)
-    writeToKafka(labeledData, model.latestModel, broadcastedSink.value, clusterTopic)
+    println(s"Config = $c")
+    val influxDBSink = streamingContext.sparkContext.broadcast(InfluxDBSink(c))
+    writeToInflux(labeledData, model.latestModel, influxDBSink.value)
   }
 
-  private def writeToKafka(labeledData: DStream[(String, Vector)], skmodel: StreamingKMeansModel,
-    sink: KafkaSink, clusterTopic: String) = labeledData.foreachRDD { rdd =>
+  private def writeToInflux(labeledData: DStream[(String, Vector)], skmodel: StreamingKMeansModel,
+    sink: InfluxDBSink) = labeledData.foreachRDD { rdd =>
 
     var currentHundredthFarthest: Double = 0.0d
     if (rdd.count() > 0) {
@@ -73,10 +51,9 @@ object KafkaPublisher {
         // This strategy is taken from the book Advanced Analytics with Spark (http://shop.oreilly.com/product/0636920035091.do)
         val isAnomalous = distanceToCentroidForVec > currentHundredthFarthest
   
-        if (isAnomalous) {
-          val message = s"""$predictedCluster,$distanceToCentroidForVec,$label,${vec.toArray.mkString(",")}"""
-          sink.send(clusterTopic, message)
-        }
+        if (isAnomalous) sink.write(distanceToCentroidForVec)
+        // artificial delay inserted to simulate real life streaming
+        Thread.sleep(1)
       }
     }
   }
@@ -87,3 +64,4 @@ object KafkaPublisher {
     (predictedCluster, centroid, Vectors.sqdist(centroid, vec))
   }
 }
+
