@@ -23,10 +23,11 @@ import InfluxConfig._
 object SparkClustering {
 
   /**
-   * argv(0) - topic to read from
-   * argv(1) - kafka broker
-   * argv(2) - micro batch duration in seconds 
-   * argv(3) - k 
+   * argv(0) - the config file (influx.conf)
+   * argv(1) - topic to read from
+   * argv(2) - kafka broker
+   * argv(3) - micro batch duration in seconds 
+   * argv(4) - k 
    **/ 
   def main(args: Array[String]) {
 
