@@ -51,7 +51,7 @@ final class WeatherSettings extends Serializable {
 
   val SparkStreamingBatchInterval = 5000L
 
-  val SparkCheckpointDir = "hdfs://name-0-node.hdfs.mesos:9001/cpt/"
+  val SparkCheckpointDir = "hdfs://hdfs/cpt/"
 
   val CassandraHosts = /*localAddress*/ "node.cassandra.l4lb.thisdcos.directory" // This will work only on cluster
 
