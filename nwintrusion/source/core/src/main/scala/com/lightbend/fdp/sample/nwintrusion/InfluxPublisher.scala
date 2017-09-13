@@ -15,6 +15,8 @@ object InfluxPublisher {
     println(s"Config = $c")
     val influxDBSink = streamingContext.sparkContext.broadcast(InfluxDBSink(c))
     writeToInflux(labeledData, model.latestModel, influxDBSink.value)
+    // artificial delay inserted to simulate real life streaming
+    Thread.sleep(1)
   }
 
   private def writeToInflux(labeledData: DStream[(String, Vector)], skmodel: StreamingKMeansModel,
@@ -31,7 +33,7 @@ object InfluxPublisher {
 
       /**
        * We compute the hundredth farthest point from centroid in each micro batch and
-       * delcare a data point anomalous if it's distance from the nearest centroid exceeds this value.
+       * declare a data point anomalous if it's distance from the nearest centroid exceeds this value.
        * We maintain the highest of the values that we get for each batch. This is not entirely
        * foolproof a model, but this will improve with more iterations
        */ 
@@ -52,8 +54,6 @@ object InfluxPublisher {
         val isAnomalous = distanceToCentroidForVec > currentHundredthFarthest
   
         if (isAnomalous) sink.write(distanceToCentroidForVec)
-        // artificial delay inserted to simulate real life streaming
-        Thread.sleep(1)
       }
     }
   }
