@@ -25,12 +25,6 @@ object InfluxPublisher {
     var currentHundredthFarthest: Double = 0.0d
     if (rdd.count() > 0) {
   
-      // for the RDD of the microbatch, get the mean distance to centroid for all the Vectors
-      val distancesToCentroid: RDD[(Int, Double)] = rdd.map { case (l, v) => 
-        val (cluster, _, dist) = distanceToCentroid(skmodel, v)
-        (cluster, dist)
-      }
-
       /**
        * We compute the hundredth farthest point from centroid in each micro batch and
        * declare a data point anomalous if it's distance from the nearest centroid exceeds this value.
@@ -38,7 +32,7 @@ object InfluxPublisher {
        * foolproof a model, but this will improve with more iterations
        */ 
       val hundredthFarthestDistanceToCentroid: Double = { 
-        val t100 = rdd.map { case (l, v) => distanceToCentroid(skmodel, v)._3 }.top(100)
+        val t100 = rdd.map { case (l, v) => distanceToCentroid(skmodel, v) }.top(100)
         if (t100.isEmpty) 0.00 else t100.last
       }
       if (hundredthFarthestDistanceToCentroid > currentHundredthFarthest) 
@@ -47,7 +41,7 @@ object InfluxPublisher {
       (rdd.zipWithIndex).foreach { case ((label, vec), idx) =>
   
         // for each Vector in the RDD get the cluster membership, centroid and distance to centroid
-        val (predictedCluster, centroid, distanceToCentroidForVec) = distanceToCentroid(skmodel, vec) 
+        val distanceToCentroidForVec = distanceToCentroid(skmodel, vec) 
   
         // anomalous if its distance is more than the hundredth farthest distance
         // This strategy is taken from the book Advanced Analytics with Spark (http://shop.oreilly.com/product/0636920035091.do)
@@ -58,10 +52,10 @@ object InfluxPublisher {
     }
   }
 
-  private def distanceToCentroid(skmodel: StreamingKMeansModel, vec: Vector): (Int, Vector, Double) = {
+  private def distanceToCentroid(skmodel: StreamingKMeansModel, vec: Vector): Double = {
     val predictedCluster: Int = skmodel.predict(vec)
     val centroid: Vector = skmodel.clusterCenters(predictedCluster)
-    (predictedCluster, centroid, Vectors.sqdist(centroid, vec))
+    Vectors.sqdist(centroid, vec)
   }
 }
 
