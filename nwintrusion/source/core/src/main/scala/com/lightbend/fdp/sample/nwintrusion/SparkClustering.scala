@@ -35,9 +35,11 @@ object SparkClustering {
 
     // 
     // get config info
-    val config: ConfigData = fromConfig(ConfigFactory.parseFile(new File(args(0))).resolve()) match {
-      case Success(c)  => c
-      case Failure(ex) => throw new Exception(ex)
+    val config: Option[ConfigData] = fromConfig(ConfigFactory.parseFile(new File(args(0))).resolve()) match {
+      case Success(c)  => Some(c)
+      case Failure(ex) => 
+        ex.printStackTrace
+        None
     }
 
     val sparkConf = new SparkConf().setAppName(getClass.getName)
@@ -97,24 +99,21 @@ object SparkClustering {
 
     val skmodel = model.latestModel
 
-    skmodel.clusterCenters.foreach(println)
-    skmodel.clusterWeights.foreach(println)
-
     // cluster distribution on prediction
     val predictedClusters: DStream[Int] = model.predictOn(data)
 
     // prints counts per cluster 
     predictedClusters.countByValue().print()
 
-    predictedClusters.foreachRDD { rdd => println(rdd.count()) }
-
     sys.ShutdownHookThread {
       streamingContext.stop(true, true)
     }
 
-    // publish anomaly to Influx
-    InfluxPublisher.publishAnomaly(
-      projected, model, streamingContext, config)
+    config.foreach { c =>
+      // publish anomaly to Influx
+      InfluxPublisher.publishAnomaly(
+        projected, model, streamingContext, c)
+    }
 
     streamingContext.start()
     streamingContext.awaitTermination()
@@ -123,12 +122,12 @@ object SparkClustering {
   private def usage() = """
     |Run SparkClustering to iterate over the data set in micro batches and generate clustering information with anomalies
     |
-    |Usage: SparkClustering <topic to read from> <broker> <micro batch duration in secs> <k>
+    |Usage: SparkClustering <influx db conf file> <topic to read from> <broker> <micro batch duration in secs> <k>
     |
     |This will run on streaming data from the specified Kafka topic in microbatches of the specified duration.
     |The result will tag every data point with a cluster number and also flag as anomaly for the anomalous data point.
-    |The model for anomaly detection is based on the distance of the point from the nearest centroid being 3 standard
-    |deviations away from the mean.
+    |The model for anomaly detection is based on the distance of the point from the nearest centroid being farther than the
+    |hundredth farthest point form the nearest centroid
   """.stripMargin
 
   private def projectToLowerDimension: RDD[(String, Vector)] => RDD[(String, Vector)] = { rdd =>

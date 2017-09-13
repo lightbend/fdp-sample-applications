@@ -48,7 +48,7 @@ function run_anomaly_detection_spark_job {
   local CLUSTERING_MICRO_BATCH_DURATION=$2
   local ZEPPELIN=$3
   local SPARK_APP_CLASS="com.lightbend.fdp.sample.nwintrusion.SparkClustering"
-  local SPARK_CONF="--conf spark.cores.max=2 --conf spark.streaming.kafka.consumer.poll.ms=10000 --conf spark.streaming.kafka.consumer.cache.enabled=false --conf spark.mesos.uris=$LABORATORY_MESOS_PATH/influx.conf"
+  local SPARK_CONF="--conf spark.cores.max=2 --conf spark.streaming.kafka.consumer.poll.ms=10000 --conf spark.streaming.kafka.consumer.cache.enabled=false --conf spark.mesos.uris=http://api.hdfs.marathon.l4lb.thisdcos.directory/v1/endpoints/core-site.xml,http://api.hdfs.marathon.l4lb.thisdcos.directory/v1/endpoints/hdfs-site.xml,$LABORATORY_MESOS_PATH/influx.conf --driver-memory 8G"
   local ARGS="/mnt/mesos/sandbox/influx.conf $KAFKA_TO_TOPIC $KAFKA_BROKERS $CLUSTERING_MICRO_BATCH_DURATION $NO_OF_CLUSTERS"
   local SPARK_APP_JAR_URL="$LABORATORY_MESOS_PATH/$SPARK_APP_JAR"
 
