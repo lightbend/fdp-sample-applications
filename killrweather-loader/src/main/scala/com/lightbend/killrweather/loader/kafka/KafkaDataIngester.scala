@@ -1,6 +1,6 @@
 package com.lightbend.killrweather.loader.kafka
 
-import com.lightbend.killrweather.loader.utils.{DataConvertor, FilesIterator}
+import com.lightbend.killrweather.loader.utils.{ DataConvertor, FilesIterator }
 import com.lightbend.killrweather.kafka.MessageSender
 import com.lightbend.killrweather.settings.WeatherSettings
 import org.apache.kafka.common.serialization.ByteArraySerializer
@@ -52,14 +52,14 @@ class KafkaDataIngester(brokers: String) {
       batch += DataConvertor.convertToGPB(record)
       if (batch.size >= batchSize) {
         try {
-          if(sender == null)
+          if (sender == null)
             sender = MessageSender[Array[Byte], Array[Byte]](brokers, classOf[ByteArraySerializer].getName, classOf[ByteArraySerializer].getName)
           sender.batchWriteValue(topic, batch)
           batch.clear()
-        }catch{
+        } catch {
           case e: Throwable =>
             println(s"Kafka failed: ${e.printStackTrace()}")
-            if(sender != null)
+            if (sender != null)
               sender.close()
             sender = null
         }

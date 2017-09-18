@@ -1,6 +1,6 @@
 package com.lightbend.killrweather.app
 
-import com.lightbend.killrweather.kafka.{ EmbeddedSingleNodeKafkaCluster, MessageListener }
+import com.lightbend.killrweather.kafka.MessageListener
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming.{ Seconds, State, StateSpec, StreamingContext }
 import com.lightbend.killrweather.settings.WeatherSettings

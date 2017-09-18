@@ -1,8 +1,8 @@
 package com.lightbend.killrweather.loader.http
 
-import com.lightbend.killrweather.loader.utils.{DataConvertor, FilesIterator}
+import com.lightbend.killrweather.loader.utils.{ DataConvertor, FilesIterator }
 
-import scalaj.http.{Http, HttpResponse}
+import scalaj.http.{ Http, HttpResponse }
 
 /**
  * Created by boris on 7/7/17.
@@ -15,7 +15,7 @@ object KafkaDataIngesterRest {
 
   def main(args: Array[String]) {
 
-    val url = "http://10.8.0.8:5000/weather"
+    val url = "http://10.8.0.16:5000/weather"
     //    val url = "http://localhost:5000/weather"
 
     val ingester = KafkaDataIngesterRest(url)
@@ -55,10 +55,10 @@ class KafkaDataIngesterRest(url: String) {
   }
 }
 
-class HTTPSender(url : String){
+class HTTPSender(url: String) {
   val http = Http(url)
 
-  def send(string: String) : Unit = {
+  def send(string: String): Unit = {
     try {
       val response: HttpResponse[String] = http.postData(string).header("content-type", "application/json").asString
       response.code match {

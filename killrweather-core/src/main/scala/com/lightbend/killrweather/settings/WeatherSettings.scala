@@ -141,7 +141,7 @@ final class WeatherSettings extends Serializable {
   val DataFileExtension = ".csv.gz"
 
   // InfluxDB
-  val influxDBServer: String = "http://influxdb1.marathon.l4lb.thisdcos.directory"
+  val influxDBServer: String = "http://influx-db.marathon.l4lb.thisdcos.directory"
   val influxDBPort: Int = 8086
   val influxDBUser: String = "root"
   val influxDBPass: String = "root"

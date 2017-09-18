@@ -1,9 +1,9 @@
 package com.lightbend.killrweather.loader.grpc
 
 import com.lightbend.killrweather.settings.WeatherSettings
-import com.lightbend.killrweather.WeatherClient.{WeatherListenerGrpc, WeatherRecord}
-import com.lightbend.killrweather.loader.utils.{DataConvertor, FilesIterator}
-import io.grpc.{ManagedChannel, ManagedChannelBuilder, StatusRuntimeException}
+import com.lightbend.killrweather.WeatherClient.{ WeatherListenerGrpc, WeatherRecord }
+import com.lightbend.killrweather.loader.utils.{ DataConvertor, FilesIterator }
+import io.grpc.ManagedChannelBuilder
 
 /**
  * Created by boris on 7/7/17.
@@ -18,7 +18,7 @@ object KafkaDataIngesterGRPC {
 
     val settings = new WeatherSettings()
     //    val host = "localhost"
-    val host = "10.8.0.20"
+    val host = "10.8.0.16"
     val port = 50051
 
     val ingester = new KafkaDataIngesterGRPC(host, port)
@@ -45,7 +45,7 @@ class KafkaDataIngesterGRPC(host: String, port: Int) {
     var numrec = 0
     iterator.foreach(record => {
       sender.send(DataConvertor.convertToRecord(record))
-     numrec += 1
+      numrec += 1
       if (numrec >= batchSize)
         pause()
       if (numrec % 100 == 0)
@@ -60,9 +60,9 @@ class GRPCSender(host: String, port: Int) {
   private val channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext(true).build
   private val blockingStub = WeatherListenerGrpc.blockingStub(channel)
 
-  def send(record : WeatherRecord) : Unit = {
+  def send(record: WeatherRecord): Unit = {
     try {
-      blockingStub.getWeatherReport(record)
+      val result = blockingStub.getWeatherReport(record)
     } catch {
       case e: Throwable =>
         println(s"RPC failed: ${e.printStackTrace()}")

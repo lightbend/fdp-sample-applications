@@ -11,7 +11,7 @@ object TestFilesIterator {
     val iterator = FilesIterator(new java.io.File(file), "UTF-8")
     var nrec = 0
 
-    while(iterator.hasNext) {
+    while (iterator.hasNext) {
       nrec += 1
       iterator.next
     }
@@ -19,8 +19,7 @@ object TestFilesIterator {
     val iterator1 = FilesIterator(new java.io.File(file), "UTF-8")
     nrec = 0
     iterator1.foreach(r =>
-      nrec += 1
-    )
+      nrec += 1)
     println(nrec)
   }
 }

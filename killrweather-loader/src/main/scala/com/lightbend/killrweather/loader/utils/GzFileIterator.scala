@@ -1,8 +1,7 @@
 package com.lightbend.killrweather.loader.utils
 
-import java.io.{BufferedReader, FileInputStream, InputStreamReader}
+import java.io.{ BufferedReader, FileInputStream, InputStreamReader }
 import java.util.zip.GZIPInputStream
-
 
 object GzFileIterator {
   def apply(file: java.io.File, encoding: String) = {
