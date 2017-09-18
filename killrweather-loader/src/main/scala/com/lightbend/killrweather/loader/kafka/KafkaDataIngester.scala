@@ -21,7 +21,7 @@ object KafkaDataIngester {
 
     import settings._
 
-    val ingester = KafkaDataIngester( /*kafkaBrokers*/ "10.8.0.24:9757")
+    val ingester = KafkaDataIngester( /*kafkaBrokers*/ "10.8.0.10:1025")
     ingester.execute(file, KafkaTopicRaw)
   }
 
