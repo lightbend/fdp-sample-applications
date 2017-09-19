@@ -21,7 +21,49 @@ import scala.collection.mutable.ListBuffer
  */
 object KillrWeather {
 
+  def handleArgs(args: Array[String]): Unit = {
+    import com.lightbend.killrweather.app.influxdb.InfluxDBSink.{ USE_INFLUXDB_KEY, USE_INFLUXDB_DEFAULT_VALUE }
+
+    def showHelp(): Unit = {
+      println(s"""
+        usage: scala ... KillrWeather [-h | --help] [--with-influxdb | --without-influxdb]
+        where:
+          -h | --help         Show this message and exit.
+          --with-influxdb     Set the system property ${USE_INFLUXDB_KEY} to ${USE_INFLUXDB_DEFAULT_VALUE} (default)
+          --without-influxdb  Set the system property ${USE_INFLUXDB_KEY} to ${!USE_INFLUXDB_DEFAULT_VALUE}
+        """)
+    }
+
+    // We look for these arguments:
+    //   --with-influxdb - set a system prop. to USE_INFLUXDB_DEFAULT_VALUE that we are using InfluxDB (default)
+    //   --with-influxdb - set the system prop. to !USE_INFLUXDB_DEFAULT_VALUE. Use this flag for local mode!
+    //   -h | --help - show help and exit
+    // If neither InfluxDB flag is specified, no property is set and InfluxDBSink,
+    // which uses this property, uses the value of USE_INFLUXDB_DEFAULT_VALUE.
+    def parseArgs(args2: Seq[String]): Unit = args2 match {
+      case ("-h" | "--help") +: tail =>
+        showHelp()
+        sys.exit(0)
+      case "--with-influxdb" +: tail =>
+        setProp(USE_INFLUXDB_DEFAULT_VALUE)
+        parseArgs(tail)
+      case "--without-influxdb" +: tail =>
+        setProp(!USE_INFLUXDB_DEFAULT_VALUE)
+        parseArgs(tail)
+      case Nil => // end of arguments
+      case head +: tail => parseArgs(tail) // "head" is ignored
+    }
+
+    def setProp(value: Boolean): Unit = {
+      sys.props.update(USE_INFLUXDB_KEY, value.toString)
+      println(s"Setting $USE_INFLUXDB_KEY property to $value")
+    }
+
+    parseArgs(args)
+  }
+
   def main(args: Array[String]): Unit = {
+    handleArgs(args)
 
     val settings = new WeatherSettings()
 
