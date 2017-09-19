@@ -21,29 +21,31 @@ import scala.collection.mutable.ListBuffer
  */
 object KillrWeather {
 
-  def handleArgs(args: Array[String]): Unit = {
+  def handleArgs(args: Array[String], sparkConf: SparkConf): SparkConf = {
+
+    var returnedSparkConf = sparkConf
     import com.lightbend.killrweather.app.influxdb.InfluxDBSink.{ USE_INFLUXDB_KEY, USE_INFLUXDB_DEFAULT_VALUE }
 
     def showHelp(): Unit = {
       println(s"""
-        usage: scala ... KillrWeather [-h | --help] [--with-influxdb | --without-influxdb]
+        usage: scala ... KillrWeather [-h | --help] [--with-influxdb | --without-influxdb] [--master master]
         where:
           -h | --help         Show this message and exit.
           --with-influxdb     Set the system property ${USE_INFLUXDB_KEY} to ${USE_INFLUXDB_DEFAULT_VALUE} (default)
           --without-influxdb  Set the system property ${USE_INFLUXDB_KEY} to ${!USE_INFLUXDB_DEFAULT_VALUE}
+        Some Spark options are handled (others might be added later, as needed):
+          --master master     Set the Spark master (only really necessary for local execution)
         """)
     }
 
-    // We look for these arguments:
-    //   --with-influxdb - set a system prop. to USE_INFLUXDB_DEFAULT_VALUE that we are using InfluxDB (default)
-    //   --with-influxdb - set the system prop. to !USE_INFLUXDB_DEFAULT_VALUE. Use this flag for local mode!
-    //   -h | --help - show help and exit
-    // If neither InfluxDB flag is specified, no property is set and InfluxDBSink,
-    // which uses this property, uses the value of USE_INFLUXDB_DEFAULT_VALUE.
     def parseArgs(args2: Seq[String]): Unit = args2 match {
       case ("-h" | "--help") +: tail =>
         showHelp()
         sys.exit(0)
+      case "--master" +: master +: tail =>
+        returnedSparkConf = returnedSparkConf.setMaster(master)
+        println(s"Using Spark master: $master")
+        parseArgs(tail)
       case "--with-influxdb" +: tail =>
         setProp(USE_INFLUXDB_DEFAULT_VALUE)
         parseArgs(tail)
@@ -60,10 +62,10 @@ object KillrWeather {
     }
 
     parseArgs(args)
+    returnedSparkConf
   }
 
   def main(args: Array[String]): Unit = {
-    handleArgs(args)
 
     val settings = new WeatherSettings()
 
@@ -76,14 +78,15 @@ object KillrWeather {
 
     // Create context
 
-    val sparkConf = new SparkConf().setAppName(AppName)
-      //           .setMaster(SparkMaster)
+    val sparkConf1 = new SparkConf().setAppName(AppName)
       .set(
-        "spark.cassandra.connection.host",
+        "cassandra.connection.host",
         CassandraHosts
-      //        "node-0.cassandra.mesos"
       )
       .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+
+    val sparkConf = handleArgs(args, sparkConf1)
+
     val ssc = new StreamingContext(sparkConf, Seconds(SparkStreamingBatchInterval / 1000))
     ssc.checkpoint(SparkCheckpointDir)
     val sc = ssc.sparkContext
@@ -91,7 +94,6 @@ object KillrWeather {
     // Create raw data observations stream
     val kafkaParams = MessageListener.consumerProperties(
       kafkaBrokers,
-      //      "10.8.0.24:9757",
       KafkaGroupId, classOf[ByteArrayDeserializer].getName, classOf[ByteArrayDeserializer].getName
     )
     val topics = List(KafkaTopicRaw)
