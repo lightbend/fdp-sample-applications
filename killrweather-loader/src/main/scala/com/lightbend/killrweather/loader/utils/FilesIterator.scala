@@ -1,6 +1,5 @@
 package com.lightbend.killrweather.loader.utils
 
-
 object FilesIterator {
   def apply(file: java.io.File, encoding: String) = new FilesIterator(file, encoding)
 }
