@@ -65,17 +65,16 @@ class InfluxDBSink(createWriter: () => InfluxDB) extends Serializable {
 
 object InfluxDBSink {
 
-  val USE_INFLUXDB_KEY = "killrweather.useinfluxdb"
-  val USE_INFLUXDB_DEFAULT_VALUE = true;
+  import com.lightbend.killrweather.settings.WeatherSettings.{ USE_INFLUXDB_KEY, USE_INFLUXDB_DEFAULT_VALUE }
 
   lazy val useInfluxDBProp =
-    sys.props.getOrElse(InfluxDBSink.USE_INFLUXDB_KEY, InfluxDBSink.USE_INFLUXDB_DEFAULT_VALUE.toString)
+    sys.props.getOrElse(USE_INFLUXDB_KEY, USE_INFLUXDB_DEFAULT_VALUE.toString)
   lazy val useInfluxDB = try {
+    println(s"Using InfluxDB? $useInfluxDBProp")
     useInfluxDBProp.toBoolean
   } catch {
     case scala.util.control.NonFatal(ex) =>
-      println(s"""ERROR: ${InfluxDBSink.USE_INFLUXDB_KEY} property defined as "${useInfluxDBProp}", which is not convertable to a Boolean!. Using ${InfluxDBSink.USE_INFLUXDB_DEFAULT_VALUE}""")
-      InfluxDBSink.USE_INFLUXDB_DEFAULT_VALUE
+      throw new RuntimeException(s"""ERROR: ${USE_INFLUXDB_KEY} property defined as "${useInfluxDBProp}", which is not convertable to a Boolean!""", ex)
   }
 
   val settings = new WeatherSettings()

@@ -21,75 +21,32 @@ import scala.collection.mutable.ListBuffer
  */
 object KillrWeather {
 
-  def handleArgs(args: Array[String], sparkConf: SparkConf): SparkConf = {
-
-    var returnedSparkConf = sparkConf
-    import com.lightbend.killrweather.app.influxdb.InfluxDBSink.{ USE_INFLUXDB_KEY, USE_INFLUXDB_DEFAULT_VALUE }
-
-    def showHelp(): Unit = {
-      println(s"""
-        usage: scala ... KillrWeather [-h | --help] [--with-influxdb | --without-influxdb] [--master master]
-        where:
-          -h | --help         Show this message and exit.
-          --with-influxdb     Set the system property ${USE_INFLUXDB_KEY} to ${USE_INFLUXDB_DEFAULT_VALUE} (default)
-          --without-influxdb  Set the system property ${USE_INFLUXDB_KEY} to ${!USE_INFLUXDB_DEFAULT_VALUE}
-        Some Spark options are handled (others might be added later, as needed):
-          --master master     Set the Spark master (only really necessary for local execution)
-        """)
-    }
-
-    def parseArgs(args2: Seq[String]): Unit = args2 match {
-      case ("-h" | "--help") +: tail =>
-        showHelp()
-        sys.exit(0)
-      case "--master" +: master +: tail =>
-        returnedSparkConf = returnedSparkConf.setMaster(master)
-        println(s"Using Spark master: $master")
-        parseArgs(tail)
-      case "--with-influxdb" +: tail =>
-        setProp(USE_INFLUXDB_DEFAULT_VALUE)
-        parseArgs(tail)
-      case "--without-influxdb" +: tail =>
-        setProp(!USE_INFLUXDB_DEFAULT_VALUE)
-        parseArgs(tail)
-      case Nil => // end of arguments
-      case head +: tail => parseArgs(tail) // "head" is ignored
-    }
-
-    def setProp(value: Boolean): Unit = {
-      sys.props.update(USE_INFLUXDB_KEY, value.toString)
-      println(s"Setting $USE_INFLUXDB_KEY property to $value")
-    }
-
-    parseArgs(args)
-    returnedSparkConf
-  }
-
   def main(args: Array[String]): Unit = {
 
-    val settings = new WeatherSettings()
+    // Create context
 
+    WeatherSettings.handleArgs("KillrWeather", args)
+
+    val settings = new WeatherSettings()
     import settings._
+
+    var sparkConf = new SparkConf().setAppName("KillrWeather")
+      .set(
+        "spark.cassandra.connection.host",
+        CassandraHosts
+      )
+      .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+    sys.props.get("spark.master").foreach(master => sparkConf = sparkConf.setMaster(master))
+
+    val ssc = new StreamingContext(sparkConf, Seconds(SparkStreamingBatchInterval / 1000))
+    ssc.checkpoint(SparkCheckpointDir)
+    val sc = ssc.sparkContext
+
     // Create embedded Kafka and topic
     //       EmbeddedSingleNodeKafkaCluster.start()
     //        EmbeddedSingleNodeKafkaCluster.createTopic(KafkaTopicRaw)
     //        val brokers = "localhost:9092"
     //        val brokers = EmbeddedSingleNodeKafkaCluster.bootstrapServers
-
-    // Create context
-
-    val sparkConf1 = new SparkConf().setAppName(AppName)
-      .set(
-        "cassandra.connection.host",
-        CassandraHosts
-      )
-      .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-
-    val sparkConf = handleArgs(args, sparkConf1)
-
-    val ssc = new StreamingContext(sparkConf, Seconds(SparkStreamingBatchInterval / 1000))
-    ssc.checkpoint(SparkCheckpointDir)
-    val sc = ssc.sparkContext
 
     // Create raw data observations stream
     val kafkaParams = MessageListener.consumerProperties(

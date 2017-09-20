@@ -18,18 +18,34 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 object WeatherGRPCClient {
 
-  val settings = new WeatherSettings()
-  import settings._
-
   implicit val system = ActorSystem("WeatherDataIngester")
   implicit val materializer = ActorMaterializer()
   implicit val executionContext = system.dispatcher
 
+  private val port = 50051
+  private val bos = new ByteArrayOutputStream()
+
+  // Ugly...
+  def producerSettings: ProducerSettings[Array[Byte], Array[Byte]] = _producerSettings
+  private var _producerSettings: ProducerSettings[Array[Byte], Array[Byte]] = _
+
   def main(args: Array[String]): Unit = {
+
+    WeatherSettings.handleArgs("WeatherGRPCClient", args)
+
+    val settings = new WeatherSettings()
+    import settings._
+
+    _producerSettings = ProducerSettings(system, new ByteArraySerializer, new ByteArraySerializer)
+      .withBootstrapServers(
+        kafkaBrokers
+      //      "10.8.0.24:9757"
+      )
 
     val server = WeatherGRPCClient(KafkaTopicRaw)
     server.start()
     server.blockUntilShutdown()
+
   }
 
   def convertRecord(report: WeatherRecord): Array[Byte] = {
@@ -37,14 +53,6 @@ object WeatherGRPCClient {
     report.writeTo(bos)
     bos.toByteArray
   }
-
-  private val port = 50051
-  private val bos = new ByteArrayOutputStream()
-  val producerSettings = ProducerSettings(system, new ByteArraySerializer, new ByteArraySerializer)
-    .withBootstrapServers(
-      kafkaBrokers
-    //      "10.8.0.24:9757"
-    )
 
   def apply(topic: String): WeatherGRPCClient = new WeatherGRPCClient(topic)
 }
