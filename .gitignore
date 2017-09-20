@@ -24,3 +24,5 @@ test-output
 
 diagrams/*.graffle
 *.suml*
+deploy.conf
+checkpoints/
