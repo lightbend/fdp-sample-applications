@@ -16,7 +16,7 @@ lazy val protobufs = (project in file("./protobufs"))
   .settings(dependencyOverrides += "io.netty" % "netty-codec-http2" % "4.1.11.Final")
   .settings(dependencyOverrides += "io.netty" % "netty-handler-proxy" % "4.1.11.Final")
 
-lazy val killrweatherCore = (project in file("./killrweather-core"))
+lazy val killrWeatherCore = (project in file("./killrweather-core"))
   .settings(defaultSettings:_*)
   .settings(libraryDependencies ++= core)
 
@@ -52,7 +52,7 @@ lazy val killrWeatherApp = (project in file("./killrweather-app"))
         ArtifactSSH(assembly.value, "/var/www/html/")
     )
   )
-  .dependsOn(killrweatherCore, protobufs)
+  .dependsOn(killrWeatherCore, protobufs)
   .enablePlugins(DeploySSH)
 
 lazy val appLocalRunner = (project in file("./killrweather-app-local"))
@@ -76,7 +76,7 @@ lazy val httpclient = (project in file("./killrweather-httpclient"))
       ArtifactSSH((packageZipTarball in Universal).value, "/var/www/html/")
     ),
     libraryDependencies ++= clientHTTP)
-  .dependsOn(killrweatherCore, protobufs)
+  .dependsOn(killrWeatherCore, protobufs)
   .enablePlugins(DeploySSH)
   .enablePlugins(JavaAppPackaging)
 
@@ -93,15 +93,15 @@ lazy val grpcclient = (project in file("./killrweather-grpclient"))
       ArtifactSSH((packageZipTarball in Universal).value, "/var/www/html/")
     ),
     libraryDependencies ++= clientGRPC)
-  .dependsOn(killrweatherCore, protobufs)
+  .dependsOn(killrWeatherCore, protobufs)
   .enablePlugins(DeploySSH)
   .enablePlugins(JavaAppPackaging)
 
 lazy val loader = (project in file("./killrweather-loader"))
   .settings(defaultSettings:_*)
   .settings(libraryDependencies ++= loaders)
-  .dependsOn(killrweatherCore, protobufs)
+  .dependsOn(killrWeatherCore, protobufs)
 
 lazy val root = (project in file("."))
-  .aggregate(killrweatherCore, killrWeatherApp, httpclient, grpcclient, loader, protobufs)
+  .aggregate(killrWeatherCore, killrWeatherApp, httpclient, grpcclient, loader, protobufs)
 

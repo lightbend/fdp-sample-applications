@@ -23,33 +23,34 @@ object KillrWeather {
 
   def main(args: Array[String]): Unit = {
 
-    val settings = new WeatherSettings()
+    // Create context
 
+    WeatherSettings.handleArgs("KillrWeather", args)
+
+    val settings = new WeatherSettings()
     import settings._
+
+    var sparkConf = new SparkConf().setAppName("KillrWeather")
+      .set(
+        "spark.cassandra.connection.host",
+        CassandraHosts
+      )
+      .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+    sys.props.get("spark.master").foreach(master => sparkConf = sparkConf.setMaster(master))
+
+    val ssc = new StreamingContext(sparkConf, Seconds(SparkStreamingBatchInterval / 1000))
+    ssc.checkpoint(SparkCheckpointDir)
+    val sc = ssc.sparkContext
+
     // Create embedded Kafka and topic
     //       EmbeddedSingleNodeKafkaCluster.start()
     //        EmbeddedSingleNodeKafkaCluster.createTopic(KafkaTopicRaw)
     //        val brokers = "localhost:9092"
     //        val brokers = EmbeddedSingleNodeKafkaCluster.bootstrapServers
 
-    // Create context
-
-    val sparkConf = new SparkConf().setAppName(AppName)
-      //           .setMaster(SparkMaster)
-      .set(
-        "spark.cassandra.connection.host",
-        CassandraHosts
-      //        "node-0.cassandra.mesos"
-      )
-      .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-    val ssc = new StreamingContext(sparkConf, Seconds(SparkStreamingBatchInterval / 1000))
-    ssc.checkpoint(SparkCheckpointDir)
-    val sc = ssc.sparkContext
-
     // Create raw data observations stream
     val kafkaParams = MessageListener.consumerProperties(
       kafkaBrokers,
-      //      "10.8.0.24:9757",
       KafkaGroupId, classOf[ByteArrayDeserializer].getName, classOf[ByteArrayDeserializer].getName
     )
     val topics = List(KafkaTopicRaw)

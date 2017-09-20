@@ -16,10 +16,13 @@ object KafkaDataIngesterGRPC {
 
   def main(args: Array[String]) {
 
+    // See --help, which describes the --grpc-host option for specifying the host:port
+    WeatherSettings.handleArgs("WeatherGRPCClient", args)
+
     val settings = new WeatherSettings()
-    //    val host = "localhost"
-    val host = "10.8.0.16"
-    val port = 50051
+
+    val host = sys.props.getOrElse("grpc.ingester.client.host", "localhost") // "10.8.0.16"
+    val port = sys.props.getOrElse("grpc.ingester.client.port", "50051").toInt
 
     val ingester = new KafkaDataIngesterGRPC(host, port)
     ingester.execute(file)

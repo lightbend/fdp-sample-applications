@@ -57,18 +57,34 @@ class InfluxDBSink(createWriter: () => InfluxDB) extends Serializable {
 
   private def write(point: Point): Unit = {
     try {
-      influxDB.write(point)
-      //      println(s"written to influx $point")
+      if (InfluxDBSink.useInfluxDB) influxDB.write(point)
+      // println(s"written to influx $point")  // TODO replace with a debug log statement.
     } catch { case t: Throwable => println(s"Exception writing to Influx $t") }
   }
 }
 
 object InfluxDBSink {
 
+  import com.lightbend.killrweather.settings.WeatherSettings.{ USE_INFLUXDB_KEY, USE_INFLUXDB_DEFAULT_VALUE }
+
+  lazy val useInfluxDBProp =
+    sys.props.getOrElse(USE_INFLUXDB_KEY, USE_INFLUXDB_DEFAULT_VALUE.toString)
+  lazy val useInfluxDB = try {
+    println(s"Using InfluxDB? $useInfluxDBProp")
+    useInfluxDBProp.toBoolean
+  } catch {
+    case scala.util.control.NonFatal(ex) =>
+      throw new RuntimeException(s"""ERROR: ${USE_INFLUXDB_KEY} property defined as "${useInfluxDBProp}", which is not convertable to a Boolean!""", ex)
+  }
+
   val settings = new WeatherSettings()
   import settings._
 
-  def apply(): InfluxDBSink = {
+  // TODO the implementation is a bit messy.
+  def apply(): InfluxDBSink =
+    if (useInfluxDB) make() else makeNull()
+
+  def make(): InfluxDBSink = {
     val f = () => {
       val influxDB = InfluxDBFactory.connect(s"$influxDBServer:$influxDBPort", influxDBUser, influxDBPass)
       if (!influxDB.databaseExists(influxDBDatabase))
@@ -88,4 +104,7 @@ object InfluxDBSink {
     }
     new InfluxDBSink(f)
   }
+
+  def makeNull(): InfluxDBSink =
+    new InfluxDBSink(() => null.asInstanceOf[InfluxDB])
 }
