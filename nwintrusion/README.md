@@ -32,8 +32,8 @@ Try the `--help` option for `app-install.sh` for command-line options.
 The script `app-install.sh` takes all configuration parameters from a properties file.  The default file is `app-install.properties` which resides in the same directory, but you can specify the file with the `--config-file` argument.  It is recommended that you keep a set of configuration files for personal development, testing, and production.  Simply copy the default file over and modify as needed.
 
 ```
-## dcos kafka package - valid values : beta-kafka | confluent-kafka | kafka (currently obsolete)
-kafka-dcos-package=beta-kafka
+## dcos kafka package - valid values : confluent-kafka | kafka
+kafka-dcos-package=kafka
 
 ## dcos service name. beta-kafka is installed as kafka by default. default is value of kafka-dcos-package
 kafka-dcos-service-name=kafka
@@ -84,38 +84,13 @@ It also has a `--help` option to show available command-line options. For exampl
 
 ## Output of Running the App
 
-### Anomaly Detection
-
-Anomaly detection application writes the output as a delimiter separated file in the Kafka topic `nwcls`. The format of the data written is as follows:
-
-For every microbatch, the output starts with a record containing all the cluster centroids. It is of the following format and will only be present as the first record for a microbatch being processed:
-
-`Centroids:/<cluster centroid 1>/<cluster centroid 2>/...`
-
-Here <cluster centroid i> refers to a cluster centroid which is a vector of appropriate dimension. The cluster centroids are ordered based on the cluster number.
-
-The record of cluster centroids is followed by each data point processed in the microbatch. Each of these records contain the following information, separated by comma (`,`):
-
-1. Predicted cluster number
-2. Nearest centroid of this data point
-3. The distance to nearest centroid of this data point
-4. Label
-5. `true`, if this point is anomalous, `false`, otherwise
-6. The data point itself, being a vector of appropriate dimension, as a comma delimited string
-
-The format is as follows:
-
-`<Predicted Cluster No>,<centroid>,<distance to centroid>,<label>,<if anomalous>,<vector>`.
-
-Both the record of cluster centroids and the cluster details go to topic `nwcls`.
-
 ### Batch K-Means
 
 The idea behind batch k-means is to use it as a tool to fine tune the clustering process of anomaly detection. In other words, running `BatchKMeans` will give you an idea of what to pass as the value of `k` in the anomaly detection application (`SparkClustering`). Currently `BatchKMeans` iterates on the cluster number (`k`) range passed to it and prints the mean squared error for each of the values of `k` in the standard output. The optimal value an be detected using the elbow method.
 
-## Visualization
+### Visualization of Anomaly Detection
 
-The anomaly detection application finds out probable intrusion records through a heuristics model. The current model identifies those points as probable intrusion which are at a distance that exceeds the 100th farthest point from the nearest centroid. Obviously this heuristics will not work on all data sets. The current application displays all such probable intrusions to a Grafana dashboard via an InfluxDB instance running in the cluster. The displayed points are the distance of the points from the nearest centroid. These are only hints and the ones on the higher side of the plots have a higher probability of being the actual intrusion.
+The anomaly detection application finds out probable intrusion records through a heuristics model. The current model identifies those points as probable intrusion which are at a distance that exceeds the 100th farthest point from the nearest centroid. Obviously this heuristics will not work on all data sets. The current application displays all such probable intrusions to a Grafana dashboard via an InfluxDB instance running in the cluster. The points are displayed based on the distance of the points from the centroid. These are only hints and the ones on the higher side of the plots have a higher probability of being the actual intrusion. This can be visualized better with appropriate alert configuration on the dashboard based on some threshold distance.
 
 The distribution includes a configuration file for InfluxDB named `influx.conf`:
 
@@ -141,9 +116,28 @@ influxdb {
 }
 ```
 
-The InfluxDB instance in the cluster is pre-created with a database named `anomaly` and a retention policy named `default`.
+The InfluxDB instance in the cluster is pre-created with a database named `anomaly` and a retention policy named `default`. For details on how to install the custom InfluxDB instance in FDP cluster, please refer to the [document](https://github.com/typesafehub/fdp-influxdb-docker-images/blob/develop/README.md) on the InfluxDB project repository.
 
-The distribution also contains a sample dashboard json for Grafana named `nwintrusion-grafana-dashboard.json.sample`. This can be copied and imported to Grafana to set up a sample dashboard.
+#### Setting up a Grafana Dashboard
+
+Visualization is done through Grafana, which can be installed from the community package on the Mesosphere Universe. Once you install Grafana, the default login credentials are `user = admin, password = admin`. The host and port for Grafana instance can be located from the DC/OS console.
+
+> Please note that if you are not on a VPN and running an AWS cluster, you may need to translate the host IP shown on Grafana instance to public IP and may need to open the port through appropriate configuration of *Security Groups* on AWS console.
+
+Once you are logged into Grafana, the following steps need to be followed to set up a dashboard for the Network Intrusion Anomaly Detection visualization:
+
+**Step 1: Setup Datasource.** Go to the Datasource set up page and start creating a data source. Enter the following details:
+
+* Name of the datasource = `nwintrusion` 
+* Type = `InfluxDB`
+* Http Settings Url = `http://influx-db.marathon.l4lb.thisdcos.directory:8086` 
+* Http Settings Access = `proxy`
+* InfluxDB Details Database = `anomaly`
+* InfluxDB Details User = `root`, Password = `root`
+
+Save the datasource and ensure that it's working. A message will come once you click Test and Save.
+
+**Step 2: Import Dashboard.** The distribution (`bin/nwintrusion`) contains a sample dashboard json for Grafana named `nwintrusion-grafana-dashboard.json.sample`. Go to the dashboard ceation page in Grafana and import this json to set up a sample dashboard. If you want to do further customizations, you can do it on top of this basic dashboard.
 
 ## Access the Sample Apps from Zeppelin
 Instead of deploying the sample apps using the procedure outlined above, you can also try them out in a notebook environment. FDP bundles a custom build of Apache Zeppelin that contains source code for these sample apps adapted to notebooks formats.

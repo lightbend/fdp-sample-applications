@@ -64,12 +64,7 @@ function env_error {
 }
 
 function gather_kafka_connection_info {
-  if [ $KAFKA_DCOS_PACKAGE = "beta-kafka" ]; then
-    KAFKA_CONN_INFO="$($NOEXEC dcos $KAFKA_DCOS_PACKAGE endpoints broker --name=$KAFKA_DCOS_SERVICE_NAME)"
-  else
-    KAFKA_CONN_INFO="$($NOEXEC dcos $KAFKA_DCOS_PACKAGE connection --name=$KAFKA_DCOS_SERVICE_NAME)"
-  fi
-
+  KAFKA_CONN_INFO="$($NOEXEC dcos $KAFKA_DCOS_PACKAGE endpoints broker --name=$KAFKA_DCOS_SERVICE_NAME)"
   KAFKA_BROKERS="$(echo $KAFKA_CONN_INFO | $NOEXEC jq -r '.dns[0]')"
 }
 
@@ -90,7 +85,7 @@ function add_to_json_array {
 function require_kafka {
   set +e
   case "$KAFKA_DCOS_PACKAGE" in
-    kafka|beta-kafka|confluent-kafka) ;;  # okay
+    kafka|confluent-kafka) ;;  # okay
     *)
       msg=(
         "Invalid value for Kafka DC/OS package: $KAFKA_DCOS_PACKAGE"
@@ -115,9 +110,9 @@ function require_dcos_cli {
 
 function require_spark {
   set +e
-  dcos spark --version > /dev/null 2>&1 || {
+  if [[ $(dcos spark 2>&1) == *"not a dcos command"* ]]; then
     error "DC/OS spark CLI subcommand is required but it is not installed. Please install and retry..."
-  }
+  fi
   set -e
 }
 
