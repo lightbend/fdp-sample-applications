@@ -110,9 +110,9 @@ function require_dcos_cli {
 
 function require_spark {
   set +e
-  dcos spark help > /dev/null 2>&1 || {
+  if [[ $(dcos spark 2>&1) == *"not a dcos command"* ]]; then
     error "DC/OS spark CLI subcommand is required but it is not installed. Please install and retry..."
-  }
+  fi
   set -e
 }
 

@@ -297,7 +297,7 @@ keyval() {
 }
 
 function set_schema_registry_url() {
-  local str=$( $NOEXEC dcos marathon task list --json /schema-registry | $NOEXEC jq '.[0] | {host:.host, port:.ports[0]}' )
+  local str=$( $NOEXEC dcos marathon task list --json /schema-registry | $NOEXEC jq 'select(length > 0) | .[0] | {host:.host, port:.ports[0]}' )
   if [ -z "$str" ]
   then
     SCHEMA_REGISTRY_URL=
