@@ -32,7 +32,7 @@ Try the `--help` option for `app-install.sh` for command-line options.
 The script `app-install.sh` takes all configuration parameters from a properties file.  The default file is `app-install.properties` which resides in the same directory, but you can specify the file with the `--config-file` argument.  It is recommended that you keep a set of configuration files for personal development, testing, and production.  Simply copy the default file over and modify as needed.
 
 ```
-## dcos kafka package - valid values : confluent-kafka | kafka (currently obsolete)
+## dcos kafka package - valid values : confluent-kafka | kafka
 kafka-dcos-package=kafka
 
 ## dcos service name. beta-kafka is installed as kafka by default. default is value of kafka-dcos-package
