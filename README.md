@@ -200,27 +200,27 @@ If not already installed, install Kafka, InfluxDB, Grafana, and Cassandra from t
 
 After installing Cassandra, run the commands above in _Cassandra Setup_.
 
-#### 2. Install killrweather-lab
+#### 2. Install jim-lab
 
-Install `killrweather-lab`. TODO: REPLACE WITH THE SAMPLE APPS VERSION.
+Install `jim-lab`. TODO: REPLACE WITH THE SAMPLE APPS VERSION.
 
 ### Build and Deploy the Application Archives
 
-The SBT build uses a [sbt-deploy-ssh](https://github.com/shmishleniy/sbt-deploy-ssh) plugin and a `/.deploy.conf` file with configuration information to copy the "uber jars" for the application to a web server provided by the `killrweather-lab` application container. The configuration of the plugin is defined in `./projects/Settings.scala`.
+The SBT build uses a [sbt-deploy-ssh](https://github.com/shmishleniy/sbt-deploy-ssh) plugin and a `/.deploy.conf` file with configuration information to copy the "uber jars" for the application to a web server provided by the `jim-lab` application container. The configuration of the plugin is defined in `./projects/Settings.scala`.
 
 #### 3. Set Up deploy.conf
 
 In what follows, more details of deploying to FDP-Lab and submitting the apps to Marathon are described [here](https://docs.google.com/document/d/1eMG8I4z6mQ0C4Llg1VHnpV7isnVAtnk-pOkDo8tIubI/edit#heading=h.izl4k6rmh4c0).
 TODO: remove this link before distribution. Add any additional useful bits from that document here first.
 
-Copy `./deploy.conf.template` to `./deploy.conf` and edit the settings if necessary. However, they are already correct for `killrweather-lab`. (Use `jim-lab` if you deployed the default `fdp-laboratory-base` image.) Here is the default configuration:
+Copy `./deploy.conf.template` to `./deploy.conf` and edit the settings if necessary. However, they are already correct for `jim-lab`. (Use `jim-lab` if you deployed the default `fdp-laboratory-base` image.) Here is the default configuration:
 
 ```json
 servers = [
   {
     name = "killrWeather"
     user = "publisher"
-    host = killrweather-lab.marathon.mesos
+    host = jim-lab.marathon.mesos
     port = 9022
     sshKeyFile = "id_rsa"
   }
@@ -253,7 +253,7 @@ dcos marathon app add < killrweather-app/src/main/resource/killrweatherApp.json
 
 (Note the redirection of input.)
 
-This starts the app running, which is a Spark Streaming app. We won't show the contents of the JSON file here, but it's a good example of running a Spark job with Marathon, where the application jar is served using a web server, the one inside `killrweather-lab`.
+This starts the app running, which is a Spark Streaming app. We won't show the contents of the JSON file here, but it's a good example of running a Spark job with Marathon, where the application jar is served using a web server, the one inside `jim-lab`.
 
 #### 6. See What's Going On...
 
@@ -263,7 +263,7 @@ Go to http://leader.mesos/mesos/#/frameworks and search for KillrweatherApp to g
 
 #### 7. Deploy the Clients
 
-The application contains two clients, one for HTTP (`httpclient-1.0.1-SNAPSHOT.tgz`) and one for GRPC (`grpcclient-1.0.1-SNAPSHOT.tgz`). Deploying either one as a Marathon service allows it to be scaled easily (behind Marathon-LB) to increase scalability and failover. Both archives were also deployed to `killrweather-lab`.
+The application contains two clients, one for HTTP (`httpclient-1.0.1-SNAPSHOT.tgz`) and one for GRPC (`grpcclient-1.0.1-SNAPSHOT.tgz`). Deploying either one as a Marathon service allows it to be scaled easily (behind Marathon-LB) to increase scalability and failover. Both archives were also deployed to `jim-lab`.
 
 1. The HTTP client uses the REST API on top of Kafka. It can be deployed on the cluster as a marathon service using the command:
 
