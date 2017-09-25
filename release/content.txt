@@ -3,7 +3,6 @@ data
 deploy.conf.template
 diagrams
 killrweather-app
-killrweather-app-local
 killrweather-clients
 killrweather-core
 killrweather-grpclient
