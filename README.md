@@ -196,7 +196,7 @@ A few services must be installed in the cluster first.
 
 To run KillrWeather in an FDP Cluster, you'll need to start by installing the services it needs.
 
-If not already installed, install Kafka, InfluxDB, Grafana, and Cassandra from the DC/OS Catalog. More information about  InfluxDB and Grafana is provided below in _Monitoring and Viewing Results_
+If not already installed, install our Kafka distribution, InfluxDB using [this GitHub repo](https://github.com/typesafehub/fdp-influxdb-docker-images), and use the Universe/Catalog to install Grafana and Cassandra. More information about InfluxDB and Grafana is provided below in _Monitoring and Viewing Results_
 
 After installing Cassandra, run the commands above in _Cassandra Setup_.
 
