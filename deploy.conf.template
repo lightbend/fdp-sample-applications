@@ -1,9 +1,0 @@
-servers = [
-  {
-    name = "killrWeather"
-    user = "publisher"
-    host = fdp-apps-lab.marathon.mesos
-    port = 9022
-    sshKeyFile = "id_rsa"
-  }
-]

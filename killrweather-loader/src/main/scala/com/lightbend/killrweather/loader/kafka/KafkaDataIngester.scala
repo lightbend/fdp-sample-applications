@@ -21,7 +21,9 @@ object KafkaDataIngester {
 
     val settings = new WeatherSettings()
 
-    val ingester = KafkaDataIngester(settings.kafkaBrokers)
+    //    val ingester = KafkaDataIngester(settings.kafkaBrokers)
+//    val ingester = KafkaDataIngester("10.8.0.10:1025")
+    val ingester = KafkaDataIngester("10.2.2.221:1025")
     ingester.execute(file, settings.KafkaTopicRaw)
   }
 
@@ -44,32 +46,34 @@ class KafkaDataIngester(brokers: String) {
 
   def execute(file: String, topic: String): Unit = {
 
-    val iterator = FilesIterator(new java.io.File(file), "UTF-8")
-    val batch = new ListBuffer[Array[Byte]]()
-    var numrec = 0;
-    iterator.foreach(record => {
-      numrec += 1
-      batch += DataConvertor.convertToGPB(record)
-      if (batch.size >= batchSize) {
-        try {
-          if (sender == null)
-            sender = MessageSender[Array[Byte], Array[Byte]](brokers, classOf[ByteArraySerializer].getName, classOf[ByteArraySerializer].getName)
-          sender.batchWriteValue(topic, batch)
-          batch.clear()
-        } catch {
-          case e: Throwable =>
-            println(s"Kafka failed: ${e.printStackTrace()}")
-            if (sender != null)
-              sender.close()
-            sender = null
+    while (true) {
+      val iterator = FilesIterator(new java.io.File(file), "UTF-8")
+      val batch = new ListBuffer[Array[Byte]]()
+      var numrec = 0;
+      iterator.foreach(record => {
+        numrec += 1
+        batch += DataConvertor.convertToGPB(record)
+        if (batch.size >= batchSize) {
+          try {
+            if (sender == null)
+              sender = MessageSender[Array[Byte], Array[Byte]](brokers, classOf[ByteArraySerializer].getName, classOf[ByteArraySerializer].getName)
+            sender.batchWriteValue(topic, batch)
+            batch.clear()
+          } catch {
+            case e: Throwable =>
+              println(s"Kafka failed: ${e.printStackTrace()}")
+              if (sender != null)
+                sender.close()
+              sender = null
+          }
+          pause()
         }
-        pause()
-      }
-      if (numrec % 100 == 0)
-        println(s"Submitted $numrec records")
-    })
-    if (batch.size > 0)
-      sender.batchWriteValue(topic, batch)
-    println(s"Submitted $numrec records")
+        if (numrec % 100 == 0)
+          println(s"Submitted $numrec records")
+      })
+      if (batch.size > 0)
+        sender.batchWriteValue(topic, batch)
+      println(s"Submitted $numrec records")
+    }
   }
 }

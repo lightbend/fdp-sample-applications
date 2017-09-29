@@ -99,8 +99,20 @@ lazy val grpcclient = (project in file("./killrweather-grpclient"))
 
 lazy val loader = (project in file("./killrweather-loader"))
   .settings(defaultSettings:_*)
-  .settings(libraryDependencies ++= loaders)
+  .settings(
+    buildInfoPackage := "build",
+    mainClass in Compile := Some("com.lightbend.killrweather.loader.kafka.KafkaDataIngester"),
+    maintainer := "Boris Lublinsky <boris.lublinsky@lightbend.com",
+    packageSummary := "KillrWeather loaders",
+    packageDescription := "KillrWeather loaders",
+    deployResourceConfigFiles ++= Seq("deploy.conf"),
+    deployArtifacts ++= Seq(
+      ArtifactSSH((packageZipTarball in Universal).value, "/var/www/html/")
+    ),
+    libraryDependencies ++= loaders)
   .dependsOn(killrWeatherCore, protobufs)
+  .enablePlugins(DeploySSH)
+  .enablePlugins(JavaAppPackaging)
 
 lazy val root = (project in file("."))
   .aggregate(killrWeatherCore, killrWeatherApp, httpclient, grpcclient, loader, protobufs)
