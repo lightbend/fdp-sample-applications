@@ -184,64 +184,131 @@ To close the cql shell:
      cqlsh> quit;
 
 
-## DC/OS Deployment
+## FDP DC/OS Deployment
 
-To run KillrWeather in an FDP Cluster, you'll need to do the following steps.
+Now let's see how to install KillrWeather completely in an FDP DC/OS Cluster.
 
-1. Install Kafka, InfluxDB, Grafana and Cassandra (from DC/OS universe)
+### Prerequisites
 
-2. Application and clients are set up using FDP-Lab as described [here](https://docs.google.com/document/d/1eMG8I4z6mQ0C4Llg1VHnpV7isnVAtnk-pOkDo8tIubI/edit#heading=h.izl4k6rmh4c0)
+A few services must be installed in the cluster first.
+
+#### 1. Install Required Services
+
+To run KillrWeather in an FDP Cluster, you'll need to start by installing the services it needs.
+
+If not already installed, install our Kafka distribution, InfluxDB using [this GitHub repo](https://github.com/typesafehub/fdp-influxdb-docker-images), and use the Universe/Catalog to install Grafana and Cassandra. More information about InfluxDB and Grafana is provided below in _Monitoring and Viewing Results_
+
+After installing Cassandra, run the commands above in _Cassandra Setup_.
+
+#### 2. Install jim-lab
+
+Install `jim-lab`. TODO: REPLACE WITH THE SAMPLE APPS VERSION.
+
+### Build and Deploy the Application Archives
+
+The SBT build uses a [sbt-deploy-ssh](https://github.com/shmishleniy/sbt-deploy-ssh) plugin and a `/.deploy.conf` file with configuration information to copy the "uber jars" for the application to a web server provided by the `jim-lab` application container. The configuration of the plugin is defined in `./projects/Settings.scala`.
+
+#### 3. Set Up deploy.conf
+
+In what follows, more details of deploying to FDP-Lab and submitting the apps to Marathon are described [here](https://docs.google.com/document/d/1eMG8I4z6mQ0C4Llg1VHnpV7isnVAtnk-pOkDo8tIubI/edit#heading=h.izl4k6rmh4c0).
+TODO: remove this link before distribution. Add any additional useful bits from that document here first.
+
+Copy `./deploy.conf.template` to `./deploy.conf` and edit the settings if necessary. However, they are already correct for `jim-lab`. (Use `jim-lab` if you deployed the default `fdp-laboratory-base` image.) Here is the default configuration:
+
+```json
+servers = [
+  {
+    name = "killrWeather"
+    user = "publisher"
+    host = jim-lab.marathon.mesos
+    port = 9022
+    sshKeyFile = "id_rsa"
+  }
+]
+```
+
+* `name`: the name used for identifying the configuration.
+* `user`: the FDP user inside the container for ssh command.
+* `host`: the Mesos name for the laboratory service.
+* `port`: the ssh port (by default laboratory uses port 9022).
+* `sshKeyFile`: the file used by the laboratory configuration to authenticate the user (should not have a password).
+
+#### 4. Deploy the Application to FDP Laboratory
+
+Run the following SBT command:
+
+```bash
+sbt 'deploySsh killrWeather'
+```
+
+This will create an uber jar called `killrweather-spark.jar` and copy it to the FDP "laboratory" container, directory `/var/www/html`, from where it can be served through HTTP to other nodes as you submit the apps to Marathon.
+
+#### 5. Run the Main Application with Marathon
+
+The JSON file used to configure the app is `KillrWeather-app/src/main/resource/KillrweatherApp.json`. To run the app as a marathon job, use the following DC/OS CLI command:
+
+```bash
+dcos marathon app add < killrweather-app/src/main/resource/killrweatherApp.json
+```
+
+(Note the redirection of input.)
+
+This starts the app running, which is a Spark Streaming app. We won't show the contents of the JSON file here, but it's a good example of running a Spark job with Marathon, where the application jar is served using a web server, the one inside `jim-lab`.
+
+#### 6. See What's Going On...
+
+Go to the Spark Web console for this job at http://killrweatherapp.marathon.mesos:4040/jobs/ to see the minibatch and other jobs that are executed as part of this Spark Streaming job.
+
+Go to http://leader.mesos/mesos/#/frameworks and search for KillrweatherApp to get more info about the corresponding executors.
+
+#### 7. Deploy the Clients
+
+The application contains two clients, one for HTTP (`httpclient-1.0.1-SNAPSHOT.tgz`) and one for GRPC (`grpcclient-1.0.1-SNAPSHOT.tgz`). Deploying either one as a Marathon service allows it to be scaled easily (behind Marathon-LB) to increase scalability and failover. Both archives were also deployed to `jim-lab`.
+
+1. The HTTP client uses the REST API on top of Kafka. It can be deployed on the cluster as a marathon service using the command:
+
+```bash
+dcos marathon app add < ./killrweather-httpclient/src/main/resources/killrweatherHTTPClient.json
+```
+
+2. The Google RPC client uses the Google RPC interface on top of Kafka. It can be deployed on the cluster as a marathon service using the following command:
+
+```bash
+dcos marathon app add < ./killrweather-grpcclient/src/main/resources/killrweatherGRPCClient.json
+```
 
 
-#### Application itself
+### Loading data
 
-1. Copy `./deploy.conf.template` to `./deploy.conf` and edit the settings as appropriate.
-2. Run `sbt 'deploySsh killrWeather'`. This will package an uberJar spark.jar and push it to FDP lab.  The parameter to `deploySsh` must match your server configuration in `./deploy.conf`.
-3. Use `KillrWeatherApp/src/main/resource/KillrweatherApp.json` to run it as a marathon job.  With the DC/OS CLI: `dcos marathon app add < killrweather-app/src/main/resource/killrweatherApp.json`.
-4. Use http://killrweatherapp.marathon.mesos:4040/jobs/ to see execution
-5. Go to http://leader.mesos/mesos/#/frameworks and search for KillrweatherApp to get more info about executors
+The application can use three different loaders, which are local client applications that can communicate with the corresponding cluster services or clients to send weather reports.:
 
-#### Clients
-
-The application contains 2 clients:
-
-1. HTTP client - Rest API, Rest interface on top of Kafka. It can be deployed on the cluster as a marathon service using `killrweatherHTTPClient.json`.
-Deploying it as a Marathon service allows to scale it (behind Marathon-LB) to increase scalability and fail over.
-KafkaDataIngesterRest.scala is a local client that can communicate with Rest APIs to send weather reports.
-2. Google RPC client, Google RPC interface on top of Kafka. It can be deployed on the cluster as a marathon service using `killrweatherGRPCClient.json`.
-Deploying it as a Marathon service allows to scale it (behind Marathon-LB) to increase scalability and fail over.
-KafkaDataIngesterGRPC.scala is a local client that can communicate with GRPC APIs to send weather reports.
-
-
-
-## Loading data
-Application can use 3 different loaders:
 1. Direct Kafka loader `com.lightbend.killrweather.loader.kafka.KafkaDataIngester` pushes data directly to the Kafka queue
 that an application is listening on.
 2. HTTP loader `com.lightbend.killrweather.loader.kafka.KafkaDataIngesterRest` writes data to KillrWeather HTTP client.
 3. GRPC loader `com.lightbend.killrweather.loader.kafka.KafkaDataIngesterGRPC` writes data to KillrWeather GRPC client.
 
-## Monitoring and viewing results
+Use the commands we saw previously for data loading to run these commands locally.
 
-Monitoring is done using InfluxDB/Grafana (Grafana definition is in `grafana.json`). For setting up
-Grafana/InfluxDB see this [article](https://mesosphere.com/blog/monitoring-dcos-cadvisor-influxdb-grafana/)
+### Monitoring and Viewing Results
 
+For information about setting up Grafana and InfluxDB, see this [article](https://mesosphere.com/blog/monitoring-dcos-cadvisor-influxdb-grafana/).
 
-Viewing of the execution results is based on Zeppelin - see current support
-for [Cassandra in Zeppelin](https://zeppelin.apache.org/docs/0.7.0/interpreter/cassandra.html).
+Monitoring is done using InfluxDB and Grafana. In the Grafana UI, load the definitions in `./killrweather-app/src/main/resource/grafana.json`. (Click the upper-left-hand side Grafana icon, then _Dashboards_, then _Import_.) This will create a dashboard called _KillrWeather Data Ingestion_.
 
-To configure Zeppeling for use of Cassandra, make sure that interpreter is configured correctly. The most important ones are:
+Once set up and once data is flowing through the system, you can view activity in this dashboard.
 
-```
+To view execution results, a Zeppelin notebook is used, configured for [Cassandra in Zeppelin](https://zeppelin.apache.org/docs/0.7.2/interpreter/cassandra.html).
 
-name	                            value
-cassandra.cluster                   cassandra
-cassandra.hosts	                    node.cassandra.l4lb.thisdcos.directory
-cassandra.native.port	            9042
+To configure Zeppelin for use of Cassandra, make sure that interpreter is configured correctly. The most important settings are:
 
 ```
+name	                   value
+cassandra.cluster        cassandra
+cassandra.hosts	         node.cassandra.l4lb.thisdcos.directory
+cassandra.native.port	   9042
+```
 
-A sample notebook can look something like follows
+Create a notebook. Try the following, one per notebook cell:
 
 ```
 %cassandra
@@ -260,3 +327,4 @@ select wsid, month, high, low, mean,stdev,variance from monthly_aggregate_temper
 select wsid, month, high, low, mean,stdev,variance from monthly_aggregate_pressure WHERE year=2008  allow filtering;
 
 ```
+

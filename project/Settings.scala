@@ -26,9 +26,9 @@ object Settings extends Build {
     name := "KillrWeather",
     normalizedName := "killrweather",
     organization := "com.datastax.killrweather",
-    organizationHomepage := Some(url("http://www.github.com/killrweather/killrweather")),
+    organizationHomepage := Some(url("http://www.github.com/typesafehub/killrweather")),
     scalaVersion := Versions.Scala,
-    homepage := Some(url("https://github.com/killrweather/killrweather")),
+    homepage := Some(url("https://github.com/typesafehub/killrweather")),
     licenses := Seq(("Apache License, Version 2.0", url("http://www.apache.org/licenses/LICENSE-2.0")))
   )
 
