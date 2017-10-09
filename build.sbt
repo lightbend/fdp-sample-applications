@@ -1,12 +1,6 @@
 import Dependencies._
 import deployssh.DeploySSH._
 
-name := "KillrWeather"
-
-version := "1.0"
-
-scalaVersion in ThisBuild := "2.11.11"
-
 lazy val protobufs = (project in file("./protobufs"))
   .settings(
     PB.targets in Compile := Seq(
