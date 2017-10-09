@@ -87,5 +87,5 @@ object Dependencies {
     kafka.
       exclude("org.slf4j", "slf4j-log4j12").
       exclude("io.netty", "netty"))
-  val app = connector  ++ spark ++ Seq(influxDBClient)
+  val app = connector  ++ spark ++ Seq(influxDBClient, scalaHTTP.exclude("com.fasterxml.jackson.module", "jackson-module-scala_2.11"))
 }  
