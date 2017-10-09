@@ -1,5 +1,7 @@
 # Flink Sample Application
 
+**WARNING:** This app is currently not working in Fast Data Platform 1.0 RC1. It needs to be updated to work with DC/OS 1.10. This issue will be fixed in  Fast Data Platform 1.0 GA.
+
 The sample application is adapted from the publicly-available [Flink training](http://dataartisans.github.io/flink-training/) from [dataArtisans](http://data-artisans.com/). It uses a public dataset of taxi rides in New York City. The details of the dataset can be found [here](http://dataartisans.github.io/flink-training/exercises/taxiData.html). In summary, the application does the following:
 
 1. Load the dataset through a Marathon application
