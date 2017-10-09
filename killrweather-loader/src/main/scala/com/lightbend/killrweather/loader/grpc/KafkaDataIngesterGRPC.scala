@@ -21,9 +21,7 @@ object KafkaDataIngesterGRPC {
 
     val settings = new WeatherSettings()
 
-    //    val host = sys.props.getOrElse("grpc.ingester.client.host", "localhost") // "10.8.0.16"
-//    val host = "10.8.0.16"
-    val host = "10.2.2.221"
+    val host = sys.props.getOrElse("grpc.ingester.client.host", "killrweathergrpcclient.marathon.mesos") // "10.8.0.16"
     val port = sys.props.getOrElse("grpc.ingester.client.port", "50051").toInt
 
     val ingester = new KafkaDataIngesterGRPC(host, port)

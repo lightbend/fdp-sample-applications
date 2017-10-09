@@ -1,2 +1,0 @@
-unset SPARK_HOME
-dcos spark --verbose run --submit-args=" --conf spark.executor.memory=8g --conf spark.driver.memory=8g --conf spark.executor.cores=6 --conf spark.cores.max=48 --class com.lightbend.killrweather.app.KillrWeather http://jim-lab.marathon.mesos/spark.jar"

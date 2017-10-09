@@ -10,6 +10,8 @@ import org.apache.spark.streaming.kafka010.KafkaUtils
 import org.apache.spark.streaming.kafka010.LocationStrategies.PreferConsistent
 import com.datastax.spark.connector.streaming._
 import com.lightbend.killrweather.WeatherClient.WeatherRecord
+import com.lightbend.killrweather.app.cassandra.CassandraSetup
+import com.lightbend.killrweather.app.cassandra.CassandraSetup.readFile
 import com.lightbend.killrweather.app.influxdb.InfluxDBSink
 import com.lightbend.killrweather.utils._
 import org.apache.spark.util.StatCounter
@@ -36,6 +38,12 @@ object KillrWeather {
         CassandraHosts
       )
       .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+
+    // Initialize Cassandra
+    val client = new CassandraSetup(CassandraHosts)
+    readFile("/create-timeseries.cql", client)
+    client.close()
+
     sys.props.get("spark.master").foreach(master => sparkConf = sparkConf.setMaster(master))
 
     val ssc = new StreamingContext(sparkConf, Seconds(SparkStreamingBatchInterval / 1000))

@@ -15,8 +15,7 @@ object KafkaDataIngesterRest {
 
   def main(args: Array[String]) {
 
-//    val url = "http://10.8.0.16:5000/weather"
-    val url = "http://10.2.2.187:5000/weather"
+    val url = "http://killrweatherhttpclient.marathon.mesos:5000/weather"
     //    val url = "http://localhost:5000/weather"
 
     val ingester = KafkaDataIngesterRest(url)
