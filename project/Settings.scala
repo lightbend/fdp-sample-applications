@@ -21,7 +21,6 @@ import sbt.Keys._
 
 object Settings extends Build {
 
-
   lazy val buildSettings = Seq(
     name := "KillrWeather",
     normalizedName := "killrweather",
