@@ -1,6 +1,9 @@
 import Dependencies._
 import deployssh.DeploySSH._
 
+allowSnapshot in ThisBuild := true;`
+
+
 lazy val protobufs = (project in file("./protobufs"))
   .settings(
     PB.targets in Compile := Seq(
