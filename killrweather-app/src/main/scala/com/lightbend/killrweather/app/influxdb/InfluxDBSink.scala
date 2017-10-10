@@ -105,8 +105,7 @@ object InfluxDBSink {
     }
     try {
       new GrafanaSetup().setGrafana()
-    }
-    catch{
+    } catch {
       case t: Throwable => println("Grafana not initialized")
     }
     new InfluxDBSink(f)
