@@ -3,7 +3,7 @@ package com.lightbend.killrweather.app.grafana
 import scalaj.http.Http
 import scala.io.Source
 
-class GrafanaSetup(port: Int = 3000, host: String = "grafana.marathon.mesos", user: String = "admin", password: String = "admin") {
+class GrafanaSetup(port: Int = 3000, host: String = "grafana.marathon.l4lb.thisdcos.directory", user: String = "admin", password: String = "admin") {
 
   val datasource = s"http://$host:$port/api/datasources"
   val dashboard = s"http://$host:$port/api/dashboards/db"
@@ -21,12 +21,11 @@ class GrafanaSetup(port: Int = 3000, host: String = "grafana.marathon.mesos", us
   }
 }
 
-
-object GrafanaSetup{
+object GrafanaSetup {
   val dsfile = "/grafana-source.json"
   val dashfile = "/grafana-dashboard.json"
 
-  def getData(name: String) : String = {
+  def getData(name: String): String = {
     val stream = getClass.getResourceAsStream(name)
     val data = Source.fromInputStream(stream).getLines.mkString
     stream.close()

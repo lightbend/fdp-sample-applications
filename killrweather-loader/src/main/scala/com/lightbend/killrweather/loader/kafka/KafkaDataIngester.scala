@@ -22,6 +22,7 @@ object KafkaDataIngester {
 
     val brokers = if (args.length > 0) args(0) else kafkaBrokers
     val ingester = KafkaDataIngester(brokers)
+    val f = if (args.length > 1) args(1) else file
     ingester.execute(file, settings.KafkaTopicRaw)
   }
 
