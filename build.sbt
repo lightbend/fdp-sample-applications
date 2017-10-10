@@ -30,7 +30,7 @@ lazy val killrWeatherApp = (project in file("./killrweather-app"))
     maintainer := "Boris Lublinsky <boris.lublinsky@lightbend.com",
     packageSummary := "KillrWeather Spark uber jar",
     packageDescription := "KillrWeather Spark uber jar",
-    assemblyJarName in assembly := "killrweather-spark.jar",
+//    assemblyJarName in assembly := "killrweather-spark.jar",
     mainClass in assembly := Some("com.lightbend.killrweather.app.KillrWeather"),
     assemblyOption in assembly := (assemblyOption in assembly).value.copy(includeScala = false),
     assemblyMergeStrategy in assembly := {
