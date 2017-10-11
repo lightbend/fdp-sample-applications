@@ -1,6 +1,5 @@
 build.sbt
 data
-deploy.conf.template
 diagrams
 killrweather-app
 killrweather-core
@@ -9,6 +8,5 @@ killrweather-httpclient
 killrweather-loader
 project
 protobufs
-version.sbt
 LICENSE
 README.md
