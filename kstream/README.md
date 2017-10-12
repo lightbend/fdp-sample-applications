@@ -4,11 +4,10 @@ This project consists of 2 applications that demonstrate the use of Kafka Stream
 
 > These two traces contain two week's worth of all HTTP requests to the ClarkNet WWW server. ClarkNet is a full Internet access provider for the Metro Baltimore-Washington DC area.
 
-Sample Applications:
+The sample application bundle uses the above dataset and has 2 separate main applications, both accessible through http interfaces:
 
-* *WeblogProcessing* - An implementation of the of the Kafka Streams DSL.  Bundled using the `dslPackage` SBT submodule.
-* *WeblogDriver* - An implementation of the lower level Kafka Processor API.  Bundled using the `procPackage` SBT
-submodule.
+* *WeblogProcessing* - The one based on Kafka Streams DSL APIs computes aggregate information from stateful streaming like the total number of bytes transferred for a specific host or the total number of accesses made on a specific host. These can be computed on a windowed aggregation as well. 
+* *WeblogDriver* - The one based on Kafka Streams Procedure APIs implement a custom state store in Kafka Streams to check for membership information. It uses a bloom filter to implement the store on top of the APIs that KS provides. Then it consumes the Clarknet data and gives the user an http interface to check if the application has seen a specific host in its pipeline (membership query).
 
 Together these samples demonstrate the following features of Kafka Streams:
 
