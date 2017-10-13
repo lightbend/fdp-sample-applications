@@ -6,12 +6,14 @@ lazy val protobufs = (project in file("./protobufs"))
     PB.targets in Compile := Seq(
       scalapb.gen() -> (sourceManaged in Compile).value
     ))
+  .settings((allowSnapshot in ThisBuild) := true)  // Force builds to work!!!!
   .settings(libraryDependencies ++= grpc)
   .settings(dependencyOverrides += "io.netty" % "netty-codec-http2" % "4.1.11.Final")
   .settings(dependencyOverrides += "io.netty" % "netty-handler-proxy" % "4.1.11.Final")
 
 lazy val killrWeatherCore = (project in file("./killrweather-core"))
   .settings(defaultSettings:_*)
+  .settings((allowSnapshot in ThisBuild) := true)  // Force builds to work!!!!
   .settings(libraryDependencies ++= core)
 
 
@@ -22,6 +24,7 @@ lazy val killrWeatherApp = (project in file("./killrweather-app"))
     maintainer := "Boris Lublinsky <boris.lublinsky@lightbend.com",
     packageSummary := "KillrWeather Spark Runner",
     packageDescription := "KillrWeather Spark Runner",
+    (allowSnapshot in ThisBuild) := true,  // Force builds to work!!!!
     libraryDependencies ++= app)
   .settings(dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core"  % "2.6.7")
   .settings(dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.7")
@@ -50,12 +53,13 @@ lazy val killrWeatherApp = (project in file("./killrweather-app"))
   .enablePlugins(DeploySSH)
 
 lazy val appLocalRunner = (project in file("./killrweather-app-local"))
-    .settings(
-      libraryDependencies ++= spark.map(_.copy(configurations = Option("compile"))) ++ Seq(influxDBClient)
-    )
-    .settings(dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core"  % "2.6.7")
-    .settings(dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.7")
-    .dependsOn(killrWeatherApp)
+  .settings(
+    (allowSnapshot in ThisBuild) := true,  // Force builds to work!!!!
+    libraryDependencies ++= spark.map(_.copy(configurations = Option("compile"))) ++ Seq(influxDBClient)
+  )
+  .settings(dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core"  % "2.6.7")
+  .settings(dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.7")
+  .dependsOn(killrWeatherApp)
 
 lazy val httpclient = (project in file("./killrweather-httpclient"))
   .settings(defaultSettings:_*)
@@ -69,6 +73,7 @@ lazy val httpclient = (project in file("./killrweather-httpclient"))
     deployArtifacts ++= Seq(
       ArtifactSSH((packageZipTarball in Universal).value, "/var/www/html/")
     ),
+    (allowSnapshot in ThisBuild) := true,  // Force builds to work!!!!
     libraryDependencies ++= clientHTTP)
   .dependsOn(killrWeatherCore, protobufs)
   .enablePlugins(DeploySSH)
@@ -86,6 +91,7 @@ lazy val grpcclient = (project in file("./killrweather-grpclient"))
     deployArtifacts ++= Seq(
       ArtifactSSH((packageZipTarball in Universal).value, "/var/www/html/")
     ),
+    (allowSnapshot in ThisBuild) := true,  // Force builds to work!!!!
     libraryDependencies ++= clientGRPC)
   .dependsOn(killrWeatherCore, protobufs)
   .enablePlugins(DeploySSH)
@@ -103,6 +109,7 @@ lazy val loader = (project in file("./killrweather-loader"))
     deployArtifacts ++= Seq(
       ArtifactSSH((packageZipTarball in Universal).value, "/var/www/html/")
     ),
+    (allowSnapshot in ThisBuild) := true,  // Force builds to work!!!!
     libraryDependencies ++= loaders)
   .dependsOn(killrWeatherCore, protobufs)
   .enablePlugins(DeploySSH)
