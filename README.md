@@ -39,7 +39,7 @@ We recommend using [IntelliJ IDEA](https://www.jetbrains.com/idea/) for managing
 * `killrweatherCore` - some support code used throughout an application. Also includes Embedded Kafka allowing you to run everything locally
 * `killrweather-grcpclient` - client for exposing KillrWeather app over [GRPC](https://grpc.io/). This client accepts GRPC messages and publishes them to Kafka for application consumption.
 * `killrweather-httpclient` - client for exposing KillrWeather app over HTTP. This client accepts HTTP messages (in JSON) and publishes them to Kafka for application consumption.
-* `killrWeather-loader` - a collection of loaders for reading the reports data (from the `data` directory) and publishing it (via Kafka, GRPC, and HTTP) to the application.
+* `killrweather-loader` - a collection of loaders for reading the reports data (from the `data` directory) and publishing it (via Kafka, GRPC, and HTTP) to the application.
 
 The build is done via SBT
 
@@ -193,7 +193,7 @@ A few services must be installed in the cluster first.
 
 To run KillrWeather in an FDP Cluster, you'll need to start by installing the services it needs.
 
-If not already installed, install our Kafka distribution, InfluxDB using [this GitHub repo](https://github.com/typesafehub/fdp-influxdb-docker-images), and use the Universe/Catalog to install Grafana and Cassandra. More information about InfluxDB and Grafana is provided below in _Monitoring and Viewing Results_
+If not already installed, install Kafka using Fast Data Platform Manager. Install InfluxDB using the `fdp-influxdb-docker-images` package that's part of the Fast Data Platform distribution. Install Grafana and Cassandra using the DC/OS Catalog. More information about InfluxDB and Grafana is provided below in _Monitoring and Viewing Results_
 
 After installing Cassandra, run the commands above in _Cassandra Setup_.
 
