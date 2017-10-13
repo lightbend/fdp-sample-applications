@@ -239,7 +239,7 @@ Run the following SBT command:
 sbt 'deploySsh killrWeather'
 ```
 
-This will create an uber jar called `killrweather-spark.jar` and copy it to the FDP "laboratory" container, directory `/var/www/html`, from where it can be served through HTTP to other nodes as you submit the apps to Marathon.
+This will create an uber jar called `killrweather-spark.jar` and copy it to the FDP apps "laboratory" container, directory `/var/www/html`, from where it can be served through HTTP to other nodes as you submit the apps to Marathon.
 
 #### 5. Run the Main Application with Marathon
 
