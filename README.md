@@ -140,9 +140,6 @@ Enter `3`.
 
 There are also `-h` and `--help` options that show a help message and exit for each of these commands.
 
-TODO: RUNNING IN IntelliJ
-
-
 ### Cassandra Setup
 
 Use these CQL commands whether running Cassandra locally or in a cluster.
@@ -200,9 +197,9 @@ If not already installed, install our Kafka distribution, InfluxDB using [this G
 
 After installing Cassandra, run the commands above in _Cassandra Setup_.
 
-#### 2. Install jim-lab
+#### 2. Install fdp-apps-lab
 
-Install `jim-lab`. TODO: REPLACE WITH THE SAMPLE APPS VERSION.
+Install the `fdp-apps-lab` "laboratory. See the separate `fdp-package-sample-apps` project for details.
 
 ### Build and Deploy the Application Archives
 
@@ -210,8 +207,7 @@ The SBT build uses a [sbt-deploy-ssh](https://github.com/shmishleniy/sbt-deploy-
 
 #### 3. Set Up deploy.conf
 
-In what follows, more details of deploying to FDP-Lab and submitting the apps to Marathon are described [here](https://docs.google.com/document/d/1eMG8I4z6mQ0C4Llg1VHnpV7isnVAtnk-pOkDo8tIubI/edit#heading=h.izl4k6rmh4c0).
-TODO: remove this link before distribution. Add any additional useful bits from that document here first.
+In what follows, more details of deploying to `fdp-apps-lab` and submitting the apps to Marathon are implemented in the SBT build files.
 
 Copy `./deploy.conf.template` to `./deploy.conf` and edit the settings if necessary. However, they are already correct for `jim-lab`. (Use `jim-lab` if you deployed the default `fdp-laboratory-base` image.) Here is the default configuration:
 
