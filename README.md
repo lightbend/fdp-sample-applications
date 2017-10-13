@@ -142,7 +142,7 @@ There are also `-h` and `--help` options that show a help message and exit for e
 
 ### Cassandra Setup
 
-Use these CQL commands whether running Cassandra locally or in a cluster.
+On first startup, the application automatically executes the several CQL commands. If you want to do this step manually, they won't be repeated by the application:
 
 Start `CQLSH`. You should see something similar to:
 
@@ -195,7 +195,7 @@ To run KillrWeather in an FDP Cluster, you'll need to start by installing the se
 
 If not already installed, install Kafka using Fast Data Platform Manager. Install InfluxDB using the `fdp-influxdb-docker-images` package that's part of the Fast Data Platform distribution. Install Grafana and Cassandra using the DC/OS Catalog. More information about InfluxDB and Grafana is provided below in _Monitoring and Viewing Results_
 
-After installing Cassandra, run the commands above in _Cassandra Setup_.
+After installing Cassandra, you could run the commands above in _Cassandra Setup_, but they will be handled automatically.
 
 #### 2. Install fdp-apps-lab
 
@@ -203,7 +203,9 @@ Install the `fdp-apps-lab` "laboratory. See the separate `fdp-package-sample-app
 
 ### Build and Deploy the Application Archives
 
-The SBT build uses a [sbt-deploy-ssh](https://github.com/shmishleniy/sbt-deploy-ssh) plugin and a `/.deploy.conf` file with configuration information to copy the "uber jars" for the application to a web server provided by the `jim-lab` application container. The configuration of the plugin is defined in `./projects/Settings.scala`.
+> **NOTE:** At this time, the following deployment step is not supported for `fdp-apps-lab`. A future release will support this option.
+
+The SBT build uses a [sbt-deploy-ssh](https://github.com/shmishleniy/sbt-deploy-ssh) plugin and a `/.deploy.conf` file with configuration information to copy the "uber jars" for the application to a web server provided by the `fdp-apps-lab` application container. The configuration of the plugin is defined in `./project/Settings.scala`.
 
 #### 3. Set Up deploy.conf
 
