@@ -1,0 +1,25 @@
+{
+  "id": "/killrweatherapp",
+  "cmd": "cp $MESOS_SANDBOX/killrweather-spark.jar /opt/spark/dist/bin/killrweather-spark.jar && export HADOOP_CONF_DIR=$MESOS_SANDBOX && /opt/spark/dist/bin/spark-submit --master mesos://leader.mesos:5050 --deploy-mode client --conf spark.executor.uri=https://downloads.mesosphere.com/spark/assets/spark-2.2.0-bin-2.6.tgz --conf spark.mesos.executor.docker.image=mesosphere/spark:1.1.1-2.2.0-hadoop-2.6 --conf spark.streaming.minRememberDuration=1200s --conf spark.mesos.uris=http://api.hdfs.marathon.l4lb.thisdcos.directory/v1/endpoints/core-site.xml,http://api.hdfs.marathon.l4lb.thisdcos.directory/v1/endpoints/hdfs-site.xml --conf spark.executor.memory=8g --conf spark.executor.cores=4 --conf spark.cores.max=32 --conf driver.memory=8g --conf spark.network.timeout=10000000 --class com.lightbend.killrweather.app.KillrWeather /opt/spark/dist/bin/killrweather-spark.jar",
+  "cpus": 2,
+  "disk": 1024,
+  "mem": 8192,
+  "container": {
+    "type": "DOCKER",
+    "volumes": [],
+    "docker": {
+      "image": "mesosphere/spark:1.1.1-2.2.0-hadoop-2.6",
+      "portMappings": [],
+      "privileged": false,
+      "parameters": [],
+      "forcePullImage": false
+    }
+  },
+  "killSelection": "YOUNGEST_FIRST",
+  "requirePorts": false,
+  "fetch": [
+    { "uri" : "http://jim-lab.marathon.mesos/killrweather-spark.jar"},
+    { "uri" : "http://api.hdfs.marathon.l4lb.thisdcos.directory/v1/endpoints/hdfs-site.xml"},
+    { "uri" : "http://api.hdfs.marathon.l4lb.thisdcos.directory/v1/endpoints/core-site.xml"}
+  ]
+}

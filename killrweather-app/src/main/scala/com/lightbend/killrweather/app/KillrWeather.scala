@@ -40,9 +40,13 @@ object KillrWeather {
       .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
 
     // Initialize Cassandra
-    val client = new CassandraSetup(CassandraHosts)
-    readFile("/create-timeseries.cql", client)
-    client.close()
+    try {
+      val client = new CassandraSetup(CassandraHosts)
+      readFile("/create-timeseries.cql", client)
+      client.close()
+    } catch {
+      case t: Throwable => println("Cassandra not initialized")
+    }
 
     sys.props.get("spark.master").foreach(master => sparkConf = sparkConf.setMaster(master))
 

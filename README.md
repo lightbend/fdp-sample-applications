@@ -39,7 +39,7 @@ We recommend using [IntelliJ IDEA](https://www.jetbrains.com/idea/) for managing
 * `killrweatherCore` - some support code used throughout an application. Also includes Embedded Kafka allowing you to run everything locally
 * `killrweather-grcpclient` - client for exposing KillrWeather app over [GRPC](https://grpc.io/). This client accepts GRPC messages and publishes them to Kafka for application consumption.
 * `killrweather-httpclient` - client for exposing KillrWeather app over HTTP. This client accepts HTTP messages (in JSON) and publishes them to Kafka for application consumption.
-* `killrweather-loader` - a collection of loaders for reading the reports data (from the `data` directory) and publishing it (via Kafka, GRPC, and HTTP) to the application.
+* `killrWeather-loader` - a collection of loaders for reading the reports data (from the `data` directory) and publishing it (via Kafka, GRPC, and HTTP) to the application.
 
 The build is done via SBT
 
@@ -140,9 +140,12 @@ Enter `3`.
 
 There are also `-h` and `--help` options that show a help message and exit for each of these commands.
 
+TODO: RUNNING IN IntelliJ
+
+
 ### Cassandra Setup
 
-On first startup, the application automatically executes the several CQL commands. If you want to do this step manually, they won't be repeated by the application:
+Use these CQL commands whether running Cassandra locally or in a cluster.
 
 Start `CQLSH`. You should see something similar to:
 
@@ -193,23 +196,22 @@ A few services must be installed in the cluster first.
 
 To run KillrWeather in an FDP Cluster, you'll need to start by installing the services it needs.
 
-If not already installed, install Kafka using Fast Data Platform Manager. Install InfluxDB using the `fdp-influxdb-docker-images` package that's part of the Fast Data Platform distribution. Install Grafana and Cassandra using the DC/OS Catalog. More information about InfluxDB and Grafana is provided below in _Monitoring and Viewing Results_
+If not already installed, install our Kafka distribution, InfluxDB using [this GitHub repo](https://github.com/typesafehub/fdp-influxdb-docker-images), and use the Universe/Catalog to install Grafana and Cassandra. More information about InfluxDB and Grafana is provided below in _Monitoring and Viewing Results_
 
-After installing Cassandra, you could run the commands above in _Cassandra Setup_, but they will be handled automatically.
+After installing Cassandra, run the commands above in _Cassandra Setup_.
 
-#### 2. Install fdp-apps-lab
+#### 2. Install jim-lab
 
-Install the `fdp-apps-lab` "laboratory. See the separate `fdp-package-sample-apps` project for details.
+Install `jim-lab`. TODO: REPLACE WITH THE SAMPLE APPS VERSION.
 
 ### Build and Deploy the Application Archives
 
-> **NOTE:** At this time, the following deployment step is not supported for `fdp-apps-lab`. A future release will support this option.
-
-The SBT build uses a [sbt-deploy-ssh](https://github.com/shmishleniy/sbt-deploy-ssh) plugin and a `/.deploy.conf` file with configuration information to copy the "uber jars" for the application to a web server provided by the `fdp-apps-lab` application container. The configuration of the plugin is defined in `./project/Settings.scala`.
+The SBT build uses a [sbt-deploy-ssh](https://github.com/shmishleniy/sbt-deploy-ssh) plugin and a `/.deploy.conf` file with configuration information to copy the "uber jars" for the application to a web server provided by the `jim-lab` application container. The configuration of the plugin is defined in `./projects/Settings.scala`.
 
 #### 3. Set Up deploy.conf
 
-In what follows, more details of deploying to `fdp-apps-lab` and submitting the apps to Marathon are implemented in the SBT build files.
+In what follows, more details of deploying to FDP-Lab and submitting the apps to Marathon are described [here](https://docs.google.com/document/d/1eMG8I4z6mQ0C4Llg1VHnpV7isnVAtnk-pOkDo8tIubI/edit#heading=h.izl4k6rmh4c0).
+TODO: remove this link before distribution. Add any additional useful bits from that document here first.
 
 Copy `./deploy.conf.template` to `./deploy.conf` and edit the settings if necessary. However, they are already correct for `jim-lab`. (Use `jim-lab` if you deployed the default `fdp-laboratory-base` image.) Here is the default configuration:
 
@@ -239,7 +241,7 @@ Run the following SBT command:
 sbt 'deploySsh killrWeather'
 ```
 
-This will create an uber jar called `killrweather-spark.jar` and copy it to the FDP apps "laboratory" container, directory `/var/www/html`, from where it can be served through HTTP to other nodes as you submit the apps to Marathon.
+This will create an uber jar called `killrweather-spark.jar` and copy it to the FDP "laboratory" container, directory `/var/www/html`, from where it can be served through HTTP to other nodes as you submit the apps to Marathon.
 
 #### 5. Run the Main Application with Marathon
 

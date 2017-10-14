@@ -1,5 +1,5 @@
 
-CREATE KEYSPACE IF NOT EXISTS isd_weather_data WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 3 };
+CREATE KEYSPACE IF NOT EXISTS isd_weather_data WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
 
 use isd_weather_data;
 

@@ -24,12 +24,18 @@ object Dependencies {
   val json4sCore        = "org.json4s"              % "json4s-core_2.11"                % Json4s                            // ApacheV2
   val json4sJackson     = "org.json4s"              % "json4s-jackson_2.11"             % Json4s                            // ApacheV2
   val json4sNative      = "org.json4s"              % "json4s-native_2.11"              % Json4s                            // ApacheV2
+
   val kafka             = "org.apache.kafka"        % "kafka_2.11"                      % Kafka                             // ApacheV2
+
   val sparkCore         = "org.apache.spark"        % "spark-core_2.11"                 % Spark            % "provided"     // ApacheV2
   val sparkCatalyst     = "org.apache.spark"        % "spark-catalyst_2.11"             % Spark            % "provided"     // ApacheV2
   val sparkKafkaStreaming = "org.apache.spark"      % "spark-streaming-kafka-0-10_2.11" % Spark                             // ApacheV2
   val sparkStreaming    = "org.apache.spark"        % "spark-streaming_2.11"            % Spark            % "provided"     // ApacheV2
   val sparkSQL          = "org.apache.spark"        % "spark-sql_2.11"                  % Spark            % "provided"     // ApacheV2
+
+  val sparkKafkaSQL     = "org.apache.spark"        % "spark-sql-kafka-0-10_2.11"       % Spark
+
+
   val logback           = "ch.qos.logback"          % "logback-classic"                 % Logback                           // LGPL
   val slf4jApi          = "org.slf4j"               % "slf4j-api"                       % Slf4j                             // MIT
   val slf4jLog          = "org.slf4j"               % "slf4j-log4j12"                   % Slf4j                             // MIT
@@ -76,6 +82,14 @@ object Dependencies {
       .exclude("org.apache.spark", "spark-core_2.11"),
     sparkCatalyst, sparkSQL)
 
+  val sparkStructured = Seq(sparkCore, sparkSQL, sparkKafkaSQL
+/*    .exclude("org.apache.spark", "spark-tags_2.11")
+    .exclude("org.apache.spark", "spark-streaming_2.11")
+    .exclude("org.apache.kafka", "kafka_2.11")
+    .exclude("org.spark-project.spark", "unused")
+    .exclude("org.apache.spark", "spark-core_2.11") */
+  )
+
   /** Module deps */
   val clientHTTP = logging ++ akka ++ json
   val clientGRPC = logging ++ akka ++ grpc
@@ -88,4 +102,6 @@ object Dependencies {
       exclude("org.slf4j", "slf4j-log4j12").
       exclude("io.netty", "netty"))
   val app = connector  ++ spark ++ Seq(influxDBClient, scalaHTTP.exclude("com.fasterxml.jackson.module", "jackson-module-scala_2.11"))
-}  
+
+  val appStructured = connector  ++ sparkStructured ++ Seq(influxDBClient, scalaHTTP.exclude("com.fasterxml.jackson.module", "jackson-module-scala_2.11"))
+}
