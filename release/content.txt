@@ -2,5 +2,6 @@ bin/
 bigdl/
 flink/
 nwintrusion/
+build-plugin/
 LICENSE
 README.md
