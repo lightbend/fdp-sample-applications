@@ -1,4 +1,5 @@
 build.sbt
+build-plugin
 data
 diagrams
 killrweather-app
