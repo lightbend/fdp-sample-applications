@@ -22,7 +22,7 @@ object KillrWeatherStructured {
     val spark = SparkSession.builder
       .appName("KillrWeather with Structured Streaming")
       .master("local")
-      .config("spark.cassandra.connection.host", "10.2.2.13" /*CassandraHosts*/ )
+      .config("spark.cassandra.connection.host", CassandraHosts )
       .config("spark.sql.streaming.checkpointLocation", SparkCheckpointDir)
       .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .getOrCreate()
@@ -36,7 +36,7 @@ object KillrWeatherStructured {
 
     // Initialize Grafana
     try {
-      new GrafanaSetup(4086, "10.2.2.198").setGrafana()
+      new GrafanaSetup().setGrafana()
     } catch {
       case t: Throwable => println(s"Grafana not initialized ${t.getMessage}")
     }
