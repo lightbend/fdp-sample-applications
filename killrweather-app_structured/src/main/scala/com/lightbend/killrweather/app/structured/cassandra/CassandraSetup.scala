@@ -1,14 +1,14 @@
-package com.lightbend.killrweather.app.cassandra
+package com.lightbend.killrweather.app.structured.cassandra
 
 import com.datastax.spark.connector.cql.CassandraConnector
-import org.apache.spark.SparkConf
+import org.apache.spark.sql.SparkSession
 
 import scala.collection.mutable.ListBuffer
 import scala.io.Source
 
-class CassandraSetup(sparkConf: SparkConf) {
+class CassandraSetup(sparkSession: SparkSession) {
 
-  val connector = CassandraConnector.apply(sparkConf)
+  val connector = CassandraConnector.apply(sparkSession.sparkContext.getConf)
 
   def setup(file: String = "/create-timeseries.cql"): Unit = {
 

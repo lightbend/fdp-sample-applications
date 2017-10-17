@@ -1,6 +1,8 @@
 import Dependencies._
 import deployssh.DeploySSH._
 
+allowSnapshot in ThisBuild := true
+
 lazy val protobufs = (project in file("./protobufs"))
   .settings(
     PB.targets in Compile := Seq(
@@ -30,7 +32,6 @@ lazy val killrWeatherApp = (project in file("./killrweather-app"))
     maintainer := "Boris Lublinsky <boris.lublinsky@lightbend.com",
     packageSummary := "KillrWeather Spark uber jar",
     packageDescription := "KillrWeather Spark uber jar",
-//    assemblyJarName in assembly := "killrweather-spark.jar",
     mainClass in assembly := Some("com.lightbend.killrweather.app.KillrWeather"),
     assemblyOption in assembly := (assemblyOption in assembly).value.copy(includeScala = false),
     assemblyMergeStrategy in assembly := {
@@ -56,6 +57,47 @@ lazy val appLocalRunner = (project in file("./killrweather-app-local"))
     .settings(dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core"  % "2.6.7")
     .settings(dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.7")
     .dependsOn(killrWeatherApp)
+
+lazy val killrWeatherApp_structured = (project in file("./killrweather-app_structured"))
+  .settings(defaultSettings:_*)
+  .settings(
+    mainClass in Compile := Some("com.lightbend.killrweather.app.structured.KillrWeatherStructured"),
+    maintainer := "Boris Lublinsky <boris.lublinsky@lightbend.com",
+    packageSummary := "KillrWeather Spark structured Streaming Runner",
+    packageDescription := "KillrWeather Spark Structured streaming Runner",
+    libraryDependencies ++= appStructured)
+  .settings(dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core"  % "2.6.7")
+  .settings(dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.7")
+  .settings(dependencyDotFile := file("dependencies.dot"))
+  .settings(
+    maintainer := "Boris Lublinsky <boris.lublinsky@lightbend.com",
+    packageSummary := "KillrWeather Spark structured streaming uber jar",
+    packageDescription := "KillrWeather Spark uber jar",
+    mainClass in assembly := Some("com.lightbend.killrweather.app.KillrWeather"),
+    assemblyOption in assembly := (assemblyOption in assembly).value.copy(includeScala = false),
+    assemblyMergeStrategy in assembly := {
+      case PathList("META-INF", "MANIFEST.MF") => MergeStrategy.discard
+      case PathList("META-INF", xs @ _*) => MergeStrategy.last
+      case PathList("META-INF", "io.netty.versions.properties") => MergeStrategy.last
+      case x =>
+        val oldStrategy = (assemblyMergeStrategy in assembly).value
+        oldStrategy(x)
+    },
+    deployResourceConfigFiles ++= Seq("deploy.conf"),
+    deployArtifacts ++= Seq(
+      ArtifactSSH(assembly.value, "/var/www/html/")
+    )
+  )
+  .dependsOn(killrWeatherCore, protobufs)
+  .enablePlugins(DeploySSH)
+
+lazy val appLocalRunnerstructured = (project in file("./killrweather-structured-app-local"))
+  .settings(
+    libraryDependencies ++= sparkStructured.map(_.copy(configurations = Option("compile"))) ++ Seq(influxDBClient)
+  )
+  .settings(dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core"  % "2.6.7")
+  .settings(dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.7")
+  .dependsOn(killrWeatherApp_structured)
 
 lazy val httpclient = (project in file("./killrweather-httpclient"))
   .settings(defaultSettings:_*)
@@ -108,6 +150,6 @@ lazy val loader = (project in file("./killrweather-loader"))
   .enablePlugins(DeploySSH)
   .enablePlugins(JavaAppPackaging)
 
-lazy val root = (project in file("."))
-  .aggregate(killrWeatherCore, killrWeatherApp, httpclient, grpcclient, loader, protobufs)
+lazy val killrweather = (project in file("."))
+  .aggregate(killrWeatherCore, killrWeatherApp, killrWeatherApp_structured, httpclient, grpcclient, loader, protobufs)
 

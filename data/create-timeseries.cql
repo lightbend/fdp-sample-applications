@@ -97,7 +97,7 @@ CREATE TABLE IF NOT EXISTS daily_aggregate_precip (
    year int,
    month int,
    day int,
-   precipitation counter,
+   precipitation float,
    PRIMARY KEY ((wsid), year, month, day)
 ) WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC);
 

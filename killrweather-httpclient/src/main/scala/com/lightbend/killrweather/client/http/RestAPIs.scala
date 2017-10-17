@@ -37,7 +37,7 @@ object RestAPIs extends WeatherReportResource {
 
     val routes: Route = requestRoutes(new RequestService)
 
-    Http().bindAndHandle(routes, host, port) map
+    val _ = Http().bindAndHandle(routes, host, port) map
       { binding => println(s"REST interface bound to ${binding.localAddress}") } recover {
         case ex =>
           println(s"REST interface could not bind to $host:$port - ${ex.getMessage}")

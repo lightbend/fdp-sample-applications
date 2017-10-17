@@ -83,11 +83,8 @@ object Dependencies {
     sparkCatalyst, sparkSQL)
 
   val sparkStructured = Seq(sparkCore, sparkSQL, sparkKafkaSQL
-/*    .exclude("org.apache.spark", "spark-tags_2.11")
-    .exclude("org.apache.spark", "spark-streaming_2.11")
-    .exclude("org.apache.kafka", "kafka_2.11")
+    .exclude("org.apache.spark", "spark-tags_2.11")
     .exclude("org.spark-project.spark", "unused")
-    .exclude("org.apache.spark", "spark-core_2.11") */
   )
 
   /** Module deps */

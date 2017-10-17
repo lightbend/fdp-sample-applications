@@ -55,7 +55,6 @@ object Settings extends Build {
       "-Yno-adapted-args",
       "-Ywarn-dead-code",
       "-Ywarn-numeric-widen",
-      "-Ywarn-value-discard",
       "-Ywarn-infer-any",
       "-Ywarn-unused-import"),
     javacOptions in Compile ++= Seq("-encoding", "UTF-8", "-source", Versions.JDK, "-target", Versions.JDK, "-Xlint:deprecation", "-Xlint:unchecked"),

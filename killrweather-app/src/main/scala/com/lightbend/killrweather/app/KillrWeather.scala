@@ -11,7 +11,6 @@ import org.apache.spark.streaming.kafka010.LocationStrategies.PreferConsistent
 import com.datastax.spark.connector.streaming._
 import com.lightbend.killrweather.WeatherClient.WeatherRecord
 import com.lightbend.killrweather.app.cassandra.CassandraSetup
-import com.lightbend.killrweather.app.cassandra.CassandraSetup.readFile
 import com.lightbend.killrweather.app.influxdb.InfluxDBSink
 import com.lightbend.killrweather.utils._
 import org.apache.spark.util.StatCounter
@@ -41,9 +40,7 @@ object KillrWeather {
 
     // Initialize Cassandra
     try {
-      val client = new CassandraSetup(CassandraHosts)
-      readFile("/create-timeseries.cql", client)
-      client.close()
+      val client = new CassandraSetup(sparkConf).setup()
     } catch {
       case t: Throwable => println("Cassandra not initialized")
     }

@@ -34,7 +34,7 @@ class RequestService(implicit executionContext: ExecutionContext, materializer: 
 
   def processRequest(report: RawWeatherData): Future[Unit] = Future {
     //    Source.single(report).runWith(Sink.foreach(println))
-    Source.single(report).map { r =>
+    val _ = Source.single(report).map { r =>
       new ProducerRecord[Array[Byte], Array[Byte]](KafkaTopicRaw, convertRecord(r))
     }.runWith(Producer.plainSink(producerSettings))
   }

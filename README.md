@@ -13,6 +13,7 @@ The application does not quite do that, it stops at capturing real-time and cumu
 ## Reference Application
 
 [KillrWeather Main App](https://github.com/killrweather/killrweather/tree/master/killrweather-app/src/main/scala/com/datastax/killrweather) is the entry point.
+There are 2 versions of this application - usage of Spark streaming and usage of the Spark structureed streaming
 
 ## Time Series Data
 

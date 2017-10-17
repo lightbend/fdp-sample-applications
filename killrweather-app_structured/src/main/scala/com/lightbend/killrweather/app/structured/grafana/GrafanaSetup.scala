@@ -1,7 +1,7 @@
-package com.lightbend.killrweather.app.grafana
+package com.lightbend.killrweather.app.structured.grafana
 
-import scalaj.http.Http
 import scala.io.Source
+import scalaj.http.Http
 
 class GrafanaSetup(port: Int = 3000, host: String = "grafana.marathon.l4lb.thisdcos.directory", user: String = "admin", password: String = "admin") {
 
