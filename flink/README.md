@@ -1,7 +1,5 @@
 # Flink Sample Application
 
-**WARNING:** This app is currently not working in Fast Data Platform 1.0 RC1. It needs to be updated to work with DC/OS 1.10. This issue will be fixed in  Fast Data Platform 1.0 GA.
-
 The sample application is adapted from the publicly-available [Flink training](http://dataartisans.github.io/flink-training/) from [dataArtisans](http://data-artisans.com/). It uses a public dataset of taxi rides in New York City. The details of the dataset can be found [here](http://dataartisans.github.io/flink-training/exercises/taxiData.html). In summary, the application does the following:
 
 1. Load the dataset through a Marathon application
@@ -13,111 +11,83 @@ The sample application is adapted from the publicly-available [Flink training](h
 
 The main components of running the Flink sample application are:
 
-1. Deploy the data loading Marathon app which will pull data from an S3 bucket and load it into a Kafka topic (`taxiin`)
-2. Run the sample application following the steps outlined below.
+1. Deploy the data ingestion module as a Marathon app which will pull data from an S3 bucket and load it into a Kafka topic (`taxiin`)
+2. Deploy travel time prediction application as a Marathon app which will predict the travel time after training from the classifier and write the output into a Kafka topic (`taxiout`)
 
-> **Notes:**
->
-> 1. The DC/OS CLI plugin for Flink is not yet available. Hence, we need to run the application manually.
-> 2. While Flink is bundled with FDP, it is considered experimental at this time. The 1.0 release may not include production support for Flink.
+## Installing the application
 
+The installation of the application is done using the laboratory process running under Marathon. The installation will deploy the generated artifacts to the laboratory and use them to run the application as a Marathon service.
 
-## Deploy the Data Loading Application
-1. `$ git clone https://github.com/typesafehub/fdp-sample-apps.git`
-2. `$ cd fdp-sample-apps`
-3. `$ cd flink/source`
-4. `$ ./build-app.sh --docker-username <docker-user-name> --docker-password <docker-password>`. **This needs to be done only once if you want to build the application and upload the data and the application jar to a docker repository and S3**. Try `.build-app.sh --help` for more options.
-5. Change directory to `fdp-sample-apps/flink/bin`
-6. `$ ./app-install.sh`. This reads from a properties file `app-install.properties`. Please edit the settings in this properties file before running. You can also supply your own properties file. (Try `./app-install.sh --help` for details).
+> Please ensure an appropriate instance of the laboratory is running in the cluster. In the following we assume that the laboratory instance is named `fdp-apps-lab`.
 
-## Run the Sample Application
-
-At this time, the DC/OS CLI for Flink is not yet released. Therefore, we will need to `ssh` into the appropriate cluster node to run the Flink app. (This tedious process will no longer be necessary once the DC/OS CLI is available.)
-
-We'll use some convenience tools that come with `fdp-installer`, so begin by defining an environment variable that points to the root directory of that package. Call it `FDP_INSTALLER_HOME`. We'll use scripts in `$FDP_INSTALLER_HOME/bin`. So, for example, if it's in `$HOME/fdp-installer`, use the following in a terminal window:
+Start by using the `bin` scripts. Using the default options and assuming the DC/OS CLI is on your local machine, run these commands:
 
 ```bash
-export FDP_INSTALLER_HOME=$HOME/fdp-installer
+$ cd bin
+$ ./app-install.sh # Install and run the application components.
+
+## install components separately
+$ ./app-install.sh --start-only ingestion --start-only app
 ```
 
-1. Go to the Flink UI in your FDP cluster:
-  1. Open the DC/OS UI.
-  2. Open the _Services_ view.
-  3. Click the link for `flink`.
-  4. On the Flink page. click the _Open Service_ button, which opens a new tab with the Flink UI.
-2. In the Flink UI, click the _JobManager_ page.
-3. Find the `jobmanger.rpc.address` and the `jobmanager.rpc.port`. The address must be exact due to Akka remoting requirements. This address will be of the form `ip-10-10-x-xxx`.
+Try the `--help` option for `app-install.sh` for command-line options.
 
-With that address, run the following convenience script to check if an entry already exists in the master's `/etc/hosts`. Run the following in the root `flink` directory for this project:
+The script `app-install.sh` takes all configuration parameters from a properties file.  The default file is `app-install.properties` which resides in the same directory, but you can specify the file with the `--config-file` argument.  It is recommended that you keep a set of configuration files for personal development, testing, and production.  Simply copy the default file over and modify as needed.
 
-```bash
-bin/check-job-manager-ip.sh jobmanager_rpc_address
+```
+## dcos kafka package - valid values : confluent-kafka | kafka
+kafka-dcos-package=kafka
+
+## dcos service name. beta-kafka is installed as kafka by default. default is value of kafka-dcos-package
+kafka-dcos-service-name=kafka
+
+## whether to skip creation of kafka topics - valid values : true | false
+skip-create-topics=false
+
+## kafka topic partition
+kafka-topic-partitions=2
+
+## kafka topic replication factor
+kafka-topic-replication-factor=2
+
+## name of the user used to publish the artifact.  Typically 'publisher'
+publish-user="publisher"
+
+## the IP address of the publish machine (where laboratory is running)
+publish-host="fdp-apps-lab.marathon.mesos"
+
+## port for the SSH connection. The default configuration is 9022
+ssh-port=9022
+
+## passphrase for your SSH key. Remove this entry if you don't need a passphrase
+passphrase=
+
+## the key file in ~/.ssh/ that is to be used to connect to the deployment host
+ssh-keyfile="dg-test-fdp.pem"
+
+## laboratory mesos deployment
+laboratory-mesos-path=http://fdp-apps-lab.marathon.mesos
 ```
 
-If you have more than one master, select one to use for the rest of these steps. There is a `--help` option that explains optional arguments.
+> The installation process fetches the data required from a pre-configured S3 bucket `fdp-sample-apps-artifacts`.
 
-It will show the entry, if found, and report success. If the entry wasn't found, it will tell you what command to run so you can edit the file to add the entry. If you have to do that, follow these steps:
+Once the installation is complete, both the Marathon applications  should be seen running on the DC/OS console. 
 
-1. Run the command `$FDP_INSTALLER_HOME/bin/fdp-ssh.sh --master` to log into the master.
-2. Edit the file: `sudo vi /etc/hosts`.
-3. Add an entry for the Job Manager RPC address, replacing the 'x' values appropriately:
-```text
-10.10.x.xxx ip-10-10-x-xxx
-```
+## Running the application
 
-Next you'll need to install the Flink application on the same master node, where we'll run it.
-Run the following script to copy the assembly jar in `source/core/target/scala-2.11` up to the master. As before, run this script from the root `flink` directory:
+Once the required services are up, data ingestion starts within 1 minute. This is taken care of by a scheduler which schedules this ingestion process the first time. In case you need to do more ingestion, you can kickstart the pipeline by touching the data file already downloaded in the Mesos sandbox area. Do an `ssh` into the node that runs the `nyctaxi-load-data`, go to the Mesos sandbox area, the path of which can be found if you click on the running process from the Mesos Console (http://<mesos-master>/mesos) and touch the data file. Simply do a `touch <filename>` (you may need to sudo for this) and the whole pipeline should start running.
 
-```bash
-bin/copy-app-to-master.sh
-```
+Data ingested from data file -> Write to topic `taxiin` -> `nyctaxi-app` does the travel time computation and writes into topic `taxiout`.
 
-There is a `--help` option that explains optional arguments.
+## Removing the application
 
-Now you need to install a Flink distribution on the same master node. You'll want a Scala 2.11 build for a recent Hadoop release. Here is a direct link to a suitable release: http://mirrors.ibiblio.org/apache/flink/flink-1.2.0/flink-1.2.0-bin-hadoop27-scala_2.11.tgz.
+Just run `./app-remove.sh`.
 
-To install it, use the following steps:
+It also has a `--help` option to show available command-line options. For example, use `--skip-delete-topics` if your cluster does not support deleting topics.
 
-1. Log into the master:
-```bash
-$FDP_INSTALLER_HOME/bin/fdp-ssh.sh --master
-```
-2. Run this command, which downloads the file to `flink.tgz`:
-```bash
-curl -o flink.tgz http://mirrors.ibiblio.org/apache/flink/flink-1.2.0/flink-1.2.0-bin-hadoop27-scala_2.11.tgz
-```
-3. Expand the archive:
-```bash
-gunzip flink.tgz
-tar xf flink.tar
-```
+## Output of running the application
 
-You'll now have the folder `flink-1.2.0` with the distribution.
-
-Next you need one or more addresses for the Kafka brokers. From a terminal on your workstation:
-
-1. Run the command `dcos kafka connection`.
-2. Pick one of the values in the `dns` section. Use that `kafka_broker` in what follows.
-3. Recall the Flink Job Manager address and port values we discovered previously.
-
-Finally, we are ready to run the application! Back on the master node, run this command, where I've set it up as a script that defines variables for all the addresses, etc. Change the values to match your configuration!
-
-```bash
-cd $HOME   # start from the home directory on the master.
-kafka_broker="broker-0.kafka.mesos:9875"
-job_manager_address=ip-10-10-1-115
-job_manager_port=21245
-
-flink-1.2.0/bin/flink run -m $job_manager_address:$job_manager_port \
-  flink-app/fdp-flink-taxiride-assembly-0.1.jar \
-  --broker-list $kafka_broker --inTopic taxiin --outTopic taxiout
-```
-
-This will continue running indefinitely. You might wish to run it in the background by appending a `&` to the end of the last command.
-
-Note that you need to have the 2 topics `taxiin` and `taxiout` created on Kafka in the DC/OS cluster, which we did earlier. You can track the output by reading from the out topic `taxiout` using any Kafka consumer client app for this purpose.
-
-In the Flink UI accessible from the DC/OS UI, you should see the running job shown under the _Running Jobs_ tab.
+The computation results for travel time prediction appears in the Kafka topic `taxiout`. You can run a consumer and check the predicted times as they flow across during processing of the application.
 
 ## A note about versioning
 

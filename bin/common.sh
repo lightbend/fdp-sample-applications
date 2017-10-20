@@ -291,3 +291,9 @@ function echo2 {
 function printf2 {
   printf "$@" >&2
 }
+
+function remove_quotes {
+  temp="${1%\"}"
+  temp="${temp#\"}"
+  echo $temp
+}
