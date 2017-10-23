@@ -151,7 +151,7 @@ There are also `-h` and `--help` options that show a help message and exit for e
 If Running in IntelliJ. Just click on the appropriate classes and run. Any additional parameters can be set by
 editing configuration.
 
-## Killrweather-app-structured
+#### 5.  Killrweather-app-structured
 
 The project also includes the version of the application written using [Spark Structured Streaming](https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html)
 This implementation provides functionality similar to the initial one (the main difference is how monthly aggregation is
