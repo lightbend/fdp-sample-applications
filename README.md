@@ -37,6 +37,8 @@ We recommend using [IntelliJ IDEA](https://www.jetbrains.com/idea/) for managing
 * `diagrams` - original diagrams for overall architecture (now obsolete)
 * `killrweather-app` - actual Spark application for data processing - ready to run in Spark. It's used for both local mode and cluster execution. If running locally in IntelliJ, make sure that you use the setting `use classpath of module` for this module
 * `killrweather-app-local` - An empty directory that's convenient for running locally when using IntelliJ.
+* `killrweather-app-structured` - alternative version of the actual Spark application (leveraging Spark structured streaming) for data processing - ready to run in Spark. It's used for both local mode and cluster execution. If running locally in IntelliJ, make sure that you use the setting `use classpath of module` for this module
+* `killrweather-structured-app-local` - An empty directory that's convenient for running locally when using IntelliJ.
 * `killrweatherCore` - some support code used throughout an application. Also includes Embedded Kafka allowing you to run everything locally
 * `killrweather-grcpclient` - client for exposing KillrWeather app over [GRPC](https://grpc.io/). This client accepts GRPC messages and publishes them to Kafka for application consumption.
 * `killrweather-httpclient` - client for exposing KillrWeather app over HTTP. This client accepts HTTP messages (in JSON) and publishes them to Kafka for application consumption.
@@ -70,8 +72,12 @@ On the command line start a cqlsh shell:
 
     cd /path/to/killrweather/data
     path/to/apache-cassandra-{version}/bin/cqlsh
+        
 
 Run the CQL commands in the [Cassandra Setup](#cassandra-setup) section below.
+
+In the current version, Cassandra setup is done by the application itself, which checks for all Cassandra
+prerequisites and set them up, if the manual setup is not done.
 
 #### 4. Run the application
 
@@ -135,18 +141,29 @@ Multiple main classes detected, select one to run:
  [4] com.lightbend.killrweather.loader.utils.test.TestFilesIterator
 
 Enter number:
-```
+
 
 Enter `3`.
 
 There are also `-h` and `--help` options that show a help message and exit for each of these commands.
 
-TODO: RUNNING IN IntelliJ
+
+If Running in IntelliJ. Just click on the appropriate classes and run. Any additional parameters can be set by
+editing configuration.
+
+## Killrweather-app-structured
+
+The project also includes the version of the application written using [Spark Structured Streaming](https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html)
+This implementation provides functionality similar to the initial one (the main difference is how monthly aggregation is
+implemented - due to the limitations of structured streaming implementation, monthly rollup is done not based on the daily rollup, but
+rather based on the raw data).
+Both applications are sharing the same configurations, so it is not recommended to run them side by side (they will overwrite each other's data)
 
 
 ### Cassandra Setup
 
-Use these CQL commands whether running Cassandra locally or in a cluster.
+Use these CQL commands whether running Cassandra locally or in a cluster. This is only required if you want to see how this is done.
+Applications will now do this setup on startup.
 
 Start `CQLSH`. You should see something similar to:
 
@@ -175,14 +192,17 @@ Weather stations table should be populated
 
      select * from weather_station limit 5;
 
-To clean up data in Cassandra, type:
+To close the cql shell:
+
+     cqlsh> quit;
+     
+### Cassandra Cleanup
+
+To clean up data in Cassandra, start `CQLSH` and type:
 
 
      cqlsh> DROP KEYSPACE isd_weather_data;
 
-To close the cql shell:
-
-     cqlsh> quit;
 
 
 ## FDP DC/OS Deployment
@@ -256,11 +276,18 @@ dcos marathon app add < killrweather-app/src/main/resource/killrweatherApp.json
 
 This starts the app running, which is a Spark Streaming app. We won't show the contents of the JSON file here, but it's a good example of running a Spark job with Marathon, where the application jar is served using a web server, the one inside `jim-lab`.
 
-#### 6. See What's Going On...
+#### 6. Alternative deployment (recommended)
 
-Go to the Spark Web console for this job at http://killrweatherapp.marathon.mesos:4040/jobs/ to see the minibatch and other jobs that are executed as part of this Spark Streaming job.
+Currently the application is included into fdp-package-sample-apps docker image. See documentation 
+for this docker image on deployment steps.
 
-Go to http://leader.mesos/mesos/#/frameworks and search for KillrweatherApp to get more info about the corresponding executors.
+#### 7. See What's Going On...
+
+Go to the Spark Web console for this job at http://killrweatherapp.marathon.mesos:4040/jobs/ 
+or http://killrweatherappstructured.marathon.mesos:4040/jobs/ (if structured streaming version is used) 
+to see the minibatch and other jobs that are executed as part of this Spark Streaming job.
+
+Go to http://leader.mesos/mesos/#/frameworks and search for killrweatherapp or killrweatherappstructured to get more info about the corresponding executors.
 
 #### 7. Deploy the Clients
 
@@ -297,6 +324,9 @@ For information about setting up Grafana and InfluxDB, see this [article](https:
 Monitoring is done using InfluxDB and Grafana. In the Grafana UI, load the definitions in `./killrweather-app/src/main/resource/grafana.json`. (Click the upper-left-hand side Grafana icon, then _Dashboards_, then _Import_.) This will create a dashboard called _KillrWeather Data Ingestion_.
 
 Once set up and once data is flowing through the system, you can view activity in this dashboard.
+
+Applications themselves currently implement setup. So this information is here just for reference.
+
 
 To view execution results, a Zeppelin notebook is used, configured for [Cassandra in Zeppelin](https://zeppelin.apache.org/docs/0.7.2/interpreter/cassandra.html).
 
