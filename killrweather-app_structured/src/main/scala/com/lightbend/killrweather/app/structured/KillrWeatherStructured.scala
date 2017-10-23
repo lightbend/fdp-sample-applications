@@ -22,7 +22,7 @@ object KillrWeatherStructured {
     val spark = SparkSession.builder
       .appName("KillrWeather with Structured Streaming")
       .master("local")
-      .config("spark.cassandra.connection.host", CassandraHosts )
+      .config("spark.cassandra.connection.host", CassandraHosts /*"10.2.2.13"*/ )
       .config("spark.sql.streaming.checkpointLocation", SparkCheckpointDir)
       .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .getOrCreate()
@@ -35,9 +35,10 @@ object KillrWeatherStructured {
     }
 
     // Initialize Grafana
-    try {
+    try
+//      new GrafanaSetup(4086,"10.2.2.198").setGrafana()
       new GrafanaSetup().setGrafana()
-    } catch {
+    catch {
       case t: Throwable => println(s"Grafana not initialized ${t.getMessage}")
     }
 
@@ -50,7 +51,7 @@ object KillrWeatherStructured {
     val raw = spark
       .readStream
       .format("kafka")
-      .option("kafka.bootstrap.servers", "10.2.2.221:1025" /*kafkaBrokers*/ )
+      .option("kafka.bootstrap.servers", /*"10.2.2.221:1025"*/ kafkaBrokers)
       .option("subscribe", KafkaTopicRaw)
       .option("enable.auto.commit", false) // Cannot be set to true in Spark Strucutured Streaming https://spark.apache.org/docs/latest/structured-streaming-kafka-integration.html#kafka-specific-configurations
       .option("group.id", KafkaGroupId + ".structured")
@@ -62,6 +63,7 @@ object KillrWeatherStructured {
         "message.skyConditionText", "message.oneHourPrecip", "message.sixHourPrecip")
 
     /* Saves the raw data to Cassandra - raw table. */
+
     raw.select("wsid", "year", "month", "day", "hour", "temperature", "dewpoint", "pressure", "windDirection", "windSpeed",
       "skyCondition", "skyConditionText", "oneHourPrecip", "sixHourPrecip").as[WeatherRecord]
       .writeStream.queryName("saving raw").foreach(new CassandraSinkForEachKillrweatherRaw(spark)).start
