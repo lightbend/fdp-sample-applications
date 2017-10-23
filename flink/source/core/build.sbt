@@ -36,6 +36,8 @@ scalaVersion := "2.11.8"
 // Java then Scala for main sources
 compileOrder in Compile := CompileOrder.JavaThenScala
 
+allowSnapshot in ThisBuild := true
+
 // allow circular dependencies for test sources
 compileOrder in Test := CompileOrder.Mixed
 
