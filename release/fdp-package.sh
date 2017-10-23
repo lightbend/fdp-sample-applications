@@ -10,7 +10,7 @@ CONTENT=$(cat $CONTENT_FILE)
 
 function usage {
   cat<< EOF
-  This script packages the sample applications into fdp-sample-apps-<version>.tar.gz
+  This script packages the sample applications into fdp-sample-apps-<version>.zip
   in the project root directory.
   Usage: $SCRIPT VERSION [-h | --help]
 
@@ -46,7 +46,7 @@ then
 fi
 
 OUTPUT_FILE_ROOT=fdp-sample-apps-${VERSION}
-OUTPUT_FILE=${OUTPUT_FILE_ROOT}.tar.gz
+OUTPUT_FILE=${OUTPUT_FILE_ROOT}.zip
 
 staging=$DIR/staging
 rm -rf $staging
@@ -55,7 +55,7 @@ mkdir -p $staging
 mkdir -p $staging/$OUTPUT_FILE_ROOT
 for f in ${CONTENT}; do cp -r ${ROOT_DIR}/$f $staging/$OUTPUT_FILE_ROOT/$f; done
 cd $staging
-echo running: tar -czf ${OUTPUT_FILE} ${OUTPUT_FILE_ROOT}
-tar -czf ${OUTPUT_FILE} ${OUTPUT_FILE_ROOT}
+echo running: zip -r ${OUTPUT_FILE} ${OUTPUT_FILE_ROOT}
+zip -r ${OUTPUT_FILE} ${OUTPUT_FILE_ROOT}
 
 rm -rf ${OUTPUT_FILE_ROOT}
