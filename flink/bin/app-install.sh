@@ -491,7 +491,7 @@ function main {
   header Getting Flink Job Manager information
   set_job_manager_info
 
-  header Building packages to be deployed ..
+# header Building packages to be deployed ..
 # build_app
 
   header "Gathering Kafka connection information...\n"
