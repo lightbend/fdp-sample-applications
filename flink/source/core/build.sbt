@@ -37,9 +37,12 @@ name in ThisBuild := "fdp-flink-taxiride"
 organization in ThisBuild := "lightbend"
 
 val scalaVer = "2.11.8"
-scalaVersion in ThisBuild := "2.11.8"
+scalaVersion in ThisBuild := scalaVer
 
 def appProject(id: String)(base:String = id) = Project(id, base = file(base))
+
+// allow circular dependencies for test sources
+compileOrder in Test := CompileOrder.Mixed
 
 // the main application
 lazy val root = appProject("root")(".")
