@@ -8,7 +8,7 @@ scalaVersion in ThisBuild := "2.11.11"
 
 lazy val protobufs = (project in file("./protobufs"))
     .settings(
-      PB.targets in Compile := Seq( 
+      PB.targets in Compile := Seq(
         PB.gens.java -> (sourceManaged in Compile).value,
         scalapb.gen(javaConversions=true) -> (sourceManaged in Compile).value
       )
@@ -56,7 +56,7 @@ lazy val akkaServer = (project in file("./akkaserver"))
   .settings(
     buildInfoPackage := "build",
     mainClass in Compile := Some("com.lightbend.modelServer.modelServer.AkkaModelServer"),
-    maintainer := "Boris Lublinsky <boris.lublinsky@lightbend.com",
+    maintainer := "Boris Lublinsky <boris.lublinsky@lightbend.com>",
     packageSummary := "Model Server Akka Streams",
     packageDescription := "Model Server Akka Streams",
     deployResourceConfigFiles ++= Seq("deploy.conf"),
