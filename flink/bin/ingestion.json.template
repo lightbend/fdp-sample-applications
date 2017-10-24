@@ -1,0 +1,17 @@
+{
+  "id": {INGESTION_DATA_APP_ID},
+  "cmd": "export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && export DIRECTORY_TO_WATCH=$MESOS_SANDBOX && ./{VERSIONED_PROJECT_NAME}/bin/ingestion",
+  "cpus":1,
+  "mem":512,
+  "env":{
+    "KAFKA_BROKERS":{KAFKA_BROKERS},
+    "KAFKA_IN_TOPIC":{KAFKA_IN_TOPIC},
+    "KAFKA_OUT_TOPIC":{KAFKA_OUT_TOPIC},
+    "ZOOKEEPER_URL":{KAFKA_ZOOKEEPER_URL}
+  },
+  "fetch": [
+    { "uri": "https://downloads.mesosphere.com/java/jre-8u112-linux-x64.tar.gz" },
+    { "uri": {NATIVE_PACKAGE_ON_MESOS} },
+    { "uri": "https://s3.amazonaws.com/fdp-sample-flink-taxirides/nycTaxiRides.csv.gz" }
+  ]
+}
