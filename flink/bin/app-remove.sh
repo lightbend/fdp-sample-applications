@@ -6,8 +6,10 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 
 . "$DIR/../../bin/common.sh"
 
-LOAD_DATA_APP_ID="$(jq -r '.LOAD_DATA_APP_ID' $APP_METADATA_FILE)"
+INGESTION_DATA_APP_ID="$(jq -r '.INGESTION_DATA_APP_ID' $APP_METADATA_FILE)"
+APP_DATA_APP_ID="$(jq -r '.APP_DATA_APP_ID' $APP_METADATA_FILE)"
 KAFKA_DCOS_PACKAGE="$(jq -r '.KAFKA_DCOS_PACKAGE' $APP_METADATA_FILE)"
+KAFKA_DCOS_SERVICE_NAME="$(jq -r '.KAFKA_DCOS_SERVICE_NAME' $APP_METADATA_FILE)"
 topics="$(jq -r '.TOPICS[]' $APP_METADATA_FILE)"
 
 # Used by show_help
@@ -62,9 +64,16 @@ function main {
     exit 1
   fi
 
-  if [ -n "$LOAD_DATA_APP_ID" ]; then
-    echo "Deleting app with id: $LOAD_DATA_APP_ID"
-    $NOEXEC dcos marathon app remove --force $LOAD_DATA_APP_ID
+  if [ -n "$INGESTION_DATA_APP_ID" ]; then
+    echo "Deleting app with id: $INGESTION_DATA_APP_ID"
+    $NOEXEC dcos marathon app remove --force $INGESTION_DATA_APP_ID
+  else
+    echo "No LOAD APP ID is available. Skipping delete.."
+  fi
+
+  if [ -n "$APP_DATA_APP_ID" ]; then
+    echo "Deleting app with id: $APP_DATA_APP_ID"
+    $NOEXEC dcos marathon app remove --force $APP_DATA_APP_ID
   else
     echo "No LOAD APP ID is available. Skipping delete.."
   fi
@@ -74,7 +83,7 @@ function main {
       for elem in $topics
       do
         echo "Deleting topic $elem..."
-        $NOEXEC dcos $KAFKA_DCOS_PACKAGE topic delete $elem
+        $NOEXEC dcos $KAFKA_DCOS_PACKAGE topic delete $elem --name="$KAFKA_DCOS_SERVICE_NAME"
       done
     else
       echo "KAFKA_DCOS_PACKAGE is not defined in $APP_METADATA_FILE. Skipping topic deletion.."
