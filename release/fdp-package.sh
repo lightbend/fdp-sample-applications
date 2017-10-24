@@ -64,4 +64,4 @@ find ${OUTPUT_FILE_ROOT} -type d | egrep 'target$' | while read d; do rm -rf "$d
 echo running: zip -r ${OUTPUT_FILE} ${OUTPUT_FILE_ROOT}
 zip -r ${OUTPUT_FILE} ${OUTPUT_FILE_ROOT}
 
-# rm -rf ${OUTPUT_FILE_ROOT}
+rm -rf ${OUTPUT_FILE_ROOT}
