@@ -44,7 +44,7 @@ export run_ingestion=
 export run_app=
 apps_selected=
 
-config_file="$DIR/app-install-new.properties"
+config_file="$DIR/app-install.properties"
 
 INGESTION_TEMPLATE_FILE="$DIR/ingestion.json.template"
 INGESTION_TEMPLATE=${INGESTION_TEMPLATE_FILE%.*}
@@ -398,10 +398,16 @@ function deploy_app {
 }
 
 function require_templates {
-  # check if load data template file is available
+  # check if template files are available
   if [ ! -f  "$INGESTION_TEMPLATE_FILE" ]; then
     msg=("$INGESTION_TEMPLATE_FILE is missing or is not a file."
-         "Please copy the file in $DIR or use package.sh to properly setup this app.")
+         "Please copy the file in $DIR")
+    error "${msg[@]}"
+  fi
+
+  if [ ! -f  "$APP_TEMPLATE_FILE" ]; then
+    msg=("$APP_TEMPLATE_FILE is missing or is not a file."
+         "Please copy the file in $DIR")
     error "${msg[@]}"
   fi
 }
