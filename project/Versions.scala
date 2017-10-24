@@ -21,7 +21,7 @@ object Versions {
   val AkkaStreamsKafka  = "0.17"
   val AkkaHTTP          = "10.0.9"
   val Cassandra         = "2.1.3"
-  val Curator           = "3.2.0"
+  val Curator           = "4.0.0"
   val JDK               = "1.8"
   val JodaConvert       = "1.8.2"
   val JodaTime          = "2.9.9"

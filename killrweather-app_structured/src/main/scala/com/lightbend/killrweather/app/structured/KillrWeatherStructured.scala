@@ -36,7 +36,7 @@ object KillrWeatherStructured {
 
     // Initialize Grafana
     try
-//      new GrafanaSetup(4086,"10.2.2.198").setGrafana()
+      //      new GrafanaSetup(4086,"10.2.2.198").setGrafana()
       new GrafanaSetup().setGrafana()
     catch {
       case t: Throwable => println(s"Grafana not initialized ${t.getMessage}")
