@@ -61,9 +61,7 @@ find ${OUTPUT_FILE_ROOT} \( -name whitesource.sbt -o -name WhitesourceLicensePlu
 find ${OUTPUT_FILE_ROOT} -type d | egrep 'project/(project|target)$' | while read d; do rm -rf "$d"; done
 find ${OUTPUT_FILE_ROOT} -type d | egrep 'target$' | while read d; do rm -rf "$d"; done
 
-#rm -rf project/whitesource.sbt project/WhitesourceLicensePlugin.scala project/project project/target
-
 echo running: zip -r ${OUTPUT_FILE} ${OUTPUT_FILE_ROOT}
 zip -r ${OUTPUT_FILE} ${OUTPUT_FILE_ROOT}
 
-# rm -rf ${OUTPUT_FILE_ROOT}
+rm -rf ${OUTPUT_FILE_ROOT}
