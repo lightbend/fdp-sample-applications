@@ -144,7 +144,7 @@ function install_jq {
 
   case $(uname) in
     Linux*)
-    $NOEXEC sudo apt-get -y jq
+    $NOEXEC sudo apt-get -y install jq
     ;;
     Darwin*)
     $NOEXEC brew install jq
