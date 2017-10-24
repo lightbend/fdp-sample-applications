@@ -25,9 +25,9 @@ object Settings extends Build {
     name := "Kafka/Akka stream model server",
     normalizedName := "model server",
     organization := "com.lightbend.modelserver",
-    organizationHomepage := Some(url("https://github.com/typesafehub/fdp-kafka-streams-modelServer")),
+    organizationHomepage := Some(url("https://github.com/typesafehub/fdp-kafka-streams-model-server")),
     scalaVersion := Versions.Scala,
-    homepage := Some(url("https://github.com/typesafehub/fdp-kafka-streams-modelServer")),
+    homepage := Some(url("https://github.com/typesafehub/fdp-kafka-streams-model-server")),
     licenses := Seq(("Apache License, Version 2.0", url("http://www.apache.org/licenses/LICENSE-2.0")))
   )
 
