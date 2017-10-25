@@ -275,6 +275,11 @@ keyval() {
         LABORATORY_MESOS_PATH=$value
       fi
 
+      if [ "$key" == "security-mode" ]
+      then
+        SECURITY_MODE=$value
+      fi
+
     done < "$filename"
 
     if [ -z "${DCOS_KAFKA_PACKAGE// }" ]
@@ -300,6 +305,10 @@ keyval() {
     if [ -z "${PUBLISH_USER// }" ]
     then
       PUBLISH_USER="publisher"
+    fi
+    if [ -z "${SECURITY_MODE// }" ]
+    then
+      SECURITY_MODE=none
     fi
 
     exit_if_not_defined_or_empty "$PUBLISH_HOST" "publish-host"
@@ -413,8 +422,13 @@ function require_templates {
 }
 
 function set_job_manager_info {
+  echo $SECURITY_MODE
+  if [ "$SECURITY_MODE" == "permissive" ]; then
+    curl -k -v $(dcos config show core.dcos_url)/ca/dcos-ca.crt -o dcos-ca.crt >/dev/null 2>&1
+    PERMISSIVE_CONFIG="--cacert dcos-ca.crt"
+  fi
   # get the jobmanager ip and port
-  curl -s --header "Authorization: token=$(dcos config show core.dcos_acs_token)" $(dcos config show \
+  curl $PERMISSIVE_CONFIG -s --header "Authorization: token=$(dcos config show core.dcos_acs_token)" $(dcos config show \
   | grep  core.dcos_url | awk '{print $2}')/service/flink/jobmanager/config/ > $DIR/jobmanager.conf
 
   JM_RPC_ADDRESS=$(cat $DIR/jobmanager.conf | jq . | grep -n1 jobmanager.rpc.address \
