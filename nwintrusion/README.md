@@ -16,18 +16,22 @@ The application uses the dataset from [KDD Cup 1999](https://kdd.ics.uci.edu/dat
 
 ## Installing the application
 
-The installation of the application is done using the laboratory process running under Marathon. The installation will deploy the generated artifacts to the laboratory and use them to run the application as a Marathon service.
+The easiest way to install the Network Intrusion Detection application is to install it from the pre-built docker image that comes with the Fast Data Platform distribution. Start [here](https://github.com/typesafehub/fdp-package-sample-apps/blob/develop/README.md) for general instructions on how to deploy the image as a Marathon application.
 
-> Please ensure an appropriate instance of the laboratory is running in the cluster. In the following we assume that the laboratory instance is named `fdp-apps-lab`.
+Once you have installed the docker image (we call it the laboratory) with the default name `fdp-apps-lab`, you can follow the steps outlined in that document to complete the installation of the application. The following part of this document discusses the installation part in more details.
 
-Start by using the `bin` scripts. Using the default options and assuming the DC/OS CLI is on your local machine, run these commands:
+> Assumption: We have `fdp-apps-lab` running in the FDP DC/OS cluster
 
 ```bash
-$ cd bin
-$ ./app-install.sh # Install and run the application components.
+$ pwd
+<home directory>/fdp-package-sample-apps
+$ cd bin/nwintrusion
+$ ./app-install.sh
 ```
 
-Try the `--help` option for `app-install.sh` for command-line options.
+The default invocation of the script will install and run all the services of this application.
+
+Try the `--help` option for `app-install.sh` for the command-line options.
 
 The script `app-install.sh` takes all configuration parameters from a properties file.  The default file is `app-install.properties` which resides in the same directory, but you can specify the file with the `--config-file` argument.  It is recommended that you keep a set of configuration files for personal development, testing, and production.  Simply copy the default file over and modify as needed.
 
@@ -47,28 +51,15 @@ kafka-topic-partitions=2
 ## kafka topic replication factor
 kafka-topic-replication-factor=2
 
-## name of the user used to publish the artifact.  Typically 'publisher'
-publish-user="publisher"
-
-## the IP address of the publish machine (where laboratory is running)
-publish-host="fdp-apps-lab.marathon.mesos"
-
-## port for the SSH connection. The default configuration is 9022
-ssh-port=9022
-
-## passphrase for your SSH key. Remove this entry if you don't need a passphrase
-passphrase=
-
-## the key file in ~/.ssh/ that is to be used to connect to the deployment host
-ssh-keyfile="dg-test-fdp.pem"
-
 ## laboratory mesos deployment
 laboratory-mesos-path=http://fdp-apps-lab.marathon.mesos
 ```
 
-> The installation process fetches the data required from a pre-configured S3 bucket `fdp-sample-apps-artifacts`.
+> The installation process fetches the data required from the canned docker image in `fdp-apps-lab`.
 
-Once the installation is complete, the required services and Spark drrivers should be seen available on the DC/OS console. One Marathon service will be up named `nwin-transform-data` and there will be 2 Spark drivers - one for Spark Clustering and the other for Batch K-Means.
+Once the installation is complete, the required services and Spark drivers should be seen available on the DC/OS console. One Marathon service will be up named `nwin-transform-data` and there will be 2 Spark drivers - one for Spark Clustering and the other for Batch K-Means.
+
+> *Besides installing from the supplied docker image, the distribution also publishes the development environment and the associated installation scripts in `fdp-sample-apps/nwintrusion/bin` folder. The prerequisite of using these scripts is to have a developer version of the laboratory available as part of your cluster. This will be available in a future version of the platform.*
 
 ## Running the application
 
@@ -203,7 +194,7 @@ While installing Grafana, please use the following json as it contains some usef
 }
 ```
 
-> Please note that if you are not on a VPN and running an AWS cluster, you may need to translate the host IP shown on Grafana instance to public IP and may need to open the port through appropriate configuration of *Security Groups* on AWS console.
+> Please note that if you are *not* on a VPN and running an AWS cluster, you may need to translate the host IP shown on Grafana instance to public IP and may need to open the port through appropriate configuration of *Security Groups* on AWS console.
 
 Once you are logged into Grafana, the following steps need to be followed to set up a dashboard for the Network Intrusion Anomaly Detection visualization:
 
