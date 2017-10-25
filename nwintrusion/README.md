@@ -16,7 +16,7 @@ The application uses the dataset from [KDD Cup 1999](https://kdd.ics.uci.edu/dat
 
 ## Installing the application
 
-The easiest way to install the Network Intrusion Detection application is to install it from the pre-built docker image that comes with the Fast Data Platform distribution. Start [here](https://github.com/typesafehub/fdp-package-sample-apps/blob/develop/README.md) for general instructions on how to deploy the image as a Marathon application.
+The easiest way to install the Network Intrusion Detection application is to install it from the pre-built docker image that comes with the Fast Data Platform distribution. Start from `fdp-package-sample-apps/README.md` of the distribution for general instructions on how to deploy the image as a Marathon application.
 
 Once you have installed the docker image (we call it the laboratory) with the default name `fdp-apps-lab`, you can follow the steps outlined in that document to complete the installation of the application. The following part of this document discusses the installation part in more details.
 
