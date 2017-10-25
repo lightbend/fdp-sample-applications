@@ -61,9 +61,10 @@ cd $staging
 
 # Remove files and directories that shouldn't be in the distribution:
 find ${OUTPUT_FILE_ROOT} \( -name whitesource.sbt -o -name WhitesourceLicensePlugin.scala \) -exec rm {} \;
-find ${OUTPUT_FILE_ROOT} -type d | grep 'project/\(project|target\)' | while read d; do rm -rf "$d"; done
+find ${OUTPUT_FILE_ROOT} -type d | egrep 'project/(project|target)$' | while read d; do rm -rf "$d"; done
+find ${OUTPUT_FILE_ROOT} -type d | egrep 'target$' | while read d; do rm -rf "$d"; done
 
 echo running: zip -r ${OUTPUT_FILE} ${OUTPUT_FILE_ROOT}
 zip -r ${OUTPUT_FILE} ${OUTPUT_FILE_ROOT}
 
-# rm -rf ${OUTPUT_FILE_ROOT}
+rm -rf ${OUTPUT_FILE_ROOT}
