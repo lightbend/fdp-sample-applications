@@ -278,8 +278,11 @@ This starts the app running, which is a Spark Streaming app. We won't show the c
 
 #### 6. Alternative deployment (recommended)
 
-Currently the application is included into fdp-package-sample-apps docker image. See documentation 
-for this docker image on deployment steps.
+Usage of jim-lab is a good approach if you are doing development. If you only want to run an application
+based on the Lightbend distribution, instead of described above approach use [fdp-package-sample-apps](https://github.com/typesafehub/fdp-package-sample-apps)
+docker image. [Readme](https://github.com/typesafehub/fdp-package-sample-apps/blob/develop/README.md) for this
+project provides deployment information 
+
 
 #### 7. See What's Going On...
 
