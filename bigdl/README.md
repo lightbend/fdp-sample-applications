@@ -6,40 +6,42 @@ This sample application stress tests the DC/OS cluster by running a training and
 
 ### Installing the Application
 
-The application installation process consists of the following steps:
+The easiest way to install the Network Intrusion Detection application is to install it from the pre-built docker image that comes with the Fast Data Platform distribution. Start from `fdp-package-sample-apps/README.md` of the distribution for general instructions on how to deploy the image as a Marathon application.
 
-1. Build the application
-2. Deploy the application package in to the laboratory
-3. Install the application as a Spark driver
+Once you have installed the docker image (we call it the laboratory) with the default name `fdp-apps-lab`, you can follow the steps outlined in that document to complete the installation of the application. The following part of this document discusses the installation part in more details.
 
-The only script you need to run is the installation script which does all the steps transparently for you.
+> Assumption: We have `fdp-apps-lab` running in the FDP DC/OS cluster
 
 ```bash
-$ cd bin
+$ pwd
+<home directory>/fdp-package-sample-apps
+$ cd bin/bigdl
 $ ./app-install.sh
 ```
 
-As usual you can see the various options using `--help` above. The installation script needs a property file, which defaults to `app-install.properties` having the following structure:
+The default invocation of the script will install and run all the services of this application.
+
+Try the `--help` option for `app-install.sh` for the command-line options.
+
+The script `app-install.sh` takes all configuration parameters from a properties file.  The default file is `app-install.properties` which resides in the same directory, but you can specify the file with the `--config-file` argument.  It is recommended that you keep a set of configuration files for personal development, testing, and production.  Simply copy the default file over and modify as needed.
 
 ```
-## name of the user used to publish the artifact.  Typically 'publisher'
-publish-user="publisher"
-
-## the IP address of the publish machine (where laboratory is running)
-publish-host=jim-lab.marathon.mesos
-
-## port for the SSH connection. The default configuration is 9022
-ssh-port=9022
-
-## passphrase for your SSH key.  Remove this entry if you don't need a passphrase
-passphrase=
-
-## the key file in ~/.ssh/ that is to be used to connect to the deployment host
-ssh-keyfile="dg-test-fdp.pem"
-
 ## laboratory mesos deployment
-laboratory-mesos-path=http://jim-lab.marathon.mesos
+laboratory-mesos-path=http://fdp-apps-lab.marathon.mesos
+
+## Spark package version - Must use Spark 2.1.1 for BigDL
+spark-package-version=1.1.0-2.1.1-hadoop-2.7
 ```
+
+> The installation process fetches the data required from the canned docker image in `fdp-apps-lab`.
+
+Once the installation is complete, the Spark driver should be seen available on the DC/OS console.
+
+> *Besides installing from the supplied docker image, the distribution also publishes the development environment and the associated installation scripts in `fdp-sample-apps/bigdl/bin` folder. The prerequisite of using these scripts is to have a developer version of the laboratory available as part of your cluster. This will be available in a future version of the platform.*
+
+## Running the application
+
+Once the required Spark drivers start running, the training process will start in epochs. The STDOUT of DC/OS console displays the progression of the training along with the error rate in classification.
 
 ### Removing the Application
 
