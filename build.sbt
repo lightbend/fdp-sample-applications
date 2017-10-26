@@ -18,7 +18,7 @@ lazy val client = (project in file("./client"))
   .settings(
     buildInfoPackage := "build",
     mainClass in Compile := Some("com.lightbend.kafka.DataProvider"),
-    maintainer := "Boris Lublinsky <boris.lublinsky@lightbend.com",
+    maintainer := "Boris Lublinsky <boris.lublinsky@lightbend.com>",
     packageSummary := "Model Server Loaders",
     packageDescription := "Model Server Loaders",
     deployResourceConfigFiles ++= Seq("deploy.conf"),
