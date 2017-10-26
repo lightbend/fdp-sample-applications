@@ -136,7 +136,7 @@ function okay_to_proceed {
 
 function install_jq {
   okay_to_proceed "Need to install the 'jq' tool on your workstation. It's a command line JSON processor."
-  if [ $? -ne 0]
+  if [ $? -ne 0 ]
   then
     echo "Quiting now."
     exit 1

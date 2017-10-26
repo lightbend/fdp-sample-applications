@@ -20,12 +20,16 @@ Together these samples demonstrate the following features of Kafka Streams:
 
 ## Installing the Applications
 
-The applications can be installed from the `bin` folder of the project root. Here's a summary of all the options available for the installation script.
+The easiest way to install the Kafka Streams based sample applications is to install it from the pre-built docker image that comes with the Fast Data Platform distribution. Start from `fdp-package-sample-apps/README.md` of the distribution for general instructions on how to deploy the image as a Marathon application.
 
-```bash
+Once you have installed the docker image (we call it the *laboratory*) with the default name `fdp-apps-lab`, you can follow the steps outlined in that document to complete the installation of the application. The following part of this document discusses the installation part in more details.
+
+> Assumption: We have `fdp-apps-lab` running in the FDP DC/OS cluster
+
+```
 $ pwd
-<project root>
-$ cd bin
+<home directory>/fdp-package-sample-apps
+$ cd bin/kstream
 $ ./app-install.sh --help
   Installs the Kafka Streams sample application. Assumes DC/OS authentication was successful
   using the DC/OS CLI.
@@ -68,13 +72,11 @@ This will install both the modules as applications running under Marathon in the
 
 **If you decide to install and run both the applications together, please ensure your Kafka cluster is beefy enough to handle the load.**
 
-### Installation configuration file
+The script `app-install.sh` takes all configuration parameters from a properties file.  The default file is `app-install.properties` which resides in the same directory, but you can specify the file with the `--config-file` argument.  It is recommended that you keep a set of configuration files for personal development, testing, and production.  Simply copy the default file over and modify as needed.
 
-The default configuration information is from `app-install.properties`, which has the following format:
-
-```bash
+```
 ## dcos kafka package - valid values : confluent-kafka | kafka
-kafka-dcos-package=beta-kafka
+kafka-dcos-package=kafka
 
 ## dcos service name. beta-kafka is installed as kafka by default. default is value of kafka-dcos-package
 kafka-dcos-service-name=kafka
@@ -82,34 +84,21 @@ kafka-dcos-service-name=kafka
 ## whether to skip creation of kafka topics - valid values : true | false
 skip-create-topics=false
 
-## kafka topic partition : default 1
+## kafka topic partition
 kafka-topic-partitions=2
 
-## kafka topic replication factor : default 1
+## kafka topic replication factor
 kafka-topic-replication-factor=2
 
-## name of the user used to publish the artifact.  Typically 'publisher'
-publish-user="publisher"
-
-## the IP address of the publish machine
-publish-host="jim-lab.marathon.mesos"
-
-## port for the SSH connection. The default configuration is 9022
-ssh-port=9022
-
-## passphrase for your SSH key. Remove this entry if you don't need a passphrase
-passphrase=
-
-## the key file in ~/.ssh/ that is to be used to connect to the deployment host
-ssh-keyfile="dg-test-fdp.pem"
-
 ## laboratory mesos deployment
-laboratory-mesos-path=http://jim-lab.marathon.mesos
+laboratory-mesos-path=http://fdp-apps-lab.marathon.mesos
 ```
 
-A few of the parameters relate to the configuration of `fdp-laboratory`, which is the basic engine for installing all sample applications of FDP.
+> The installation process fetches the data required from the canned docker image in `fdp-apps-lab`.
 
-However using `--config-file` option, you can specify your own configuration file as well.
+Once the installation is complete, the required services should be seen available on the DC/OS console. One Marathon service will be up named `kstream-app-dsl` and the other one will be named `kstream-app-proc`.
+
+> *Besides installing from the supplied docker image, the distribution also publishes the development environment and the associated installation scripts in `fdp-sample-apps/kstream/bin` folder. The prerequisite of using these scripts is to have a developer version of the laboratory available as part of your cluster. This will be available in a future version of the platform.*
 
 ### Starting the data ingestion process
 
