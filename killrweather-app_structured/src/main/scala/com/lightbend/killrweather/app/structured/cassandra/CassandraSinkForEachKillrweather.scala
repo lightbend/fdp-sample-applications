@@ -30,17 +30,20 @@ class CassandraSinkForEachKillrweatherRaw(sparkSession: SparkSession) extends Fo
 
   override def open(partitionId: Long, version: Long): Boolean = {
     // open connection
-    //@TODO command to check if cassandra cluster is up
+    //println(s"Opening Cassandra to write raw with connector ${connector.conf.hosts}")
     true
   }
 
   override def process(record: WeatherRecord): Unit = {
+    //println(s"Cassandra writing raw with connector ${connector.conf.hosts}")
     val _ = connector.withSessionDo { session =>
       session.execute(cqlRaw(record))
     }
   }
 
-  override def close(errorOrNull: Throwable): Unit = {} // close the connection
+  override def close(errorOrNull: Throwable): Unit = {
+    //println(s"Closing Cassandra to write raw with connector ${connector.conf.hosts}")
+  } // close the connection
 }
 
 class CassandraSinkForEachKillrweatherDaily(sparkSession: SparkSession) extends ForeachWriter[DailyWeatherData] {
@@ -68,11 +71,12 @@ class CassandraSinkForEachKillrweatherDaily(sparkSession: SparkSession) extends 
 
   override def open(partitionId: Long, version: Long): Boolean = {
     // open connection
-    //@TODO command to check if cassandra cluster is up
+    // println(s"Opening Cassandra to write daily with connector ${connector.conf.hosts}")
     true
   }
 
   override def process(record: DailyWeatherData): Unit = {
+    //    println(s"Cassandra writing daily with connector ${connector.conf.hosts}")
     val _ = connector.withSessionDo { session =>
       session.execute(cqlTemp(record))
       session.execute(cqlPressure(record))
@@ -110,7 +114,7 @@ class CassandraSinkForEachKillrweatherMonthly(sparkSession: SparkSession) extend
 
   override def open(partitionId: Long, version: Long): Boolean = {
     // open connection
-    //@TODO command to check if cassandra cluster is up
+    // println(s"Opening Cassandra to write monthly with connector ${connector.conf.hosts}")
     true
   }
 
