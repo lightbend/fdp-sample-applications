@@ -18,8 +18,8 @@ class InfluxDBSinkForEachKillrweatherRaw extends ForeachWriter[WeatherRecord] {
   var influxDB: InfluxDB = null
 
   override def open(partitionId: Long, version: Long): Boolean = {
-    influxDB = InfluxDBFactory.connect(s"$influxDBServer:$influxDBPort", influxDBUser, influxDBPass)
-    //    influxDB = InfluxDBFactory.connect("http://10.2.2.187:13698", influxDBUser, influxDBPass)
+    //    influxDB = InfluxDBFactory.connect(s"$influxDBServer:$influxDBPort", influxDBUser, influxDBPass)
+    influxDB = InfluxDBFactory.connect("http://10.2.2.187:13698", influxDBUser, influxDBPass)
     if (!influxDB.databaseExists(influxDBDatabase))
       influxDB.createDatabase(influxDBDatabase)
 
@@ -28,14 +28,17 @@ class InfluxDBSinkForEachKillrweatherRaw extends ForeachWriter[WeatherRecord] {
     influxDB.enableBatch(2000, 100, TimeUnit.MILLISECONDS)
     // set retention policy
     influxDB.setRetentionPolicy(retentionPolicy)
+    //    println(s"InfluxDB opening raw with connector $influxDB")
     true
   }
 
   override def process(point: WeatherRecord): Unit = {
+    //    println(s"InfluxDB writing raw with connector $influxDB")
     influxDB.write(converRaw(point))
   }
 
   override def close(errorOrNull: Throwable): Unit = {
+    //    println(s"InfluxDB closing raw with connector $influxDB")
     if (influxDB != null) {
       influxDB.flush()
       influxDB.close()
@@ -68,8 +71,8 @@ class InfluxDBSinkForEachKillrweatherDaily extends ForeachWriter[DailyWeatherDat
   var influxDB: InfluxDB = null
 
   override def open(partitionId: Long, version: Long): Boolean = {
-    influxDB = InfluxDBFactory.connect(s"$influxDBServer:$influxDBPort", influxDBUser, influxDBPass)
-    //    influxDB = InfluxDBFactory.connect("http://10.2.2.187:13698", influxDBUser, influxDBPass)
+    //influxDB = InfluxDBFactory.connect(s"$influxDBServer:$influxDBPort", influxDBUser, influxDBPass)
+    influxDB = InfluxDBFactory.connect("http://10.2.2.187:13698", influxDBUser, influxDBPass)
     if (!influxDB.databaseExists(influxDBDatabase))
       influxDB.createDatabase(influxDBDatabase)
 
@@ -116,8 +119,8 @@ class InfluxDBSinkForEachKillrweatherMonthly extends ForeachWriter[MonthlyWeathe
   var influxDB: InfluxDB = null
 
   override def open(partitionId: Long, version: Long): Boolean = {
-    influxDB = InfluxDBFactory.connect(s"$influxDBServer:$influxDBPort", influxDBUser, influxDBPass)
-    //    influxDB = InfluxDBFactory.connect("http://10.2.2.187:13698", influxDBUser, influxDBPass)
+    //influxDB = InfluxDBFactory.connect(s"$influxDBServer:$influxDBPort", influxDBUser, influxDBPass)
+    influxDB = InfluxDBFactory.connect("http://10.2.2.187:13698", influxDBUser, influxDBPass)
     if (!influxDB.databaseExists(influxDBDatabase))
       influxDB.createDatabase(influxDBDatabase)
 
