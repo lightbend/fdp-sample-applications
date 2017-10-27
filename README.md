@@ -72,7 +72,7 @@ On the command line start a cqlsh shell:
 
     cd /path/to/killrweather/data
     path/to/apache-cassandra-{version}/bin/cqlsh
-        
+
 
 Run the CQL commands in the [Cassandra Setup](#cassandra-setup) section below.
 
@@ -195,7 +195,7 @@ Weather stations table should be populated
 To close the cql shell:
 
      cqlsh> quit;
-     
+
 ### Cassandra Cleanup
 
 To clean up data in Cassandra, start `CQLSH` and type:
@@ -281,13 +281,13 @@ This starts the app running, which is a Spark Streaming app. We won't show the c
 Usage of jim-lab is a good approach if you are doing development. If you only want to run an application
 based on the Lightbend distribution, instead of described above approach use [fdp-package-sample-apps](https://github.com/typesafehub/fdp-package-sample-apps)
 docker image. [Readme](https://github.com/typesafehub/fdp-package-sample-apps/blob/develop/README.md) for this
-project provides deployment information 
+project provides deployment information
 
 
 #### 7. See What's Going On...
 
-Go to the Spark Web console for this job at http://killrweatherapp.marathon.mesos:4040/jobs/ 
-or http://killrweatherappstructured.marathon.mesos:4040/jobs/ (if structured streaming version is used) 
+Go to the Spark Web console for this job at http://killrweatherapp.marathon.mesos:4040/jobs/
+or http://killrweatherappstructured.marathon.mesos:4040/jobs/ (if structured streaming version is used)
 to see the minibatch and other jobs that are executed as part of this Spark Streaming job.
 
 Go to http://leader.mesos/mesos/#/frameworks and search for killrweatherapp or killrweatherappstructured to get more info about the corresponding executors.
@@ -324,7 +324,14 @@ Use the commands we saw previously for data loading to run these commands locall
 
 For information about setting up Grafana and InfluxDB, see this [article](https://mesosphere.com/blog/monitoring-dcos-cadvisor-influxdb-grafana/).
 
-Monitoring is done using InfluxDB and Grafana. In the Grafana UI, load the definitions in `./killrweather-app/src/main/resource/grafana.json`. (Click the upper-left-hand side Grafana icon, then _Dashboards_, then _Import_.) This will create a dashboard called _KillrWeather Data Ingestion_.
+Monitoring is done using InfluxDB and Grafana.
+
+To open the Grafana UI, click the `grafana` service in the DC/OS _Services_ panel, then click the instance link.
+Now click the URL for the `ENDPOINTS`.
+
+> **Note:** If you are in a DC/OS EE cluster, the link will open with `https`. If this fails to load, replace with `http`.
+
+In the Grafana UI, load the definitions in `./killrweather-app/src/main/resource/grafana.json`. (Click the upper-left-hand side Grafana icon, then _Dashboards_, then _Import_.) This will create a dashboard called _KillrWeather Data Ingestion_.
 
 Once set up and once data is flowing through the system, you can view activity in this dashboard.
 
