@@ -38,7 +38,7 @@ object WeatherGRPCClient {
 
     _producerSettings = ProducerSettings(system, new ByteArraySerializer, new ByteArraySerializer)
       .withBootstrapServers(
-        kafkaBrokers
+        kafkaConfig.brokers
       //      "10.8.0.24:9757"
       )
 

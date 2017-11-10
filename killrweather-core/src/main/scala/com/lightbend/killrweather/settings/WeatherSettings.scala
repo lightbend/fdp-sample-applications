@@ -15,11 +15,10 @@
  */
 package com.lightbend.killrweather.settings
 
-import scala.util.Try
-import com.datastax.driver.core.ConsistencyLevel
-import com.datastax.spark.connector.cql.{ AuthConf, NoAuthConf, PasswordAuthConf }
 import com.typesafe.config.ConfigFactory
 import scala.collection.JavaConverters._
+import net.ceedubs.ficus.Ficus._
+import net.ceedubs.ficus.readers.ArbitraryTypeReader._
 
 /**
  * Application settings. First attempts to acquire from the deploy environment.
@@ -44,16 +43,12 @@ import scala.collection.JavaConverters._
  */
 
 case class KafkaConfig(brokers: String, topic: String, group: String)
+
 final class WeatherSettings extends Serializable {
 
   val config = ConfigFactory.load()
 
-  // If running Kafka on your local machine, try localhost:9092
-  // "broker.kafka.l4lb.thisdcos.directory:9092" // for DC/OS - only works in the cluster!
-  val kafkaBrokers = config.getString("kafka.brokers")
-
-  val KafkaGroupId = config.getString("kafka.group")
-  val KafkaTopicRaw = config.getString("kafka.topic")
+  val kafkaConfig = config.as[KafkaConfig]("kafka")
 
   val sparkConfig = config.getConfig("spark")
     .atKey("spark")

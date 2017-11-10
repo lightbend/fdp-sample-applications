@@ -37,4 +37,6 @@ object Versions {
   val ScalaHTTPVersion  = "2.3.0"
   val InfluxDBClientVersion   = "2.7"
   val TypesafeConfigVersion = "1.3.2"
+  val ScalatestVersion  = "3.0.4"
+  val FicusVersion      = "1.4.3"
 }

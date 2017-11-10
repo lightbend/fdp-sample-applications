@@ -47,7 +47,8 @@ object Dependencies {
   val scalaPBJSON       = "com.trueaccord.scalapb"  %% "scalapb-json4s"                 % ScalaPBJSONVersion
   val scalaHTTP         = "org.scalaj"              %  "scalaj-http_2.11"               % ScalaHTTPVersion
   val typesafeConfig    = "com.typesafe"            %  "config"                         % TypesafeConfigVersion
-  val scalaTest         = "org.scalatest"           %% "scalatest"                      % "3.0.4" % "test"
+  val ficus             = "com.iheart"              %% "ficus"                          % FicusVersion
+  val scalaTest         = "org.scalatest"           %% "scalatest"                      % ScalatestVersion % "test"
 
 
   val influxDBClient    = "org.influxdb"            % "influxdb-java"                   % InfluxDBClientVersion
@@ -92,7 +93,7 @@ object Dependencies {
     .exclude("org.spark-project.spark", "unused")
   )
 
-  val common = Seq(scalaTest, typesafeConfig)
+  val common = Seq(scalaTest, typesafeConfig, ficus)
   /** Module deps */
   val clientHTTP = logging ++ akka ++ json
   val clientGRPC = logging ++ akka ++ grpc

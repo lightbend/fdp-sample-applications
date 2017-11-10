@@ -59,8 +59,8 @@ object KillrWeather {
 
     // Create raw data observations stream
     val kafkaParams = MessageListener.consumerProperties(
-      kafkaBrokers,
-      KafkaGroupId, classOf[ByteArrayDeserializer].getName, classOf[ByteArrayDeserializer].getName
+      kafkaConfig.brokers,
+      kafkaConfig.group, classOf[ByteArrayDeserializer].getName, classOf[ByteArrayDeserializer].getName
     )
     val topics = List(KafkaTopicRaw)
 

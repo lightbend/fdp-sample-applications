@@ -20,10 +20,10 @@ object KafkaDataIngester {
     val settings = new WeatherSettings()
     import settings._
 
-//    val brokers = if (args.length > 0) args(0) else kafkaBrokers
-    val brokers = "localhost:9092"
+    val brokers = if (args.length > 0) args(0) else kafkaConfig.brokers
+
     val ingester = KafkaDataIngester(brokers)
-    ingester.execute(file, settings.KafkaTopicRaw)
+    ingester.execute(file, kafkaConfig.topic)
   }
 
   def pause(): Unit = {

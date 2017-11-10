@@ -8,9 +8,9 @@ class WeatherSettingsTest extends WordSpec with Matchers {
     val ws = new WeatherSettings()
 
     "Load the default Kafka configuration" in {
-      ws.kafkaBrokers should be("unit-test-host") // from test override
-      ws.KafkaGroupId should be("killrweather.group") // from reference
-      ws.KafkaTopicRaw should be("killrweather.raw") // from reference
+      ws.kafkaConfig.brokers should be("unit-test-host") // from test override
+      ws.kafkaConfig.group should be("killrweather.group") // from reference
+      ws.kafkaConfig.topic should be("killrweather.raw") // from reference
     }
 
     "Load the default Spark configuration" in {
