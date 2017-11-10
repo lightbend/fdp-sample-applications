@@ -18,6 +18,7 @@ package com.lightbend.killrweather.settings
 import scala.util.Try
 import com.datastax.driver.core.ConsistencyLevel
 import com.datastax.spark.connector.cql.{ AuthConf, NoAuthConf, PasswordAuthConf }
+import com.typesafe.config.ConfigFactory
 
 /**
  * Application settings. First attempts to acquire from the deploy environment.
@@ -40,18 +41,18 @@ import com.datastax.spark.connector.cql.{ AuthConf, NoAuthConf, PasswordAuthConf
  *
  * TODO: Revert back to using Typesafe Config as in the original implementation and as the comments here suggest!!
  */
-final class WeatherSettings() extends Serializable {
 
-  // val AppName: String = "KillrWeather"  // Don't use, as different apps use WeatherSettings
+case class KafkaConfig(brokers: String, topic: String, group: String)
+final class WeatherSettings extends Serializable {
 
-  val localAddress = "localhost" //InetAddress.getLocalHost.getHostAddress
+  val config = ConfigFactory.load()
 
   // If running Kafka on your local machine, try localhost:9092
-  val kafkaBrokers = sys.props.get("kafka.brokers") match {
-    case Some(kb) => kb
-    case None => "broker.kafka.l4lb.thisdcos.directory:9092" // for DC/OS - only works in the cluster!
-  }
-  println(s"Using Kafka Brokers: $kafkaBrokers")
+  // "broker.kafka.l4lb.thisdcos.directory:9092" // for DC/OS - only works in the cluster!
+  val kafkaBrokers = config.getString("kafka.brokers")
+
+  val KafkaGroupId = config.getString("kafka.group")
+  val KafkaTopicRaw = config.getString("kafka.topic")
 
   val SparkCleanerTtl = (3600 * 2)
 
@@ -126,9 +127,6 @@ final class WeatherSettings() extends Serializable {
   val CassandraWriteConsistencyLevel: ConsistencyLevel = ConsistencyLevel.valueOf(ConsistencyLevel.LOCAL_ONE.name)
 
   val CassandraDefaultMeasuredInsertsCount: Int = 128
-
-  val KafkaGroupId = "killrweather.group"
-  val KafkaTopicRaw = "killrweather.raw"
 
   val CassandraKeyspace = "isd_weather_data"
 
