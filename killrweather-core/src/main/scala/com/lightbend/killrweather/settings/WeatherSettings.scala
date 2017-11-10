@@ -101,19 +101,20 @@ final class WeatherSettings extends Serializable {
   val DataLoadPath = data.getString("loadPath")
   val DataFileExtension = data.getString("fileExtension")
 
-  // InfluxDB - These settings are effectively ignored if --without-influxdb is used.
-  val influxDBServer: String = "http://influx-db.marathon.l4lb.thisdcos.directory"
-  val influxDBPort: Int = 8086
-  val influxDBUser: String = "root"
-  val influxDBPass: String = "root"
-  val influxDBDatabase: String = "weather"
-  val retentionPolicy: String = "default"
+  val influxConfig = config.getConfig("influx")
 
-  /** Attempts to acquire from environment, then java system properties. */
-  def withFallback[T](env: Try[T], key: String): Option[T] = env match {
-    case null => None
-    case value => value.toOption
-  }
+  // InfluxDB - These settings are effectively ignored if --without-influxdb is used.
+  val influxDBServer: String = influxConfig.getString("server")
+  val influxDBPort: Int = influxConfig.getInt("port")
+  val influxDBUser: String = influxConfig.getString("user")
+  val influxDBPass: String = influxConfig.getString("password")
+
+  val influxAppConfig = config.getConfig("app.influx")
+
+  val influxDBDatabase: String = influxAppConfig.getString("database")
+  val retentionPolicy: String = influxAppConfig.getString("retentionPolicy")
+  val useInflux: Boolean = influxAppConfig.getBoolean("enabled")
+
 }
 
 object WeatherSettings {

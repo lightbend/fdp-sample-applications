@@ -27,6 +27,10 @@ class WeatherSettingsTest extends WordSpec with Matchers {
       ws.CassandraKeyspace should not be ('empty)
     }
 
+    "Load the default influx db configuration" in {
+      ws.influxDBServer should not be ('empty)
+    }
+
   }
 
 }
