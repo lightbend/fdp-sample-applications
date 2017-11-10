@@ -78,81 +78,28 @@ final class WeatherSettings extends Serializable {
 
   val CassandraAuthPassword: Option[String] = sys.props.get("spark.cassandra.auth.password")
 
-  val CassandraAuth: AuthConf = {
-    val credentials = for (
-      username <- CassandraAuthUsername;
-      password <- CassandraAuthPassword
-    ) yield (username, password)
+  val cassandraConfig = config.getConfig("app.cassandra")
 
-    credentials match {
-      case Some((user, password)) => PasswordAuthConf(user, password)
-      case None => NoAuthConf
-    }
-  }
+  val CassandraKeyspace = cassandraConfig.getString("keyspace")
 
-  val CassandraRpcPort = 9160
+  val CassandraTableRaw = cassandraConfig.getString("tableRaw")
 
-  val CassandraNativePort = 9042
+  val CassandraTableDailyTemp = cassandraConfig.getString("tableDailyTemp")
+  val CassandraTableDailyWind = cassandraConfig.getString("tableDailyWind")
+  val CassandraTableDailyPressure = cassandraConfig.getString("tableDailyPressure")
+  val CassandraTableDailyPrecip = cassandraConfig.getString("tableDailyPrecip")
 
-  /* Tuning */
+  val CassandraTableMonthlyTemp = cassandraConfig.getString("tableMonthlyTemp")
+  val CassandraTableMonthlyWind = cassandraConfig.getString("tableMonthlyWind")
+  val CassandraTableMonthlyPressure = cassandraConfig.getString("tableMonthlyPressure")
+  val CassandraTableMonthlyPrecip = cassandraConfig.getString("tableMonthlyPrecip")
 
-  val CassandraKeepAlive = 1000
+  val CassandraTableSky = cassandraConfig.getString("tableSky")
+  val CassandraTableStations = cassandraConfig.getString("tableStations")
 
-  val CassandraRetryCount = 10
-
-  val CassandraConnectionReconnectDelayMin = 1000
-
-  val CassandraConnectionReconnectDelayMax = 60000
-
-  /* Reads */
-  val CassandraReadPageRowSize = 1000
-
-  val CassandraReadConsistencyLevel: ConsistencyLevel = ConsistencyLevel.valueOf(ConsistencyLevel.LOCAL_ONE.name)
-
-  val CassandraReadSplitSize = 100000
-
-  /* Writes */
-
-  val CassandraWriteParallelismLevel = 5
-
-  val CassandraWriteBatchSizeBytes = 64 * 1024
-
-  private val CassandraWriteBatchSizeRows = "auto"
-
-  val CassandraWriteBatchRowSize: Option[Int] = {
-    val NumberPattern = "([0-9]+)".r
-    CassandraWriteBatchSizeRows match {
-      case "auto" => None
-      case NumberPattern(x) => Some(x.toInt)
-      case other =>
-        throw new IllegalArgumentException(
-          s"Invalid value for 'cassandra.output.batch.size.rows': $other. Number or 'auto' expected"
-        )
-    }
-  }
-
-  val CassandraWriteConsistencyLevel: ConsistencyLevel = ConsistencyLevel.valueOf(ConsistencyLevel.LOCAL_ONE.name)
-
-  val CassandraDefaultMeasuredInsertsCount: Int = 128
-
-  val CassandraKeyspace = "isd_weather_data"
-
-  val CassandraTableRaw = "raw_weather_data"
-
-  val CassandraTableDailyTemp = "daily_aggregate_temperature"
-  val CassandraTableDailyWind = "daily_aggregate_windspeed"
-  val CassandraTableDailyPressure = "daily_aggregate_pressure"
-  val CassandraTableDailyPrecip = "daily_aggregate_precip"
-
-  val CassandraTableMonthlyTemp = "monthly_aggregate_temperature"
-  val CassandraTableMonthlyWind = "monthly_aggregate_windspeed"
-  val CassandraTableMonthlyPressure = "monthly_aggregate_pressure"
-  val CassandraTableMonthlyPrecip = "monthly_aggregate_precip"
-
-  val CassandraTableSky = "sky_condition_lookup"
-  val CassandraTableStations = "weather_station"
-  val DataLoadPath = "./data/load"
-  val DataFileExtension = ".csv.gz"
+  val data = config.getConfig("app.data")
+  val DataLoadPath = data.getString("loadPath")
+  val DataFileExtension = data.getString("fileExtension")
 
   // InfluxDB - These settings are effectively ignored if --without-influxdb is used.
   val influxDBServer: String = "http://influx-db.marathon.l4lb.thisdcos.directory"
