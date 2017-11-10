@@ -42,7 +42,7 @@ object WeatherGRPCClient {
       //      "10.8.0.24:9757"
       )
 
-    val server = WeatherGRPCClient(KafkaTopicRaw)
+    val server = WeatherGRPCClient(kafkaConfig.topic)
     server.start()
     server.blockUntilShutdown()
 

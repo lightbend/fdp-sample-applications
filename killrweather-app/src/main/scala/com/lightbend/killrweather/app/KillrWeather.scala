@@ -2,7 +2,7 @@ package com.lightbend.killrweather.app
 
 import com.lightbend.killrweather.kafka.MessageListener
 import org.apache.spark.SparkConf
-import org.apache.spark.streaming.{ Seconds, State, StateSpec, StreamingContext }
+import org.apache.spark.streaming._
 import com.lightbend.killrweather.settings.WeatherSettings
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
 import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
@@ -47,8 +47,8 @@ object KillrWeather {
 
     sys.props.get("spark.master").foreach(master => sparkConf = sparkConf.setMaster(master))
 
-    val ssc = new StreamingContext(sparkConf, Seconds(SparkStreamingBatchInterval / 1000))
-    ssc.checkpoint(SparkCheckpointDir)
+    val ssc = new StreamingContext(sparkConf, Duration(streamingConfig.batchInterval.toMillis))
+    ssc.checkpoint(streamingConfig.checkpointDir)
     val sc = ssc.sparkContext
 
     // Create embedded Kafka and topic
@@ -62,7 +62,7 @@ object KillrWeather {
       kafkaConfig.brokers,
       kafkaConfig.group, classOf[ByteArrayDeserializer].getName, classOf[ByteArrayDeserializer].getName
     )
-    val topics = List(KafkaTopicRaw)
+    val topics = List(kafkaConfig.topic)
 
     // Initial state RDD for daily accumulator
     val dailyRDD = ssc.sparkContext.emptyRDD[(String, ListBuffer[WeatherRecord])]

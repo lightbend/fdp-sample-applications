@@ -23,8 +23,8 @@ object KillrWeatherStructured {
     val spark = SparkSession.builder
       .appName("KillrWeather with Structured Streaming")
       //      .master("local")
-      .config("spark.cassandra.connection.host", CassandraHosts /* "10.2.2.13"*/ )
-      .config("spark.sql.streaming.checkpointLocation", SparkCheckpointDir)
+      .config("spark.cassandra.connection.host", CassandraHosts)
+      .config("spark.sql.streaming.checkpointLocation", streamingConfig.checkpointDir)
       .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .getOrCreate()
 

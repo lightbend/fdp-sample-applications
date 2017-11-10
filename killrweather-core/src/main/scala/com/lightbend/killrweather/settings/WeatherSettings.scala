@@ -16,9 +16,12 @@
 package com.lightbend.killrweather.settings
 
 import com.typesafe.config.ConfigFactory
+
 import scala.collection.JavaConverters._
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
+
+import scala.concurrent.duration.FiniteDuration
 
 /**
  * Application settings. First attempts to acquire from the deploy environment.
@@ -39,10 +42,10 @@ import net.ceedubs.ficus.readers.ArbitraryTypeReader._
  *
  * Any of these can also be overridden by your own application.conf.
  *
- * TODO: Revert back to using Typesafe Config as in the original implementation and as the comments here suggest!!
  */
 
 case class KafkaConfig(brokers: String, topic: String, group: String)
+case class StreamingConfig(batchInterval: FiniteDuration, checkpointDir: String)
 
 final class WeatherSettings extends Serializable {
 
@@ -57,10 +60,7 @@ final class WeatherSettings extends Serializable {
     .map { entry => (entry.getKey, entry.getValue.unwrapped.toString) }
     .toMap
 
-  val streamingConfig = config.getConfig("streaming")
-
-  val SparkCheckpointDir = streamingConfig.getString("checkpointDir")
-  val SparkStreamingBatchInterval = streamingConfig.getDuration("batchInterval")
+  val streamingConfig = config.as[StreamingConfig]("streaming")
 
   // If running Cassandra on your local machine, try your local IP address (127.0.0.1 might work)
   val CassandraHosts = sys.props.get("cassandra.hosts") match {

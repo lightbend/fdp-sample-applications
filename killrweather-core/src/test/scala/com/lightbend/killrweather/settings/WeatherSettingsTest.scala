@@ -19,8 +19,8 @@ class WeatherSettingsTest extends WordSpec with Matchers {
     }
 
     "Load the default streaming configuration" in {
-      ws.SparkCheckpointDir should include("checkpoints")
-      ws.SparkStreamingBatchInterval.getSeconds should be > 1L
+      ws.streamingConfig.checkpointDir should include("checkpoints")
+      ws.streamingConfig.batchInterval.getSeconds should be > 1L
     }
 
     "Load the default application-bound cassandra configuration" in {
