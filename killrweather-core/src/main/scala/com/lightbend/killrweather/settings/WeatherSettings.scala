@@ -19,6 +19,7 @@ import scala.util.Try
 import com.datastax.driver.core.ConsistencyLevel
 import com.datastax.spark.connector.cql.{ AuthConf, NoAuthConf, PasswordAuthConf }
 import com.typesafe.config.ConfigFactory
+import scala.collection.JavaConverters._
 
 /**
  * Application settings. First attempts to acquire from the deploy environment.
@@ -54,11 +55,17 @@ final class WeatherSettings extends Serializable {
   val KafkaGroupId = config.getString("kafka.group")
   val KafkaTopicRaw = config.getString("kafka.topic")
 
-  val SparkCleanerTtl = (3600 * 2)
+  val sparkConfig = config.getConfig("spark")
+    .atKey("spark")
+    .entrySet()
+    .asScala
+    .map { entry => (entry.getKey, entry.getValue.unwrapped.toString) }
+    .toMap
 
-  val SparkStreamingBatchInterval = 5000L
+  val streamingConfig = config.getConfig("streaming")
 
-  val SparkCheckpointDir = "./checkpoints/"
+  val SparkCheckpointDir = streamingConfig.getString("checkpointDir")
+  val SparkStreamingBatchInterval = streamingConfig.getDuration("batchInterval")
 
   // If running Cassandra on your local machine, try your local IP address (127.0.0.1 might work)
   val CassandraHosts = sys.props.get("cassandra.hosts") match {
