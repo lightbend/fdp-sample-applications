@@ -20,6 +20,7 @@ import com.typesafe.config.ConfigFactory
 import scala.collection.JavaConverters._
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
+import org.apache.spark.SparkConf
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -53,12 +54,19 @@ final class WeatherSettings extends Serializable {
 
   val kafkaConfig = config.as[KafkaConfig]("kafka")
 
-  val sparkConfig = config.getConfig("spark")
-    .atKey("spark")
-    .entrySet()
-    .asScala
-    .map { entry => (entry.getKey, entry.getValue.unwrapped.toString) }
-    .toMap
+  def sparkConf(): SparkConf = {
+    val sparkConfig = config.getConfig("spark")
+      .atKey("spark")
+      .entrySet()
+      .asScala
+      .map { entry => (entry.getKey, entry.getValue.unwrapped.toString) }
+      .toMap
+    val sparkConf = new SparkConf()
+    sparkConfig.foldLeft(sparkConf.setMaster(sparkConfig("spark.master"))) {
+      case (conf, (setting, value)) =>
+        conf.set(setting, value)
+    }
+  }
 
   val streamingConfig = config.as[StreamingConfig]("streaming")
 

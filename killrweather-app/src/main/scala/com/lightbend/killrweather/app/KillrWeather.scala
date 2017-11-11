@@ -1,25 +1,22 @@
 package com.lightbend.killrweather.app
 
-import com.lightbend.killrweather.kafka.MessageListener
-import org.apache.spark.SparkConf
 import org.apache.spark.streaming._
-import com.lightbend.killrweather.settings.WeatherSettings
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
 import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
 import org.apache.spark.streaming.kafka010.KafkaUtils
 import org.apache.spark.streaming.kafka010.LocationStrategies.PreferConsistent
 import com.datastax.spark.connector.streaming._
+import com.lightbend.killrweather.kafka.MessageListener
+import com.lightbend.killrweather.settings.WeatherSettings
 import com.lightbend.killrweather.WeatherClient.WeatherRecord
 import com.lightbend.killrweather.app.cassandra.CassandraSetup
 import com.lightbend.killrweather.app.influxdb.InfluxDBSink
 import com.lightbend.killrweather.utils._
+import org.apache.spark.sql.SparkSession
 import org.apache.spark.util.StatCounter
 
 import scala.collection.mutable.ListBuffer
 
-/**
- * Created by boris on 7/9/17.
- */
 object KillrWeather {
 
   def main(args: Array[String]): Unit = {
@@ -31,12 +28,10 @@ object KillrWeather {
     val settings = new WeatherSettings()
     import settings._
 
-    var sparkConf = new SparkConf().setAppName("KillrWeather")
-      .set(
-        "spark.cassandra.connection.host",
-        CassandraHosts
-      )
-      .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+    val sparkSession = SparkSession.builder()
+      .config(settings.sparkConf())
+      .appName("KillrWeather")
+      .getOrCreate()
 
     // Initialize Cassandra
     try {
@@ -44,12 +39,10 @@ object KillrWeather {
     } catch {
       case t: Throwable => println("Cassandra not initialized")
     }
+    val sc = sparkSession.sparkContext
+    val ssc = new StreamingContext(sc, Duration(streamingConfig.batchInterval.toMillis))
 
-    sys.props.get("spark.master").foreach(master => sparkConf = sparkConf.setMaster(master))
-
-    val ssc = new StreamingContext(sparkConf, Duration(streamingConfig.batchInterval.toMillis))
     ssc.checkpoint(streamingConfig.checkpointDir)
-    val sc = ssc.sparkContext
 
     // Create embedded Kafka and topic
     //       EmbeddedSingleNodeKafkaCluster.start()

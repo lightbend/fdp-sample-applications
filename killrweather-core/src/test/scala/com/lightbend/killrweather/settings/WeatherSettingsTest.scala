@@ -14,13 +14,13 @@ class WeatherSettingsTest extends WordSpec with Matchers {
     }
 
     "Load the default Spark configuration" in {
-      val sparkConf = ws.sparkConfig
-      sparkConf should contain("spark.master" -> "local[2]")
+      val sparkConf = ws.sparkConf
+      sparkConf.get("spark.master") should be("local[2]")
     }
 
     "Load the default streaming configuration" in {
       ws.streamingConfig.checkpointDir should include("checkpoints")
-      ws.streamingConfig.batchInterval.getSeconds should be > 1L
+      ws.streamingConfig.batchInterval.toSeconds should be > 1L
     }
 
     "Load the default application-bound cassandra configuration" in {
