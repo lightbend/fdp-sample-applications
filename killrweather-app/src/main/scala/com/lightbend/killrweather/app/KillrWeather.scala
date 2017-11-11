@@ -77,7 +77,7 @@ object KillrWeather {
     })
 
     /** Saves the raw data to Cassandra - raw table. */
-    kafkaStream.saveToCassandra(CassandraKeyspace, CassandraTableRaw)
+    kafkaStream.saveToCassandra(cassandraConfig.keyspace, cassandraConfig.tableRaw)
 
     // Calculate daily
     val dailyMappingFunc = (station: String, reading: Option[WeatherRecord], state: State[ListBuffer[WeatherRecord]]) => {
@@ -122,16 +122,16 @@ object KillrWeather {
       val dt = DailyTemperature(ds._2)
       influxDBSink.value.write(dt)
       dt
-    }).saveToCassandra(CassandraKeyspace, CassandraTableDailyTemp)
+    }).saveToCassandra(cassandraConfig.keyspace, cassandraConfig.tableDailyTemp)
 
     // Save daily wind
-    dailyStream.map(ds => DailyWindSpeed(ds._2)).saveToCassandra(CassandraKeyspace, CassandraTableDailyWind)
+    dailyStream.map(ds => DailyWindSpeed(ds._2)).saveToCassandra(cassandraConfig.keyspace, cassandraConfig.tableDailyWind)
 
     // Save daily pressure
-    dailyStream.map(ds => DailyPressure(ds._2)).saveToCassandra(CassandraKeyspace, CassandraTableDailyPressure)
+    dailyStream.map(ds => DailyPressure(ds._2)).saveToCassandra(cassandraConfig.keyspace, cassandraConfig.tableDailyPressure)
 
-    // Save daily presipitations
-    dailyStream.map(ds => DailyPrecipitation(ds._2)).saveToCassandra(CassandraKeyspace, CassandraTableDailyPrecip)
+    // Save daily precipitations
+    dailyStream.map(ds => DailyPrecipitation(ds._2)).saveToCassandra(cassandraConfig.keyspace, cassandraConfig.tableDailyPrecip)
 
     // Calculate monthly
     val monthlyMappingFunc = (station: String, reading: Option[DailyWeatherDataProcess], state: State[ListBuffer[DailyWeatherDataProcess]]) => {
@@ -172,16 +172,16 @@ object KillrWeather {
       val mt = MonthlyTemperature(ds._2)
       influxDBSink.value.write(mt)
       mt
-    }).saveToCassandra(CassandraKeyspace, CassandraTableMonthlyTemp)
+    }).saveToCassandra(cassandraConfig.keyspace, cassandraConfig.tableMonthlyTemp)
 
     // Save monthly wind
-    monthlyStream.map(ds => MonthlyWindSpeed(ds._2)).saveToCassandra(CassandraKeyspace, CassandraTableMonthlyWind)
+    monthlyStream.map(ds => MonthlyWindSpeed(ds._2)).saveToCassandra(cassandraConfig.keyspace, cassandraConfig.tableMonthlyWind)
 
     // Save monthly pressure
-    monthlyStream.map(ds => MonthlyPressure(ds._2)).saveToCassandra(CassandraKeyspace, CassandraTableMonthlyPressure)
+    monthlyStream.map(ds => MonthlyPressure(ds._2)).saveToCassandra(cassandraConfig.keyspace, cassandraConfig.tableMonthlyPressure)
 
     // Save monthly presipitations
-    monthlyStream.map(ds => MonthlyPrecipitation(ds._2)).saveToCassandra(CassandraKeyspace, CassandraTableMonthlyPrecip)
+    monthlyStream.map(ds => MonthlyPrecipitation(ds._2)).saveToCassandra(cassandraConfig.keyspace, cassandraConfig.tableMonthlyPrecip)
 
     // Execute
     ssc.start()

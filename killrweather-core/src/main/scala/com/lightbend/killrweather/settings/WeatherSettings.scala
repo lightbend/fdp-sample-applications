@@ -47,6 +47,21 @@ import scala.concurrent.duration.FiniteDuration
 
 case class KafkaConfig(brokers: String, topic: String, group: String)
 case class StreamingConfig(batchInterval: FiniteDuration, checkpointDir: String)
+case class CassandraConfig(
+  keyspace:String,
+  tableRaw:String,
+  tableDailyTemp:String,
+  tableDailyWind:String,
+  tableDailyPressure:String,
+  tableDailyPrecip:String,
+  tableMonthlyTemp:String,
+  tableMonthlyWind:String,
+  tableMonthlyPressure:String,
+  tableMonthlyPrecip:String,
+  tableSky:String,
+  tableStations:String
+)
+
 
 final class WeatherSettings extends Serializable {
 
@@ -70,18 +85,7 @@ final class WeatherSettings extends Serializable {
 
   val streamingConfig = config.as[StreamingConfig]("streaming")
 
-  // If running Cassandra on your local machine, try your local IP address (127.0.0.1 might work)
-  val CassandraHosts = sys.props.get("cassandra.hosts") match {
-    case Some(ch) => ch
-    case None => "node.cassandra.l4lb.thisdcos.directory" // This will work only on cluster
-  }
-  println(s"Using Cassandra Hosts: $CassandraHosts")
-
-  val CassandraAuthUsername: Option[String] = sys.props.get("spark.cassandra.auth.username")
-
-  val CassandraAuthPassword: Option[String] = sys.props.get("spark.cassandra.auth.password")
-
-  val cassandraConfig = config.getConfig("app.cassandra")
+  val cassandraConfig = config.as[CassandraConfig]("app.cassandra")
 
   val CassandraKeyspace = cassandraConfig.getString("keyspace")
 
