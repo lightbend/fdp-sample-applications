@@ -48,20 +48,19 @@ import scala.concurrent.duration.FiniteDuration
 case class KafkaConfig(brokers: String, topic: String, group: String)
 case class StreamingConfig(batchInterval: FiniteDuration, checkpointDir: String)
 case class CassandraConfig(
-  keyspace:String,
-  tableRaw:String,
-  tableDailyTemp:String,
-  tableDailyWind:String,
-  tableDailyPressure:String,
-  tableDailyPrecip:String,
-  tableMonthlyTemp:String,
-  tableMonthlyWind:String,
-  tableMonthlyPressure:String,
-  tableMonthlyPrecip:String,
-  tableSky:String,
-  tableStations:String
+  keyspace: String,
+  tableRaw: String,
+  tableDailyTemp: String,
+  tableDailyWind: String,
+  tableDailyPressure: String,
+  tableDailyPrecip: String,
+  tableMonthlyTemp: String,
+  tableMonthlyWind: String,
+  tableMonthlyPressure: String,
+  tableMonthlyPrecip: String,
+  tableSky: String,
+  tableStations: String
 )
-
 
 final class WeatherSettings extends Serializable {
 
@@ -86,23 +85,6 @@ final class WeatherSettings extends Serializable {
   val streamingConfig = config.as[StreamingConfig]("streaming")
 
   val cassandraConfig = config.as[CassandraConfig]("app.cassandra")
-
-  val CassandraKeyspace = cassandraConfig.getString("keyspace")
-
-  val CassandraTableRaw = cassandraConfig.getString("tableRaw")
-
-  val CassandraTableDailyTemp = cassandraConfig.getString("tableDailyTemp")
-  val CassandraTableDailyWind = cassandraConfig.getString("tableDailyWind")
-  val CassandraTableDailyPressure = cassandraConfig.getString("tableDailyPressure")
-  val CassandraTableDailyPrecip = cassandraConfig.getString("tableDailyPrecip")
-
-  val CassandraTableMonthlyTemp = cassandraConfig.getString("tableMonthlyTemp")
-  val CassandraTableMonthlyWind = cassandraConfig.getString("tableMonthlyWind")
-  val CassandraTableMonthlyPressure = cassandraConfig.getString("tableMonthlyPressure")
-  val CassandraTableMonthlyPrecip = cassandraConfig.getString("tableMonthlyPrecip")
-
-  val CassandraTableSky = cassandraConfig.getString("tableSky")
-  val CassandraTableStations = cassandraConfig.getString("tableStations")
 
   val data = config.getConfig("app.data")
   val DataLoadPath = data.getString("loadPath")

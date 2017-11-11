@@ -20,7 +20,7 @@ class CassandraSinkForEachKillrweatherRaw(sparkSession: SparkSession) extends Fo
   import settings._
 
   private def cqlRaw(record: WeatherRecord): String = s"""
-       insert into $CassandraKeyspace.$CassandraTableRaw (wsid, year, month, day, hour, temperature, dewpoint, pressure,
+       insert into ${cassandraConfig.keyspace}.${cassandraConfig.tableRaw} (wsid, year, month, day, hour, temperature, dewpoint, pressure,
        wind_direction, wind_speed, sky_condition, sky_condition_text, one_hour_precip, six_hour_precip)
        values('${record.wsid}', ${record.year}, ${record.month}, ${record.day}, ${record.hour}, ${record.temperature},
        ${record.dewpoint}, ${record.pressure}, ${record.windDirection}, ${record.windSpeed}, ${record.skyCondition},
@@ -52,19 +52,19 @@ class CassandraSinkForEachKillrweatherDaily(sparkSession: SparkSession) extends 
   import settings._
 
   private def cqlTemp(record: DailyWeatherData): String = s"""
-       insert into $CassandraKeyspace.$CassandraTableDailyTemp (wsid, year, month, day, high, low, mean, variance, stdev)
+       insert into ${cassandraConfig.keyspace}.${cassandraConfig.tableDailyTemp} (wsid, year, month, day, high, low, mean, variance, stdev)
        values('${record.wsid}', ${record.year}, ${record.month}, ${record.day},
           ${record.highTemp},  ${record.lowTemp},  ${record.meanTemp}, ${record.varianceTemp}, ${record.stdevTemp})"""
   private def cqlPressure(record: DailyWeatherData): String = s"""
-       insert into $CassandraKeyspace.$CassandraTableDailyPressure (wsid, year, month, day, high, low, mean, variance, stdev)
+       insert into ${cassandraConfig.keyspace}.${cassandraConfig.tableDailyPressure} (wsid, year, month, day, high, low, mean, variance, stdev)
        values('${record.wsid}', ${record.year}, ${record.month}, ${record.day},
           ${record.highPressure},  ${record.lowPressure},  ${record.meanPressure}, ${record.variancePressure}, ${record.stdevPressure})"""
   private def cqlWind(record: DailyWeatherData): String = s"""
-       insert into $CassandraKeyspace.$CassandraTableDailyWind (wsid, year, month, day, high, low, mean, variance, stdev)
+       insert into ${cassandraConfig.keyspace}.${cassandraConfig.tableDailyWind} (wsid, year, month, day, high, low, mean, variance, stdev)
        values('${record.wsid}', ${record.year}, ${record.month}, ${record.day},
           ${record.highWind},  ${record.lowWind},  ${record.meanWind}, ${record.varianceWind}, ${record.stdevWind})"""
   private def cqlPrecip(record: DailyWeatherData): String = s"""
-       insert into $CassandraKeyspace.$CassandraTableDailyPrecip (wsid, year, month, day, precipitation)
+       insert into ${cassandraConfig.keyspace}.${cassandraConfig.tableDailyPrecip} (wsid, year, month, day, precipitation)
        values('${record.wsid}', ${record.year}, ${record.month}, ${record.day}, ${record.precip})"""
 
   val connector = CassandraConnector.apply(sparkSession.sparkContext.getConf)
@@ -94,19 +94,19 @@ class CassandraSinkForEachKillrweatherMonthly(sparkSession: SparkSession) extend
   import settings._
 
   private def cqlTemp(record: MonthlyWeatherData): String = s"""
-       insert into $CassandraKeyspace.$CassandraTableMonthlyTemp (wsid, year, month, high, low, mean, variance, stdev)
+       insert into ${cassandraConfig.keyspace}.${cassandraConfig.tableMonthlyTemp} (wsid, year, month, high, low, mean, variance, stdev)
        values('${record.wsid}', ${record.year}, ${record.month},
           ${record.highTemp},  ${record.lowTemp},  ${record.meanTemp}, ${record.varianceTemp}, ${record.stdevTemp})"""
   private def cqlPressure(record: MonthlyWeatherData): String = s"""
-       insert into $CassandraKeyspace.$CassandraTableMonthlyPressure (wsid, year, month, high, low, mean, variance, stdev)
+       insert into ${cassandraConfig.keyspace}.${cassandraConfig.tableMonthlyPressure} (wsid, year, month, high, low, mean, variance, stdev)
        values('${record.wsid}', ${record.year}, ${record.month},
           ${record.highPressure},  ${record.lowPressure},  ${record.meanPressure}, ${record.variancePressure}, ${record.stdevPressure})"""
   private def cqlWind(record: MonthlyWeatherData): String = s"""
-       insert into $CassandraKeyspace.$CassandraTableMonthlyWind (wsid, year, month, high, low, mean, variance, stdev)
+       insert into ${cassandraConfig.keyspace}.${cassandraConfig.tableMonthlyWind} (wsid, year, month, high, low, mean, variance, stdev)
        values('${record.wsid}', ${record.year}, ${record.month},
           ${record.highWind},  ${record.lowWind},  ${record.meanWind}, ${record.varianceWind}, ${record.stdevWind})"""
   private def cqlPrecip(record: MonthlyWeatherData): String = s"""
-       insert into $CassandraKeyspace.$CassandraTableMonthlyPrecip (wsid, year, month,  high, low, mean, variance, stdev)
+       insert into ${cassandraConfig.keyspace}.${cassandraConfig.tableMonthlyPrecip} (wsid, year, month,  high, low, mean, variance, stdev)
        values('${record.wsid}', ${record.year}, ${record.month},
           ${record.highPrecip},  ${record.lowPrecip},  ${record.meanPrecip}, ${record.variancePrecip}, ${record.stdevPrecip})"""
 

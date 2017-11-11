@@ -24,7 +24,7 @@ class WeatherSettingsTest extends WordSpec with Matchers {
     }
 
     "Load the default application-bound cassandra configuration" in {
-      ws.CassandraKeyspace should not be ('empty)
+      ws.cassandraConfig.keyspace should not be ('empty)
     }
 
     "Load the default influx db configuration" in {
