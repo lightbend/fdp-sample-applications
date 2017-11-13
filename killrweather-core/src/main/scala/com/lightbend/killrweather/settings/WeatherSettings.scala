@@ -86,10 +86,6 @@ final class WeatherSettings extends Serializable {
 
   val cassandraConfig = config.as[CassandraConfig]("app.cassandra")
 
-  val data = config.getConfig("app.data")
-  val DataLoadPath = data.getString("loadPath")
-  val DataFileExtension = data.getString("fileExtension")
-
   val influxConfig = config.getConfig("influx")
 
   // InfluxDB - These settings are effectively ignored if --without-influxdb is used.
