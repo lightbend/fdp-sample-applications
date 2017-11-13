@@ -61,6 +61,10 @@ case class CassandraConfig(
   tableSky: String,
   tableStations: String
 )
+case class InfluxDBConfig(server: String, port: Int, user: String, password: String, enabled: Boolean) {
+  def url = s"$server:$port"
+}
+case class InfluxTableConfig(database: String, retentionPolicy: String)
 
 final class WeatherSettings extends Serializable {
 
@@ -86,19 +90,9 @@ final class WeatherSettings extends Serializable {
 
   val cassandraConfig = config.as[CassandraConfig]("app.cassandra")
 
-  val influxConfig = config.getConfig("influx")
+  val influxConfig = config.as[InfluxDBConfig]("influx")
 
-  // InfluxDB - These settings are effectively ignored if --without-influxdb is used.
-  val influxDBServer: String = influxConfig.getString("server")
-  val influxDBPort: Int = influxConfig.getInt("port")
-  val influxDBUser: String = influxConfig.getString("user")
-  val influxDBPass: String = influxConfig.getString("password")
-
-  val influxAppConfig = config.getConfig("app.influx")
-
-  val influxDBDatabase: String = influxAppConfig.getString("database")
-  val retentionPolicy: String = influxAppConfig.getString("retentionPolicy")
-  val useInflux: Boolean = influxAppConfig.getBoolean("enabled")
+  val influxTableConfig = config.as[InfluxTableConfig]("app.influx")
 
 }
 

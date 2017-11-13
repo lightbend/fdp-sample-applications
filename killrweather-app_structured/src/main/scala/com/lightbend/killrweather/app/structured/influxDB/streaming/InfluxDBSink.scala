@@ -22,7 +22,7 @@ class InfluxDBRawSink(sqlContext: SQLContext) extends Sink with Serializable {
     val ds = df.select("*").as[WeatherRecord].rdd
 
     ds.foreachPartition { iter =>
-      val influxDB = InfluxDBFactory.connect(s"$influxDBServer:$influxDBPort", influxDBUser, influxDBPass)
+      val influxDB = InfluxDBFactory.connect(influxConfig.s"$influxDBServer:$influxDBPort", influxDBUser, influxDBPass)
       //val influxDB = InfluxDBFactory.connect("http://10.2.2.187:13698", influxDBUser, influxDBPass)
       if (!influxDB.databaseExists(influxDBDatabase))
         influxDB.createDatabase(influxDBDatabase)
@@ -60,12 +60,12 @@ class InfluxDBDailySink(sqlContext: SQLContext) extends Sink with Serializable {
     val ds = df.select("*").as[DailyWeatherData].rdd
 
     ds.foreachPartition { iter =>
-      val influxDB = InfluxDBFactory.connect(s"$influxDBServer:$influxDBPort", influxDBUser, influxDBPass)
-      //val influxDB = InfluxDBFactory.connect("http://10.2.2.187:13698", influxDBUser, influxDBPass)
-      if (!influxDB.databaseExists(influxDBDatabase))
-        influxDB.createDatabase(influxDBDatabase)
+      val influxDB = InfluxDBFactory.connect(influxConfig.url, influxConfig.user, influxConfig.password)
 
-      influxDB.setDatabase(influxDBDatabase)
+      if (!influxDB.databaseExists(influxTableConfig.database))
+        influxDB.createDatabase(influxTableConfig.database)
+
+      influxDB.setDatabase(influxTableConfig.database)
       // Flush every 2000 Points, at least every 100ms
       influxDB.enableBatch(2000, 100, TimeUnit.MILLISECONDS)
       // set retention policy
@@ -97,12 +97,11 @@ class InfluxDBRMonthlySink(sqlContext: SQLContext) extends Sink with Serializabl
     val ds = df.select("*").as[MonthlyWeatherData].rdd
 
     ds.foreachPartition { iter =>
-      val influxDB = InfluxDBFactory.connect(s"$influxDBServer:$influxDBPort", influxDBUser, influxDBPass)
-      //val influxDB = InfluxDBFactory.connect("http://10.2.2.187:13698", influxDBUser, influxDBPass)
-      if (!influxDB.databaseExists(influxDBDatabase))
-        influxDB.createDatabase(influxDBDatabase)
+      val influxDB = InfluxDBFactory.connect(influxConfig.url, influxConfig.user, influxConfig.password)
+      if (!influxDB.databaseExists(influxTableConfig.database))
+        influxDB.createDatabase(influxTableConfig.database)
 
-      influxDB.setDatabase(influxDBDatabase)
+      influxDB.setDatabase(influxTableConfig.database)
       // Flush every 2000 Points, at least every 100ms
       influxDB.enableBatch(2000, 100, TimeUnit.MILLISECONDS)
       // set retention policy

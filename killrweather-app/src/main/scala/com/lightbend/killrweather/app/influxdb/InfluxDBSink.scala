@@ -83,19 +83,19 @@ object InfluxDBSink {
 
   // TODO the implementation is a bit messy.
   def apply(): InfluxDBSink =
-    if (useInfluxDB) make() else makeNull()
+    if (influxTableConfig.enabled) make() else makeNull()
 
   def make(): InfluxDBSink = {
     val f = () => {
-      val influxDB = InfluxDBFactory.connect(s"$influxDBServer:$influxDBPort", influxDBUser, influxDBPass)
-      if (!influxDB.databaseExists(influxDBDatabase))
-        influxDB.createDatabase(influxDBDatabase)
+      val influxDB = InfluxDBFactory.connect(influxConfig.url, influxConfig.user, influxConfig.password)
+      if (!influxDB.databaseExists(influxTableConfig.database))
+        influxDB.createDatabase(influxTableConfig.database)
 
-      influxDB.setDatabase(influxDBDatabase)
+      influxDB.setDatabase(influxTableConfig.database)
       // Flush every 2000 Points, at least every 100ms
       influxDB.enableBatch(2000, 100, TimeUnit.MILLISECONDS)
       // set retention policy
-      influxDB.setRetentionPolicy(retentionPolicy)
+      influxDB.setRetentionPolicy(influxTableConfig.retentionPolicy)
 
       sys.addShutdownHook {
         influxDB.flush()

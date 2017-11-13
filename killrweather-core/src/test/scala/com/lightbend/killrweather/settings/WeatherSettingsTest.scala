@@ -28,7 +28,14 @@ class WeatherSettingsTest extends WordSpec with Matchers {
     }
 
     "Load the default influx db configuration" in {
-      ws.influxDBServer should not be ('empty)
+      ws.influxConfig.server should not be ('empty)
+      ws.influxConfig.port should be > 1024
+      ws.influxConfig.url should startWith(ws.influxConfig.server)
+      ws.influxConfig.url should endWith(ws.influxConfig.port.toString)
+    }
+
+    "Load the defauls influx table configuration for the application" in {
+      ws.influxTableConfig.database should not be ('empty)
     }
 
   }
