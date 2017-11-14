@@ -22,7 +22,7 @@ import scala.concurrent.{ ExecutionContext, Future }
  */
 class RequestService(implicit executionContext: ExecutionContext, materializer: ActorMaterializer, system: ActorSystem) {
 
-  val settings = new WeatherSettings()
+  val settings = WeatherSettings()
   import settings._
   import RequestService._
 

@@ -15,9 +15,7 @@ object KillrWeatherStructured {
   def main(args: Array[String]): Unit = {
 
     // Create context
-
-    WeatherSettings.handleArgs("KillrWeather", args)
-    val settings = new WeatherSettings()
+    val settings = WeatherSettings("KillrWeather", args)
     import settings._
 
     val spark = SparkSession.builder

@@ -66,24 +66,15 @@ class InfluxDBSink(createWriter: () => InfluxDB) extends Serializable {
 
 object InfluxDBSink {
 
-  import com.lightbend.killrweather.settings.WeatherSettings.{ USE_INFLUXDB_KEY, USE_INFLUXDB_DEFAULT_VALUE }
-
-  lazy val useInfluxDBProp =
-    sys.props.getOrElse(USE_INFLUXDB_KEY, USE_INFLUXDB_DEFAULT_VALUE.toString)
-  lazy val useInfluxDB = try {
-    println(s"Using InfluxDB? $useInfluxDBProp")
-    useInfluxDBProp.toBoolean
-  } catch {
-    case scala.util.control.NonFatal(ex) =>
-      throw new RuntimeException(s"""ERROR: ${USE_INFLUXDB_KEY} property defined as "${useInfluxDBProp}", which is not convertable to a Boolean!""", ex)
-  }
-
-  val settings = new WeatherSettings()
+  val settings = WeatherSettings()
   import settings._
+
+  //TODO: this access is wrong. We should not export config from this context
+  def useInfluxDB = influxConfig.enabled
 
   // TODO the implementation is a bit messy.
   def apply(): InfluxDBSink =
-    if (influxTableConfig.enabled) make() else makeNull()
+    if (influxConfig.enabled) make() else makeNull()
 
   def make(): InfluxDBSink = {
     val f = () => {

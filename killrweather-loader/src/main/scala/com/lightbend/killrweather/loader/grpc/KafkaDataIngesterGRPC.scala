@@ -4,27 +4,21 @@ import com.lightbend.killrweather.settings.WeatherSettings
 import com.lightbend.killrweather.WeatherClient.{ WeatherListenerGrpc, WeatherRecord }
 import com.lightbend.killrweather.loader.utils.{ DataConvertor, FilesIterator }
 import io.grpc.ManagedChannelBuilder
+import scala.concurrent.duration._
 
-/**
- * Created by boris on 7/7/17.
- */
 object KafkaDataIngesterGRPC {
 
   val file = "data/load"
-  val timeInterval: Long = 100 * 1 // 1 sec
+  val timeInterval: Long = 1.second.toMillis
   val batchSize = 10
 
   def main(args: Array[String]) {
 
-    // See --help, which describes the --grpc-host option for specifying the host:port
-    WeatherSettings.handleArgs("WeatherGRPCClient", args)
+    val settings = WeatherSettings("WeatherGRPCClient", args)
 
-    val settings = new WeatherSettings()
+    val grpcConfig = settings.grpcConfig
 
-    val host = sys.props.getOrElse("grpc.ingester.client.host", "killrweathergrpcclient.marathon.mesos") // "10.8.0.16"
-    val port = sys.props.getOrElse("grpc.ingester.client.port", "50051").toInt
-
-    val ingester = new KafkaDataIngesterGRPC(host, port)
+    val ingester = new KafkaDataIngesterGRPC(grpcConfig.host, grpcConfig.port)
     ingester.execute(file)
   }
 

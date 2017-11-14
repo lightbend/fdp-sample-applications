@@ -15,7 +15,7 @@
  */
 package com.lightbend.killrweather.settings
 
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{ Config, ConfigFactory }
 
 import scala.collection.JavaConverters._
 import net.ceedubs.ficus.Ficus._
@@ -23,6 +23,7 @@ import net.ceedubs.ficus.readers.ArbitraryTypeReader._
 import org.apache.spark.SparkConf
 
 import scala.concurrent.duration.FiniteDuration
+import scala.util.{ Failure, Success, Try }
 
 /**
  * Application settings. First attempts to acquire from the deploy environment.
@@ -65,10 +66,12 @@ case class InfluxDBConfig(server: String, port: Int, user: String, password: Str
   def url = s"$server:$port"
 }
 case class InfluxTableConfig(database: String, retentionPolicy: String)
+case class GRPCConfig(host: String, port: Int)
 
-final class WeatherSettings extends Serializable {
+class WeatherSettings(overrides: Config) extends Serializable {
 
-  val config = ConfigFactory.load()
+  val baseConfig = ConfigFactory.load()
+  val config = overrides.withFallback(baseConfig)
 
   val kafkaConfig = config.as[KafkaConfig]("kafka")
 
@@ -94,14 +97,22 @@ final class WeatherSettings extends Serializable {
 
   val influxTableConfig = config.as[InfluxTableConfig]("app.influx")
 
+  val grpcConfig = config.as[GRPCConfig]("grpc.ingester.client")
+
+  override def equals(obj: scala.Any): Boolean = {
+    obj match {
+      case w: WeatherSettings =>
+        w.config == this.config
+      case _ => false
+    }
+  }
+
+  override def hashCode(): Int = config.hashCode()
 }
 
 object WeatherSettings {
 
-  val USE_INFLUXDB_KEY = "killrweather.useinfluxdb"
-  val USE_INFLUXDB_DEFAULT_VALUE = true;
-
-  def handleArgs(appName: String, args: Array[String]): Unit = {
+  def apply(appName: String, args: Array[String]): WeatherSettings = {
 
     // TODO: If WeatherSettings is switched to use Typesafe Config, then some of these flags can be handled through application.conf.
     def showHelp(): Unit = {
@@ -110,8 +121,8 @@ object WeatherSettings {
 
         where the options are:
           -h | --help              Show this message and exit.
-          --with-influxdb          Set the system property ${USE_INFLUXDB_KEY} to ${USE_INFLUXDB_DEFAULT_VALUE} (default)
-          --without-influxdb       Set the system property ${USE_INFLUXDB_KEY} to ${!USE_INFLUXDB_DEFAULT_VALUE}
+          --with-influxdb          Uses InfluxDB as data timeseries store (default)
+          --without-influxdb       Do not use InfluxDB as timeseries store
           --kafka-brokers kb       IP or domain name for Kafka brokers (default: broker.kafka.l4lb.thisdcos.directory:9092).
           --cassandra-hosts ch     IP or domain name for Cassandra hosts (default: node.cassandra.l4lb.thisdcos.directory).
 
@@ -123,54 +134,46 @@ object WeatherSettings {
         """)
     }
 
-    // Parse the args and set system properties for the optional flags
-    def parseArgs(args2: Seq[String]): Unit = args2 match {
+    class HelpOptionException extends Exception("show help")
 
-      case ("-h" | "--help") +: tail =>
-        showHelp()
-        sys.exit(0)
+    // Parse the args and set system properties for the optional flags
+    def parseArgs(args2: Seq[String]): Try[Map[String, String]] = args2 match {
+      case ("-h" | "--help") +: _ =>
+        Failure(new HelpOptionException)
 
       case "--master" +: master +: tail =>
         println(s"Using Spark master: $master")
-        setProp("spark.master", master)
-        parseArgs(tail)
+        parseArgs(tail).map(m => m + ("spark.master" -> master))
 
       case "--with-influxdb" +: tail =>
-        setProp(USE_INFLUXDB_KEY, USE_INFLUXDB_DEFAULT_VALUE.toString)
-        parseArgs(tail)
+        parseArgs(tail).map(m => m + ("influx.enabled" -> "true"))
 
       case "--without-influxdb" +: tail =>
-        setProp(USE_INFLUXDB_KEY, (!USE_INFLUXDB_DEFAULT_VALUE).toString)
-        parseArgs(tail)
+        parseArgs(tail).map(m => m + ("influx.enabled" -> "false"))
 
       case "--kafka-brokers" +: kb +: tail =>
-        setProp("kafka.brokers", kb)
-        parseArgs(tail)
+        parseArgs(tail).map(m => m + ("kafka.brokers" -> kb))
 
       case "--cassandra-hosts" +: ch +: tail =>
-        setProp("cassandra.hosts", ch)
-        parseArgs(tail)
+        parseArgs(tail).map(m => m + ("spark.cassandra.connection.host" -> ch))
 
       case "--grpc-host" +: gh +: tail =>
-        gh.split(":", 2) match {
-          case Array(host, port) =>
-            setProp("grpc.ingester.client.host", host)
-            setProp("grpc.ingester.client.port", port)
-          case Array(host) =>
-            setProp("grpc.ingester.client.host", host)
-        }
-        parseArgs(tail)
+        parseArgs(tail).map(m => m ++ (Seq("grpc.ingester.client.host", "grpc.ingester.client.port")).zip(gh.split(":", 2)))
 
-      case Nil => // end of arguments
+      case head +: tail => parseArgs(tail) // unknown "head" is ignored
 
-      case head +: tail => parseArgs(tail) // "head" is ignored
+      case Nil => Success(Map.empty[String, String])
     }
 
-    def setProp(key: String, value: String): Unit = {
-      sys.props.update(key, value)
-      println(s"Setting $key property to $value")
+    val overrides = parseArgs(args).getOrElse {
+      showHelp()
+      sys.exit(1)
     }
-
-    parseArgs(args)
+    new WeatherSettings(ConfigFactory.parseMap(overrides.asJava))
   }
+
+  def apply(): WeatherSettings = {
+    new WeatherSettings(ConfigFactory.empty())
+  }
+
 }

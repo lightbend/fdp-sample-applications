@@ -13,7 +13,7 @@ class CassandraRawSink(sqlContext: SQLContext) extends Sink {
   private val spark = sqlContext.sparkSession
   import spark.implicits._
 
-  val settings = new WeatherSettings()
+  val settings = WeatherSettings()
   import settings._
 
   /*
@@ -30,7 +30,7 @@ class CassandraDailySink(sqlContext: SQLContext) extends Sink {
   private val spark = sqlContext.sparkSession
   import spark.implicits._
 
-  val settings = new WeatherSettings()
+  val settings = WeatherSettings()
   import settings._
 
   /*
@@ -64,7 +64,7 @@ class CassandraMonthlySink(sqlContext: SQLContext) extends Sink {
   private val spark = sqlContext.sparkSession
   import spark.implicits._
 
-  val settings = new WeatherSettings()
+  val settings = WeatherSettings()
   import settings._
 
   /*

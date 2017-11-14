@@ -23,13 +23,11 @@ object KillrWeather {
 
     // Create context
 
-    WeatherSettings.handleArgs("KillrWeather", args)
-
-    val settings = new WeatherSettings()
-    import settings._
+    val killrSettings = WeatherSettings("KillrWeather", args)
+    import killrSettings._
 
     val sparkSession = SparkSession.builder()
-      .config(settings.sparkConf())
+      .config(killrSettings.sparkConf())
       .appName("KillrWeather")
       .getOrCreate()
 

@@ -16,7 +16,7 @@ import org.apache.spark.sql.SparkSession
 
 class CassandraSinkForEachKillrweatherRaw(sparkSession: SparkSession) extends ForeachWriter[WeatherRecord] {
 
-  val settings = new WeatherSettings()
+  val settings = WeatherSettings()
   import settings._
 
   private def cqlRaw(record: WeatherRecord): String = s"""
@@ -48,7 +48,7 @@ class CassandraSinkForEachKillrweatherRaw(sparkSession: SparkSession) extends Fo
 
 class CassandraSinkForEachKillrweatherDaily(sparkSession: SparkSession) extends ForeachWriter[DailyWeatherData] {
 
-  val settings = new WeatherSettings()
+  val settings = WeatherSettings()
   import settings._
 
   private def cqlTemp(record: DailyWeatherData): String = s"""
@@ -90,7 +90,7 @@ class CassandraSinkForEachKillrweatherDaily(sparkSession: SparkSession) extends 
 
 class CassandraSinkForEachKillrweatherMonthly(sparkSession: SparkSession) extends ForeachWriter[MonthlyWeatherData] {
 
-  val settings = new WeatherSettings()
+  val settings = WeatherSettings()
   import settings._
 
   private def cqlTemp(record: MonthlyWeatherData): String = s"""

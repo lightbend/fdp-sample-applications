@@ -31,16 +31,11 @@ object WeatherGRPCClient {
 
   def main(args: Array[String]): Unit = {
 
-    WeatherSettings.handleArgs("WeatherGRPCClient", args)
-
-    val settings = new WeatherSettings()
+    val settings = WeatherSettings("WeatherGRPCClient", args)
     import settings._
 
     _producerSettings = ProducerSettings(system, new ByteArraySerializer, new ByteArraySerializer)
-      .withBootstrapServers(
-        kafkaConfig.brokers
-      //      "10.8.0.24:9757"
-      )
+      .withBootstrapServers(kafkaConfig.brokers)
 
     val server = WeatherGRPCClient(kafkaConfig.topic)
     server.start()

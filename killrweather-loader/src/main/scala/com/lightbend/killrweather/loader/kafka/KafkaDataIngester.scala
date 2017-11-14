@@ -17,7 +17,7 @@ object KafkaDataIngester {
 
   def main(args: Array[String]) {
 
-    val settings = new WeatherSettings()
+    val settings = WeatherSettings()
     import settings._
 
     val brokers = if (args.length > 0) args(0) else kafkaConfig.brokers
