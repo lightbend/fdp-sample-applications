@@ -1,12 +1,12 @@
 package com.lightbend.killrweather.EventStore
 
-import com.ibm.event.catalog.TableSchema
+import com.ibm.event.catalog.{ColumnOrder, IndexSpecification, SortSpecification, TableSchema}
 import com.ibm.event.common.ConfigurationReader
 import com.ibm.event.oltp.EventContext
 import org.apache.spark.sql.types._
 
 object EventStoreSupport {
-
+/*
   val weather_station = TableSchema("rweather_station", StructType(Array(
     StructField("id", StringType, nullable = false),
     StructField("name", StringType, nullable = false),
@@ -20,7 +20,7 @@ object EventStoreSupport {
     shardingColumns = Seq("id"),
     pkColumns = Seq("id")
   )
-
+*/
   val raw_weather_data = TableSchema("raw_weather_data", StructType(Array(
     StructField("wsid", StringType, nullable = false),
     StructField("year", IntegerType, nullable = false),
@@ -37,10 +37,16 @@ object EventStoreSupport {
     StructField("one_hour_precip", DoubleType, nullable = false),
     StructField("six_hour_precip", DoubleType, nullable = false)
   )),
-    shardingColumns = Seq("wsid", "year", "month"),
-    pkColumns = Seq("wsid", "year", "month", "day", "hour")
+    shardingColumns = Seq("year", "month", "day"),
+    pkColumns = Seq("year", "month", "day", "hour")
   )
-
+/*
+  val indexSpec = IndexSpecification("pkindex",
+    raw_weather_data,
+    equalColumns= Seq("deviceId","metricId"),
+    sortColumns=Seq(SortSpecification("timeStamp", ColumnOrder.AscendingNullsLast)),
+    includeColumns=Seq("metricValue"))
+*/
   val sky_condition_lookup = TableSchema("sky_condition_lookup", StructType(Array(
     StructField("code", IntegerType, nullable = false),
     StructField("condition", StringType, nullable = false)
@@ -60,8 +66,8 @@ object EventStoreSupport {
     StructField("variance", DoubleType, nullable = false),
     StructField("stdev", DoubleType, nullable = false)
   )),
-    shardingColumns = Seq("wsid", "year", "month"),
-    pkColumns = Seq("wsid", "year", "month", "day")
+    shardingColumns = Seq("year", "month"),
+    pkColumns = Seq("year", "month", "day")
   )
 
   val daily_aggregate_windspeed = TableSchema("daily_aggregate_windspeed", StructType(Array(
@@ -75,8 +81,8 @@ object EventStoreSupport {
     StructField("variance", DoubleType, nullable = false),
     StructField("stdev", DoubleType, nullable = false)
   )),
-    shardingColumns = Seq("wsid", "year", "month"),
-    pkColumns = Seq("wsid", "year", "month", "day")
+    shardingColumns = Seq("year", "month"),
+    pkColumns = Seq("year", "month", "day")
   )
 
 
@@ -91,8 +97,8 @@ object EventStoreSupport {
     StructField("variance", DoubleType, nullable = false),
     StructField("stdev", DoubleType, nullable = false)
   )),
-    shardingColumns = Seq("wsid", "year", "month"),
-    pkColumns = Seq("wsid", "year", "month", "day")
+    shardingColumns = Seq("year", "month"),
+    pkColumns = Seq("year", "month", "day")
   )
 
   val daily_aggregate_precip = TableSchema("daily_aggregate_precip", StructType(Array(
@@ -102,8 +108,8 @@ object EventStoreSupport {
     StructField("day", IntegerType, nullable = false),
     StructField("precipitation", DoubleType, nullable = false)
   )),
-    shardingColumns = Seq("wsid", "year", "month"),
-    pkColumns = Seq("wsid", "year", "month", "day")
+    shardingColumns = Seq("year", "month"),
+    pkColumns = Seq("year", "month", "day")
   )
 
   val monthly_aggregate_temperature = TableSchema("monthly_aggregate_temperature", StructType(Array(
@@ -116,8 +122,8 @@ object EventStoreSupport {
     StructField("variance", DoubleType, nullable = false),
     StructField("stdev", DoubleType, nullable = false)
   )),
-    shardingColumns = Seq("wsid", "year"),
-    pkColumns = Seq("wsid", "year", "month")
+    shardingColumns = Seq("year"),
+    pkColumns = Seq("year", "month")
   )
 
   val monthly_aggregate_windspeed = TableSchema("monthly_aggregate_windspeed", StructType(Array(
@@ -130,8 +136,8 @@ object EventStoreSupport {
     StructField("variance", DoubleType, nullable = false),
     StructField("stdev", DoubleType, nullable = false)
   )),
-    shardingColumns = Seq("wsid", "year"),
-    pkColumns = Seq("wsid", "year", "month")
+    shardingColumns = Seq("year"),
+    pkColumns = Seq("year", "month")
   )
 
   val monthly_aggregate_pressure = TableSchema("monthly_aggregate_pressure", StructType(Array(
@@ -144,8 +150,8 @@ object EventStoreSupport {
     StructField("variance", DoubleType, nullable = false),
     StructField("stdev", DoubleType, nullable = false)
   )),
-    shardingColumns = Seq("wsid", "year"),
-    pkColumns = Seq("wsid", "year", "month")
+    shardingColumns = Seq("year"),
+    pkColumns = Seq("year", "month")
   )
 
   val monthly_aggregate_precip = TableSchema("monthly_aggregate_precip", StructType(Array(
@@ -158,11 +164,11 @@ object EventStoreSupport {
     StructField("variance", DoubleType, nullable = false),
     StructField("stdev", DoubleType, nullable = false)
   )),
-    shardingColumns = Seq("wsid", "year"),
-    pkColumns = Seq("wsid", "year", "month")
+    shardingColumns = Seq("year"),
+    pkColumns = Seq("year", "month")
   )
 
-  val tables = Map("weather_station" -> weather_station,
+  val tables = Map(//"weather_station" -> weather_station,
                 "raw_weather_data" -> raw_weather_data,
                 "sky_condition_lookup" -> sky_condition_lookup,
                 "daily_aggregate_temperature" -> daily_aggregate_temperature,
@@ -194,7 +200,7 @@ object EventStoreSupport {
   }
 
   def ensureTables(ctx : EventContext) : Unit = {
-    val existing = ctx.getNamesOfTables
+    val existing = ctx.getNamesOfTables.toList
     println(s"Tables : ${existing.mkString(",")}")
     tables foreach(tabDef => {
       if(!existing.contains(tabDef._1)) {
