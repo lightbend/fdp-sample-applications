@@ -164,8 +164,9 @@ function deploy_app {
 function run_bigdl_vgg_job {
   local SPARK_APP_CLASS="com.lightbend.fdp.sample.bigdl.TrainVGG"
   local SPARK_CONF="--conf spark.executor.cores=1 --conf spark.cores.max=2 --conf spark.executorEnv.OMP_NUM_THREADS=1 --conf spark.executorEnv.KMP_BLOCKTIME=0 --conf OMP_WAIT_POLICY=passive --conf DL_ENGINE_TYPE=mklblas --conf spark.executor.memory=8G --driver-memory 4G"
-  local ARGS="-f /tmp/cifar-10-batches-bin --lab http://fdp-apps-lab.marathon.mesos --download /tmp -b 16"
+  local ARGS="-f /tmp/cifar-10-batches-bin --lab $LABORATORY_MESOS_PATH --download /tmp -b 4"
   local SPARK_APP_JAR_URL="$LABORATORY_MESOS_PATH/$SPARK_APP_JAR"
+  echo $NOEXEC dcos spark run --submit-args="$SPARK_CONF --class $SPARK_APP_CLASS $SPARK_APP_JAR_URL $ARGS"
   local SUBMIT="$($NOEXEC dcos spark run --submit-args="$SPARK_CONF --class $SPARK_APP_CLASS $SPARK_APP_JAR_URL $ARGS")"
 
   BIGDL_VGG_SPARK_DRIVER_SUBMIT_ID="$(echo `expr "$SUBMIT" : '.*\(driver-.*\)'`)"

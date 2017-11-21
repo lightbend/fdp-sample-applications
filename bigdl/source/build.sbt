@@ -27,11 +27,20 @@ import deployssh.DeploySSH._
 // 2. You have a clean directory but no tag on HEAD - Fix: tag the head with a version that satisfies the regex: 'v[0-9][^+]*'
 // 3. You have uncommmited changes (a dirty directory) but have not set `allowSnapshot` to `true` - Fix: `set (allowSnapshot in ThisBuild) := true`""".stripMargin)
 
-val spark = "2.1.1"
+val spark = "2.2.0"
 
 allowSnapshot in ThisBuild := true
 
 enablePlugins(DeploySSH)
+
+val repo = "http://repo1.maven.org/maven2"
+def mkl_native(os: String): String = {
+  s"${repo}/com/intel/analytics/bigdl/native/mkl-java-${os}/0.3.0/mkl-java-${os}-0.3.0.jar"
+}
+
+def bigquant_native(os: String): String = {
+  s"${repo}/com/intel/analytics/bigdl/bigquant/bigquant-java-${os}/0.3.0/bigquant-java-${os}-0.3.0.jar"
+}
 
 lazy val commonSettings = Seq(
   resolvers ++= Seq(
@@ -43,13 +52,15 @@ lazy val commonSettings = Seq(
   scalaVersion := "2.11.8",
   licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0")),
   libraryDependencies ++= Seq(
-      "com.intel.analytics.bigdl"     % "bigdl-SPARK_2.1"   % "0.2.0",
-      // "com.intel.analytics.bigdl"     % "bigdl-SPARK_2.1"   % "0.2.0" exclude("com.intel.analytics.bigdl.native", "mkl-java"),
-      // "com.intel.analytics.bigdl.native" % "mkl-java-mac" % "0.2.0" from "http://repo1.maven.org/maven2/com/intel/analytics/bigdl/native/mkl-java-mac/0.2.0/mkl-java-mac-0.2.0.jar",
-      "org.apache.spark"             %% "spark-core"        % spark % "provided",
-      "org.apache.spark"             %% "spark-mllib"       % spark % "provided",
-      "org.apache.spark"             %% "spark-sql"         % spark % "provided",
-      "org.rauschig"                  % "jarchivelib"       % "0.7.1"
+      "com.intel.analytics.bigdl"          % "bigdl-SPARK_2.2"   % "0.3.0" exclude("com.intel.analytics.bigdl", "bigdl-core"),
+      "com.intel.analytics.bigdl.native"   % "mkl-java"          % "0.3.0", // comment for Mac
+      "com.intel.analytics.bigdl.bigquant" % "bigquant-java"     % "0.3.0", // comment for Mac
+//    "com.intel.analytics.bigdl.native"   % "mkl-java-mac"      % "0.3.0" from mkl_native("mac"), // uncomment for Mac
+//    "com.intel.analytics.bigdl.bigquant" % "bigquant-java-mac" % "0.3.0" from bigquant_native("mac"), // uncomment for Mac
+      "org.apache.spark"                  %% "spark-core"        % spark % "provided",
+      "org.apache.spark"                  %% "spark-mllib"       % spark % "provided",
+      "org.apache.spark"                  %% "spark-sql"         % spark % "provided",
+      "org.rauschig"                       % "jarchivelib"       % "0.7.1"
     )
 )
 
@@ -74,9 +85,8 @@ excludeDependencies ++= Seq(
 )
 
 assemblyMergeStrategy in assembly := {
-  case PathList("META-INF", "MANIFEST.MF") => MergeStrategy.discard
-  case PathList("META-INF", xs @ _*) => MergeStrategy.last
-  case PathList("META-INF", "io.netty.versions.properties") => MergeStrategy.last
+  case x if x.contains("com/intel/analytics/bigdl/bigquant/") => MergeStrategy.first
+  case x if x.contains("com/intel/analytics/bigdl/mkl/") => MergeStrategy.first
   case x =>
     val oldStrategy = (assemblyMergeStrategy in assembly).value
     oldStrategy(x)
