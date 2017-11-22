@@ -76,8 +76,7 @@ object KillrWeatherEventStore {
     val kafkaStream = kafkaDataStream.map(r => WeatherRecord.parseFrom(r.value()))
 
     /** Saves the raw data to Cassandra - raw table. */
-    kafkaStream.foreachRDD { sqlContext.createDataFrame(_).foreach(eventStoreSink.value.writeRaw(_)) }
-
+    kafkaStream.foreachRDD { sqlContext.createDataFrame(_).foreachPartition(eventStoreSink.value.writeRaw(_)) }
 
 
     // Calculate daily
@@ -120,20 +119,20 @@ object KillrWeatherEventStore {
 
     // Save daily temperature
     dailyStream.map(ds => DailyTemperature(ds._2))
-      .foreachRDD { sqlContext.createDataFrame(_).foreach(eventStoreSink.value.writeDailyTemperature(_)) }
+      .foreachRDD { sqlContext.createDataFrame(_).foreachPartition(eventStoreSink.value.writeDailyTemperature(_)) }
 
     // Save daily wind
     dailyStream.map(ds => DailyWindSpeed(ds._2))
-      .foreachRDD { sqlContext.createDataFrame(_).foreach(eventStoreSink.value.writeDailyWind(_)) }
+      .foreachRDD { sqlContext.createDataFrame(_).foreachPartition(eventStoreSink.value.writeDailyWind(_)) }
 
 
     // Save daily pressure
     dailyStream.map(ds => DailyPressure(ds._2))
-      .foreachRDD { sqlContext.createDataFrame(_).foreach(eventStoreSink.value.writeDailyPressure(_)) }
+      .foreachRDD { sqlContext.createDataFrame(_).foreachPartition(eventStoreSink.value.writeDailyPressure(_)) }
 
     // Save daily presipitations
     dailyStream.map(ds => DailyPrecipitation(ds._2))
-      .foreachRDD { sqlContext.createDataFrame(_).foreach(eventStoreSink.value.writeDailyPresip(_)) }
+      .foreachRDD { sqlContext.createDataFrame(_).foreachPartition(eventStoreSink.value.writeDailyPresip(_)) }
 
 
     // Calculate monthly
@@ -172,19 +171,19 @@ object KillrWeatherEventStore {
 
     // Save monthly temperature
     monthlyStream.map(ds => MonthlyTemperature(ds._2))
-      .foreachRDD { sqlContext.createDataFrame(_).foreach(eventStoreSink.value.writeMothlyTemperature(_)) }
+      .foreachRDD { sqlContext.createDataFrame(_).foreachPartition(eventStoreSink.value.writeMothlyTemperature(_)) }
 
     // Save monthly wind
     monthlyStream.map(ds => MonthlyWindSpeed(ds._2))
-      .foreachRDD { sqlContext.createDataFrame(_).foreach(eventStoreSink.value.writeMothlyWind(_)) }
+      .foreachRDD { sqlContext.createDataFrame(_).foreachPartition(eventStoreSink.value.writeMothlyWind(_)) }
 
     // Save monthly pressure
     monthlyStream.map(ds => MonthlyPressure(ds._2))
-      .foreachRDD { sqlContext.createDataFrame(_).foreach(eventStoreSink.value.writeMothlyPressure(_)) }
+      .foreachRDD { sqlContext.createDataFrame(_).foreachPartition(eventStoreSink.value.writeMothlyPressure(_)) }
 
     // Save monthly presipitations
     monthlyStream.map(ds => MonthlyPrecipitation(ds._2))
-      .foreachRDD { sqlContext.createDataFrame(_).foreach(eventStoreSink.value.writeMothlyPresip(_)) }
+      .foreachRDD { sqlContext.createDataFrame(_).foreachPartition(eventStoreSink.value.writeMothlyPresip(_)) }
 
     // Execute
     ssc.start()

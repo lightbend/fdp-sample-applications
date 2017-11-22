@@ -23,49 +23,48 @@ class EventStoreSink(createContext: () => EventContext) extends Serializable {
 
   lazy val ctx = createContext()
 
-  def writeRaw(raw: Row): Unit = {
+  def writeRaw(raw: Iterator[Row]): Unit = {
     val table = ctx.getTable("raw_weather_data")
-    ctx.insert(table, raw)
+    raw.foreach(ctx.insert(table, _))
   }
 
-  def writeDailyTemperature(raw: Row): Unit = {
+  def writeDailyTemperature(raw: Iterator[Row]): Unit = {
     val table = ctx.getTable("daily_aggregate_temperature")
-    ctx.insert(table, raw)
+    raw.foreach(ctx.insert(table, _))
   }
 
-  def writeDailyWind(raw: Row): Unit = {
+  def writeDailyWind(raw: Iterator[Row]): Unit = {
     val table = ctx.getTable("daily_aggregate_windspeed")
-    ctx.insert(table, raw)
+    raw.foreach(ctx.insert(table, _))
   }
 
-  def writeDailyPressure(raw: Row): Unit = {
+  def writeDailyPressure(raw: Iterator[Row]): Unit = {
     val table = ctx.getTable("daily_aggregate_pressure")
-    ctx.insert(table, raw)
+    raw.foreach(ctx.insert(table, _))
   }
 
-  def writeDailyPresip(raw: Row): Unit = {
+  def writeDailyPresip(raw: Iterator[Row]): Unit = {
     val table = ctx.getTable("daily_aggregate_precip")
-    ctx.insert(table, raw)
+    raw.foreach(ctx.insert(table, _))
   }
 
-  def writeMothlyTemperature(raw: Row): Unit = {
+  def writeMothlyTemperature(raw: Iterator[Row]): Unit = {
     val table = ctx.getTable("monthly_aggregate_temperature")
-    ctx.insert(table, raw)
+    raw.foreach(ctx.insert(table, _))
   }
 
-  def writeMothlyWind(raw: Row): Unit = {
+  def writeMothlyWind(raw: Iterator[Row]): Unit = {
     val table = ctx.getTable("monthly_aggregate_windspeed")
-    ctx.insert(table, raw)
+    raw.foreach(ctx.insert(table, _))
   }
 
-  def writeMothlyPressure(raw: Row): Unit = {
+  def writeMothlyPressure(raw: Iterator[Row]): Unit = {
     val table = ctx.getTable("monthly_aggregate_pressure")
-    ctx.insert(table, raw)
+    raw.foreach(ctx.insert(table, _))
   }
 
-  def writeMothlyPresip(raw: Row): Unit = {
+  def writeMothlyPresip(raw: Iterator[Row]): Unit = {
     val table = ctx.getTable("monthly_aggregate_precip")
-    ctx.insert(table, raw)
+    raw.foreach(ctx.insert(table, _))
   }
-
 }
