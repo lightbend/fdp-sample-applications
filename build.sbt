@@ -54,8 +54,8 @@ lazy val appLocalRunner = (project in file("./killrweather-app-local"))
     .settings(
       libraryDependencies ++= spark.map(_.copy(configurations = Option("compile"))) ++ Seq(influxDBClient)
     )
-    .settings(dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core"  % "2.6.7")
-    .settings(dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.7")
+    .settings(dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core"  % "2.6.7",
+              dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.7")
     .dependsOn(killrWeatherApp)
 
 lazy val killrWeatherApp_structured = (project in file("./killrweather-app_structured"))
@@ -66,8 +66,12 @@ lazy val killrWeatherApp_structured = (project in file("./killrweather-app_struc
     packageSummary := "KillrWeather Spark structured Streaming Runner",
     packageDescription := "KillrWeather Spark Structured streaming Runner",
     libraryDependencies ++= appStructured)
-  .settings(dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core"  % "2.6.7")
-  .settings(dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.7")
+  .settings(dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core"  % "2.6.7",
+            dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.7",
+            dependencyOverrides += "org.json4s" % "json4s-ast_2.11" % "3.2.11",
+            dependencyOverrides += "org.json4s" % "json4s-core_2.11" % "3.2.11",
+            dependencyOverrides += "org.json4s" % "json4s-jackson_2.11" % "3.2.11"
+  )
   .settings(dependencyDotFile := file("dependencies.dot"))
   .settings(
     maintainer := "Boris Lublinsky <boris.lublinsky@lightbend.com",

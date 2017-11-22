@@ -10,12 +10,12 @@ import java.util.Properties
 import org.apache.curator.test.TestingServer
 import org.slf4j.LoggerFactory
 
-import kafka.server.{KafkaConfig, KafkaServerStartable}
+import kafka.server.{ KafkaConfig, KafkaServerStartable }
 
 import scala.collection.JavaConverters._
 import java.util.Comparator
 
-import kafka.admin.{AdminUtils, RackAwareMode}
+import kafka.admin.{ AdminUtils, RackAwareMode }
 import kafka.utils.ZkUtils
 
 class KafkaLocalServer private (kafkaProperties: Properties, zooKeeperServer: ZooKeeperLocalServer) {
@@ -23,7 +23,7 @@ class KafkaLocalServer private (kafkaProperties: Properties, zooKeeperServer: Zo
   import KafkaLocalServer._
 
   private var broker = null.asInstanceOf[KafkaServerStartable]
-  private var zkUtils : ZkUtils =
+  private var zkUtils: ZkUtils =
     ZkUtils.apply(s"localhost:${zooKeeperServer.getPort()}", DEFAULT_ZK_SESSION_TIMEOUT_MS, DEFAULT_ZK_CONNECTION_TIMEOUT_MS, false)
 
   def start(): Unit = {
@@ -41,33 +41,33 @@ class KafkaLocalServer private (kafkaProperties: Properties, zooKeeperServer: Zo
   }
 
   /**
-    * Create a Kafka topic with 1 partition and a replication factor of 1.
-    *
-    * @param topic The name of the topic.
-    */
+   * Create a Kafka topic with 1 partition and a replication factor of 1.
+   *
+   * @param topic The name of the topic.
+   */
   def createTopic(topic: String): Unit = {
     createTopic(topic, 1, 1, new Properties)
   }
 
   /**
-    * Create a Kafka topic with the given parameters.
-    *
-    * @param topic       The name of the topic.
-    * @param partitions  The number of partitions for this topic.
-    * @param replication The replication factor for (the partitions of) this topic.
-    */
+   * Create a Kafka topic with the given parameters.
+   *
+   * @param topic       The name of the topic.
+   * @param partitions  The number of partitions for this topic.
+   * @param replication The replication factor for (the partitions of) this topic.
+   */
   def createTopic(topic: String, partitions: Int, replication: Int): Unit = {
     createTopic(topic, partitions, replication, new Properties)
   }
 
   /**
-    * Create a Kafka topic with the given parameters.
-    *
-    * @param topic       The name of the topic.
-    * @param partitions  The number of partitions for this topic.
-    * @param replication The replication factor for (partitions of) this topic.
-    * @param topicConfig Additional topic-level configuration settings.
-    */
+   * Create a Kafka topic with the given parameters.
+   *
+   * @param topic       The name of the topic.
+   * @param partitions  The number of partitions for this topic.
+   * @param replication The replication factor for (partitions of) this topic.
+   * @param topicConfig Additional topic-level configuration settings.
+   */
   def createTopic(topic: String, partitions: Int, replication: Int, topicConfig: Properties): Unit = {
     AdminUtils.createTopic(zkUtils, topic, partitions, replication, topicConfig, RackAwareMode.Enforced)
   }
@@ -101,8 +101,8 @@ object KafkaLocalServer {
   }
 
   /**
-    * Creates a Properties instance for Kafka customized with values passed in argument.
-    */
+   * Creates a Properties instance for Kafka customized with values passed in argument.
+   */
   private def createKafkaProperties(kafkaPort: Int, zookeeperServerPort: Int, dataDir: File): Properties = {
     val kafkaProperties = new Properties
     kafkaProperties.put(KafkaConfig.ListenersProp, s"PLAINTEXT://localhost:$kafkaPort")
@@ -165,20 +165,19 @@ private class ZooKeeperLocalServer(port: Int, cleanOnStart: Boolean) {
     if (cleanOnStart) deleteDirectory(zookeeperDataDir)
 
     zooKeeper.start() // blocking operation
-   }
+  }
 
   def stop(): Unit = {
     if (zooKeeper != null)
       try {
         zooKeeper.stop()
         zooKeeper = null.asInstanceOf[TestingServer]
-      }
-      catch {
+      } catch {
         case _: IOException => () // nothing to do if an exception is thrown while shutting down
       }
   }
 
-  def getPort() : Int = port
+  def getPort(): Int = port
 }
 
 object ZooKeeperLocalServer {
