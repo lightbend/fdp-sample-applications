@@ -14,6 +14,17 @@ class FilesIteratorTests extends WordSpec with Matchers {
       val allData = fileData ++ zipData
       FilesIterator(resources, "UTF-8").size should be(allData.size)
     }
+
+    "properly consume a single file" in {
+      val file = locate("samples/sample1.csv")
+      val contents = Source.fromFile(file).getLines().toList
+
+      (FilesIterator(file, "UTF-8") zip contents.iterator).foreach { case (t1, t2) => t1 should be(t2) }
+      FilesIterator(file, "UTF-8").size should be(contents.size)
+    }
+
   }
+
+
 
 }
