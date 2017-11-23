@@ -4,35 +4,21 @@ import com.lightbend.killrweather.loader.utils.{ DataConvertor, FilesIterator }
 import com.lightbend.killrweather.kafka.MessageSender
 import com.lightbend.killrweather.settings.WeatherSettings
 import org.apache.kafka.common.serialization.ByteArraySerializer
+import scala.concurrent.duration._
 
 import scala.collection.mutable.ListBuffer
 
-/**
- * Created by boris on 7/7/17.
- */
 object KafkaDataIngester {
   val file = "data/load/"
-  val timeInterval: Long = 100 * 1 // 1 sec
+  val timeInterval = 1.second
   val batchSize = 10
 
   def main(args: Array[String]) {
-
-    val settings = WeatherSettings()
-    import settings._
-
-    val brokers = if (args.length > 0) args(0) else kafkaConfig.brokers
-
-    val ingester = KafkaDataIngester(brokers)
-    ingester.execute(file, kafkaConfig.topic)
+    val kafkaConfig = WeatherSettings("DataIngester", args).kafkaConfig
+    KafkaDataIngester(kafkaConfig.brokers).execute(file, kafkaConfig.topic)
   }
 
-  def pause(): Unit = {
-    try {
-      Thread.sleep(timeInterval)
-    } catch {
-      case _: Throwable => // Ignore
-    }
-  }
+  def pause(): Unit = Thread.sleep(timeInterval.toMillis)
 
   def apply(brokers: String): KafkaDataIngester = new KafkaDataIngester(brokers)
 }
@@ -48,7 +34,7 @@ class KafkaDataIngester(brokers: String) {
     while (true) {
       val iterator = FilesIterator(new java.io.File(file), "UTF-8")
       val batch = new ListBuffer[Array[Byte]]()
-      var numrec = 0;
+      var numrec = 0
       iterator.foreach(record => {
         numrec += 1
         batch += DataConvertor.convertToGPB(record)
