@@ -1,11 +1,13 @@
 package com.lightbend.killrweather.loader.kafka
 
+import java.io.File
+
 import com.lightbend.killrweather.loader.utils.{ DataConvertor, FilesIterator }
 import com.lightbend.killrweather.kafka.MessageSender
 import com.lightbend.killrweather.settings.WeatherSettings
 import org.apache.kafka.common.serialization.ByteArraySerializer
-import scala.concurrent.duration._
 
+import scala.concurrent.duration._
 import scala.collection.mutable.ListBuffer
 
 object KafkaDataIngester {
@@ -32,7 +34,7 @@ class KafkaDataIngester(brokers: String) {
   def execute(file: String, topic: String): Unit = {
 
     while (true) {
-      val iterator = FilesIterator(new java.io.File(file), "UTF-8")
+      val iterator = FilesIterator(new File(file))
       val batch = new ListBuffer[Array[Byte]]()
       var numrec = 0
       iterator.foreach(record => {

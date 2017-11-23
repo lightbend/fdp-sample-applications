@@ -2,7 +2,11 @@ package com.lightbend.killrweather.loader.utils
 
 import java.io.File
 
-case class FilesIterator(file: File, encoding: String) extends Iterator[String] {
+object FilesIterator extends FileContentIterator {
+  def apply(file: File, encoding: String = "UTF-8"): Iterator[String] = new FilesIterator(file, encoding)
+}
+
+class FilesIterator(file: File, encoding: String) extends Iterator[String] {
 
   require(file.exists())
 
