@@ -40,7 +40,7 @@ class KafkaDataIngesterRest(url: String) {
   def execute(file: String): Unit = {
 
     val sender = new HTTPSender(url)
-    val iterator = FilesIterator(new java.io.File(file), "UTF-8")
+    val iterator = FilesIterator(new java.io.File(file))
     var numrec = 0;
     iterator.foreach(record => {
       //      println(s"Record : $record")

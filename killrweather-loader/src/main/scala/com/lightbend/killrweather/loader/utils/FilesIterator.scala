@@ -1,28 +1,31 @@
 package com.lightbend.killrweather.loader.utils
 
-object FilesIterator {
-  def apply(file: java.io.File, encoding: String) = new FilesIterator(file, encoding)
+import java.io.File
+
+object FilesIterator extends FileContentIterator {
+  def apply(file: File, encoding: String = "UTF-8"): Iterator[String] = new FilesIterator(file, encoding)
 }
 
-class FilesIterator(file: java.io.File, encoding: String) extends Iterator[String] {
+class FilesIterator(file: File, encoding: String) extends Iterator[String] {
 
-  private var iterator = if (file.exists && file.isDirectory) {
-    file.listFiles.foldLeft(Seq.empty[String].toIterator) {
-      (s, v) =>
-        v.getName match {
-          case name if name.endsWith("csv.gz") => s ++ GzFileIterator(v, encoding)
-          case name if name.endsWith("csv.zip") => s ++ ZipFileIterator(v, encoding)
-          case name if name.endsWith("csv") => s ++ FileIterator(v, encoding)
-          case n => s
-        }
+  require(file.exists())
+
+  val Empty: Iterator[String] = Iterator.empty
+
+  def process(file: File): Option[Iterator[String]] = {
+    file.getName match {
+      case name if name.endsWith("csv.gz") => Some(GzFileIterator(file, encoding))
+      case name if name.endsWith("csv.zip") => Some(ZipFileIterator(file, encoding))
+      case name if name.endsWith("csv") => Some(TextFileIterator(file, encoding))
+      case _ => None
     }
-  } else Seq.empty.toIterator
-
-  override def hasNext: Boolean = {
-    iterator.hasNext
   }
 
-  override def next: String =
-    iterator.next
+  private val iterator: Iterator[String] = if (file.isDirectory) file.listFiles.flatMap(process).reduce(_ ++ _) else
+    process(file).getOrElse(Empty)
+
+  override def hasNext: Boolean = iterator.hasNext
+
+  override def next: String = iterator.next
 }
 

@@ -97,7 +97,7 @@ object Dependencies {
   /** Module deps */
   val clientHTTP = logging ++ akka ++ json
   val clientGRPC = logging ++ akka ++ grpc
-  val loaders = json :+ scalaHTTPClean
+  val loaders = common ++ json :+ scalaHTTPClean
   val core = common ++ logging ++ time ++ connector ++ spark ++ Seq(
     curator.
       exclude("io.netty", "netty"),

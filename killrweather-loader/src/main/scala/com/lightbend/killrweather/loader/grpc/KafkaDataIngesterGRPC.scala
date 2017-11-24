@@ -38,7 +38,7 @@ class KafkaDataIngesterGRPC(host: String, port: Int) {
   def execute(file: String): Unit = {
 
     val sender = new GRPCSender(host, port)
-    val iterator = FilesIterator(new java.io.File(file), "UTF-8")
+    val iterator = FilesIterator(new java.io.File(file))
     var numrec = 0
     iterator.foreach(record => {
       sender.send(DataConvertor.convertToRecord(record))
