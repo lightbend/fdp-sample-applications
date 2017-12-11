@@ -78,7 +78,6 @@ object KillrWeatherEventStore {
     /** Saves the raw data to Cassandra - raw table. */
     kafkaStream.foreachRDD { sqlContext.createDataFrame(_).foreachPartition(eventStoreSink.value.writeRaw(_)) }
 
-
     // Calculate daily
     val dailyMappingFunc = (station: String, reading: Option[WeatherRecord], state: State[ListBuffer[WeatherRecord]]) => {
       val current = state.getOption().getOrElse(new ListBuffer[WeatherRecord])
@@ -112,7 +111,7 @@ object KillrWeatherEventStore {
 
     // Define StateSpec<KeyType,ValueType,StateType,MappedType> - types are derived from function
     val dailyStream = kafkaStream.map(r => (r.wsid, r)).mapWithState(StateSpec.function(dailyMappingFunc).initialState(dailyRDD))
-          .filter(_.isDefined).map(_.get)
+      .filter(_.isDefined).map(_.get)
 
     // Just for testing
     dailyStream.print()
@@ -125,7 +124,6 @@ object KillrWeatherEventStore {
     dailyStream.map(ds => DailyWindSpeed(ds._2))
       .foreachRDD { sqlContext.createDataFrame(_).foreachPartition(eventStoreSink.value.writeDailyWind(_)) }
 
-
     // Save daily pressure
     dailyStream.map(ds => DailyPressure(ds._2))
       .foreachRDD { sqlContext.createDataFrame(_).foreachPartition(eventStoreSink.value.writeDailyPressure(_)) }
@@ -133,7 +131,6 @@ object KillrWeatherEventStore {
     // Save daily presipitations
     dailyStream.map(ds => DailyPrecipitation(ds._2))
       .foreachRDD { sqlContext.createDataFrame(_).foreachPartition(eventStoreSink.value.writeDailyPresip(_)) }
-
 
     // Calculate monthly
     val monthlyMappingFunc = (station: String, reading: Option[DailyWeatherDataProcess], state: State[ListBuffer[DailyWeatherDataProcess]]) => {
