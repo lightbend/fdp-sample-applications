@@ -1,6 +1,6 @@
 package com.lightbend.killrweather.EventStore
 
-import com.ibm.event.catalog.{ ColumnOrder, IndexSpecification, SortSpecification, TableSchema }
+import com.ibm.event.catalog.{ /*ColumnOrder, IndexSpecification, SortSpecification,*/ TableSchema }
 import com.ibm.event.common.ConfigurationReader
 import com.ibm.event.oltp.EventContext
 import org.apache.spark.sql.types._
