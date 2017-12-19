@@ -107,7 +107,7 @@ influxdb {
 }
 ```
 
-The InfluxDB instance in the cluster is pre-created with a database named `anomaly` and a retention policy named `default`. For details on how to install the custom InfluxDB instance in FDP cluster, please refer to the [document](https://github.com/typesafehub/fdp-influxdb-docker-images/blob/develop/README.md) on the InfluxDB project repository.
+The InfluxDB instance in the cluster is pre-created with a database named `anomaly` and a retention policy named `default`. 
 
 #### Setting up a Grafana Dashboard
 
