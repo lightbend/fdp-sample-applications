@@ -24,8 +24,10 @@ class InfluxDBRawSink(sqlContext: SQLContext) extends Sink with Serializable {
     ds.foreachPartition { iter =>
       val influxDB = InfluxDBFactory.connect(s"$influxDBServer:$influxDBPort", influxDBUser, influxDBPass)
       //val influxDB = InfluxDBFactory.connect("http://10.2.2.187:13698", influxDBUser, influxDBPass)
-      if (!influxDB.databaseExists(influxDBDatabase))
+      if (!influxDB.databaseExists(influxDBDatabase)) {
         influxDB.createDatabase(influxDBDatabase)
+        influxDB.createRetentionPolicy(retentionPolicy,influxDBDatabase, "1h", 1, false)
+      }
 
       influxDB.setDatabase(influxDBDatabase)
       // Flush every 2000 Points, at least every 100ms
@@ -99,8 +101,10 @@ class InfluxDBRMonthlySink(sqlContext: SQLContext) extends Sink with Serializabl
     ds.foreachPartition { iter =>
       val influxDB = InfluxDBFactory.connect(s"$influxDBServer:$influxDBPort", influxDBUser, influxDBPass)
       //val influxDB = InfluxDBFactory.connect("http://10.2.2.187:13698", influxDBUser, influxDBPass)
-      if (!influxDB.databaseExists(influxDBDatabase))
+      if (!influxDB.databaseExists(influxDBDatabase)) {
         influxDB.createDatabase(influxDBDatabase)
+        influxDB.createRetentionPolicy(retentionPolicy,influxDBDatabase, "1h", 1, false)
+      }
 
       influxDB.setDatabase(influxDBDatabase)
       // Flush every 2000 Points, at least every 100ms

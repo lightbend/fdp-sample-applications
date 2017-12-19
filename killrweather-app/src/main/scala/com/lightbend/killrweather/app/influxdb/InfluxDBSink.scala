@@ -88,8 +88,10 @@ object InfluxDBSink {
   def make(): InfluxDBSink = {
     val f = () => {
       val influxDB = InfluxDBFactory.connect(s"$influxDBServer:$influxDBPort", influxDBUser, influxDBPass)
-      if (!influxDB.databaseExists(influxDBDatabase))
-        influxDB.createDatabase(influxDBDatabase)
+        if (!influxDB.databaseExists(influxDBDatabase)){
+          influxDB.createDatabase(influxDBDatabase)
+          influxDB.createRetentionPolicy(retentionPolicy,influxDBDatabase, "1h", 1, false)
+      }
 
       influxDB.setDatabase(influxDBDatabase)
       // Flush every 2000 Points, at least every 100ms
