@@ -20,7 +20,7 @@ object Versions {
   val gsonVersion = "2.6.2"
   val wsrsVersion = "2.0.1"
 
-  val influxDBClientVersion   = "2.7"
+  val influxDBClientVersion   = "2.8"
 
   val codecVersion = "1.10"
 }
