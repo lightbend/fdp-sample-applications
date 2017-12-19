@@ -22,7 +22,8 @@ class InfluxDBSinkForEachKillrweatherRaw extends ForeachWriter[WeatherRecord] {
     influxDB = InfluxDBFactory.connect("http://10.2.2.187:13698", influxDBUser, influxDBPass)
     if (!influxDB.databaseExists(influxDBDatabase)) {
       influxDB.createDatabase(influxDBDatabase)
-      influxDB.createRetentionPolicy(retentionPolicy,influxDBDatabase, "1h", 1, false)
+      influxDB.dropRetentionPolicy("autogen", influxDBDatabase)
+      influxDB.createRetentionPolicy(retentionPolicy, influxDBDatabase, "1d", "30m", 1, true)
     }
 
     influxDB.setDatabase(influxDBDatabase)

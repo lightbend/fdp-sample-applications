@@ -88,9 +88,10 @@ object InfluxDBSink {
   def make(): InfluxDBSink = {
     val f = () => {
       val influxDB = InfluxDBFactory.connect(s"$influxDBServer:$influxDBPort", influxDBUser, influxDBPass)
-        if (!influxDB.databaseExists(influxDBDatabase)){
-          influxDB.createDatabase(influxDBDatabase)
-          influxDB.createRetentionPolicy(retentionPolicy,influxDBDatabase, "1h", 1, false)
+      if (!influxDB.databaseExists(influxDBDatabase)) {
+        influxDB.createDatabase(influxDBDatabase)
+        influxDB.dropRetentionPolicy("autogen", influxDBDatabase)
+        influxDB.createRetentionPolicy(retentionPolicy, influxDBDatabase, "1d", "30m", 1, true)
       }
 
       influxDB.setDatabase(influxDBDatabase)
