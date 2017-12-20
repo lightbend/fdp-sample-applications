@@ -15,6 +15,7 @@ normal_properties="${test_support}/normal.app-install.properties"
 }
 
 @test "fail if s3-bucket-url is not set in configuration properties" {
+  skip
   run bin/app-install.sh --config-file $fake_properties --stop-at config_file
 
   [ $status -eq 1 ]
@@ -25,6 +26,7 @@ normal_properties="${test_support}/normal.app-install.properties"
 }
 
 @test "fail if docker-username set to empty in configuration properties" {
+  skip
   run bin/app-install.sh --config-file $fake1_properties --stop-at config_file
 
   [ $status -eq 1 ]
