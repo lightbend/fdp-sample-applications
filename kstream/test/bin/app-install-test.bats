@@ -24,13 +24,9 @@ normal_properties="${test_support}/normal.app-install.properties"
 }
 
 @test "check only jobs in --start_only are starting - start one job only" {
-  skip
-  run bin/app-install.sh --config-file $normal_properties --start-only dsl --stop-at start_only
+  run bin/app-install.sh --config-file $normal_properties --no-exec --start-only dsl --stop-at start_only
 
   [ $status -eq 0 ]
-  echo "${lines[0]}"
-  echo "${lines[1]}"
-  echo "${lines[2]}"
 
   [[ "${lines[0]}" =~ "$normal_properties found" ]]
   [[ "${lines[2]}" =~ "DSL based" && "${lines[2]}" =~ "yes" ]]
@@ -38,8 +34,7 @@ normal_properties="${test_support}/normal.app-install.properties"
 }
 
 @test "check only jobs in --start_only are starting - start both jobs" {
-  skip
-  run bin/app-install.sh --config-file $normal_properties --start-only dsl --start-only procedure --stop-at start_only
+  run bin/app-install.sh --no-exec --config-file $normal_properties --start-only dsl --start-only procedure --stop-at start_only
 
   [ $status -eq 0 ]
 
@@ -49,8 +44,7 @@ normal_properties="${test_support}/normal.app-install.properties"
 }
 
 @test "by default both jobs should start" {
-  skip
-  run bin/app-install.sh --config-file $normal_properties --stop-at start_only
+  run bin/app-install.sh --no-exec --config-file $normal_properties --stop-at start_only
 
   [ $status -eq 0 ]
 
