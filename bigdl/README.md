@@ -29,8 +29,8 @@ The script `app-install.sh` takes all configuration parameters from a properties
 ## laboratory mesos deployment
 laboratory-mesos-path=http://fdp-apps-lab.marathon.mesos
 
-## Spark package version - Must use Spark 2.1.1 for BigDL
-spark-package-version=1.1.0-2.1.1-hadoop-2.7
+## Spark package version
+spark-package-version=2.0.0-2.2.0-hadoop-2.6
 ```
 
 > The installation process fetches the data required from the canned docker image in `fdp-apps-lab`.

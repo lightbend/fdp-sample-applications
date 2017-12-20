@@ -47,7 +47,7 @@ libraryDependencies ++= Seq(
   "org.apache.spark"             %%   "spark-streaming"                % spark % "provided",
   "org.apache.spark"             %%   "spark-mllib"                    % spark % "provided",
   "org.apache.spark"             %%   "spark-sql"                      % spark % "provided",
-  "org.influxdb"                  % "influxdb-java"                    % influxDBClientVersion
+  "org.influxdb"                  %   "influxdb-java"                  % influxDBClientVersion
 
 )
 
