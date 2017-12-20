@@ -8,4 +8,4 @@ cd ${HERE}
 bats test/bin/*.bats
 
 cd ${HERE}/source/core
-sbt clean test package whitesourceUpdate
+sbt clean test package
