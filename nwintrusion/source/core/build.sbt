@@ -10,7 +10,7 @@ val configVersion = "1.3.1"
 val catsVersion = "0.9.0"
 val spark = "2.2.0"
 val logbackVersion = "1.2.3"
-val influxDBClientVersion = "2.7"
+val influxDBClientVersion = "2.8"
 
 allowSnapshot in ThisBuild := true
 

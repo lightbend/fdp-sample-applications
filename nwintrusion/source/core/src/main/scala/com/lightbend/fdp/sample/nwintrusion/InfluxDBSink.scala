@@ -43,8 +43,15 @@ object InfluxDBSink {
       influxDB.setDatabase(database)
       // Flush every 2000 Points, at least every 100ms
       influxDB.enableBatch(2000, 100, TimeUnit.MILLISECONDS)
-      // set retention policy
-      influxDB.setRetentionPolicy(retentionPolicy)
+
+      // drop the default retention policy which has infinite duration
+      influxDB.dropRetentionPolicy("autogen", database)
+
+      // could make all these configurable through influx.conf
+      // The problem is there is no validation of the string values in the Java client
+      // hence need to do all validations in config reading, which will be quite exhaustive
+      // Maybe we revisit this later
+      influxDB.createRetentionPolicy(retentionPolicy, database, "1d", "30m", 1, true)
 
       sys.addShutdownHook {
         influxDB.flush()
