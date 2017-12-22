@@ -4,8 +4,8 @@ set -eux
 
 HERE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 
-cd ${HERE}
-bats test/bin/*.bats
+# cd ${HERE}
+# bats test/bin/*.bats
 
-cd ${HERE}/source/core
+cd ${HERE}/source/
 sbt clean test package
