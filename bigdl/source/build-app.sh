@@ -90,7 +90,7 @@ function check_required_utils {
 
 function print_env_error {
   echo  "$1 not defined: $AWS_ENV_FILE either doesn't exist or it doesn't define $1."
-  error "See https://developer.lightbend.com/docs/fast-data-platform/0.1.0/installation/index.html for more information."
+  error "See https://developer.lightbend.com/docs/fast-data-platform/latest/user-guide/sample-apps/index.html for more information."
 }
 
 function check_required_vars {
