@@ -27,22 +27,10 @@ class GroupIntoBatchesFn[K, InputT, OutputT](val inputKeyCoder: Coder[K], val in
     val newKey = ctx.element.getKey
     val newRecord = ctx.element.getValue
     val currentTrigger = getTrigger(newRecord)
-    val trigger = triggerState.get(newKey).read() match {
-      case tr if tr != null => tr
-      case _ => {
-        triggerState.put(newKey, currentTrigger)
-        currentTrigger
-      }
-    }
-    val currentbatch = batch.get(newKey).read() match {
-      case cb if cb != null => cb
-      case _ => {
-        val cb = new util.LinkedList[InputT]()
-        batch.put(newKey, cb)
-        cb
-      }
-    }
-    if((currentTrigger != trigger) && (currentbatch.size() > 0)){
+    // Ensure state is initialized
+    triggerState.putIfAbsent(newKey,currentTrigger)
+    batch.putIfAbsent(newKey, new util.LinkedList[InputT]())
+    if((currentTrigger != triggerState.get(newKey).read()) && (batch.get(newKey).read().size() > 0)){
       flushBatch(ctx, newKey, batch.get(newKey).read())
       triggerState.put(newKey, currentTrigger)
     }

@@ -16,6 +16,8 @@ class StatCounter(values: TraversableOnce[Double]) {
   private var maxValue: Double = Double.NegativeInfinity // Running max of our values
   private var minValue: Double = Double.PositiveInfinity // Running min of our values
 
+  merge(values)
+
   /** Initialize the StatCounter with no values. */
   def this() = this(Nil)
 
