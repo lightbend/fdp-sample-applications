@@ -8,7 +8,7 @@ import com.lightbend.killrweater.beam.cassandra._
 import com.lightbend.killrweater.beam.coders.ScalaStringCoder
 import com.lightbend.killrweater.beam.data.{DailyWeatherData, DataObjects, MonthlyWeatherData, RawWeatherData}
 import com.lightbend.killrweater.beam.kafka.JobConfiguration
-import com.lightbend.killrweater.beam.processors.{CassandraTransformFn, ConvertDataRecordFn, GroupIntoBatchesFn, SimplePrintFn}
+import com.lightbend.killrweater.beam.processors._
 import com.lightbend.killrweather.settings.WeatherSettings
 import org.apache.beam.sdk.Pipeline
 import org.apache.beam.sdk.coders.{ByteArrayCoder, KvCoder, NullableCoder, SerializableCoder}
@@ -16,6 +16,8 @@ import org.apache.beam.sdk.io.cassandra.CassandraIO
 import org.apache.beam.sdk.io.kafka.KafkaIO
 import org.apache.beam.sdk.transforms.ParDo
 import com.datastax.driver.core.ConsistencyLevel._
+import com.lightbend.killrweater.beam.grafana.GrafanaSetup
+import com.lightbend.killrweater.beam.influxdb.DataTransformers
 
 object KillrWeatherBeam {
 
@@ -32,6 +34,9 @@ object KillrWeatherBeam {
     CassandraSetup.setup(session)
     session.close()
     cluster.close()
+
+    // Initialize Grafana
+    new GrafanaSetup(14625, "grafana.marathon.mesos").setGrafana()
 
     // Create and initialize pipeline
     val options = JobConfiguration.initializePipeline(args)
@@ -68,6 +73,8 @@ object KillrWeatherBeam {
         .withConsistencyLevel(LOCAL_ONE.toString)
         .withKeyspace(CassandraKeyspace)
         .withEntity(classOf[RawEntity]))
+
+    raw.apply("Write to Influx", ParDo.of(new InfluxDBWriteFn[RawWeatherData](DataTransformers.getRawPoint)))
 
     val daily = raw
       .apply("Calculate dayily", ParDo.of(new GroupIntoBatchesFn[String, RawWeatherData, DailyWeatherData]
@@ -117,6 +124,7 @@ object KillrWeatherBeam {
         .withKeyspace(CassandraKeyspace)
         .withEntity(classOf[DailyPrecipEntity]))
 
+    daily.apply("Write to Influx", ParDo.of(new InfluxDBWriteFn[DailyWeatherData](DataTransformers.getDaylyPoint)))
 
     val monthly = daily
       .apply("Calculate monthly", ParDo.of(new GroupIntoBatchesFn[String, DailyWeatherData, MonthlyWeatherData]
@@ -165,6 +173,8 @@ object KillrWeatherBeam {
         .withConsistencyLevel(LOCAL_ONE.toString)
         .withKeyspace(CassandraKeyspace)
         .withEntity(classOf[MonthlyPrecipEntity]))
+
+    monthly.apply("Write to Influx", ParDo.of(new InfluxDBWriteFn[MonthlyWeatherData](DataTransformers.getMonthlyPoint)))
 
     // Run the pipeline
     p.run

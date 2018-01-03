@@ -108,5 +108,5 @@ object Dependencies {
 
   val appStructured = connector  ++ sparkStructured ++ Seq(influxDBClient, scalaHTTP.exclude("com.fasterxml.jackson.module", "jackson-module-scala_2.11"))
 
-  val beamDependencies = Seq(beamAPI, beamJoin, beamJava, beamCassandra, beamKafka)
+  val beamDependencies = Seq(beamAPI, beamJoin, beamJava, beamCassandra, beamKafka, influxDBClient, scalaHTTP.exclude("com.fasterxml.jackson.module", "jackson-module-scala_2.11"))
 }
