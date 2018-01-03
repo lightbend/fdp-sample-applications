@@ -11,7 +11,7 @@ import org.influxdb.dto.Point
 
 // Pardo is well described at http://www.waitingforcode.com/apache-beam/pardo-transformation-apache-beam/read
 
-class InfluxDBWriteFn[InputT] (convertData : KV[String, InputT] => Point) extends DoFn[KV[String, InputT], Unit] {
+class WriteToInfluxDBFn[InputT](convertData : KV[String, InputT] => Point) extends DoFn[KV[String, InputT], Unit] {
 
   val MAXATTEMPTS = 3
   val settings = new WeatherSettings()
@@ -41,7 +41,7 @@ class InfluxDBWriteFn[InputT] (convertData : KV[String, InputT] => Point) extend
       }
       catch {
         case t: Throwable => {
-            println(s"Exception writing to Influx $t")
+            println(s"Exception connecting to Influx $t")
             teardown()
             Thread.sleep(100)
             attempts = attempts + 1

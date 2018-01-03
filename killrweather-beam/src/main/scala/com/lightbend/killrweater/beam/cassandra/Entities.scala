@@ -4,7 +4,6 @@ import com.datastax.driver.mapping.annotations.{Column, Table}
 import java.io.Serializable
 
 import com.lightbend.killrweater.beam.data.{DailyWeatherData, MonthlyWeatherData, RawWeatherData}
-import com.lightbend.killrweather.utils.MonthlyWindSpeed
 import org.apache.beam.sdk.values.KV
 
 

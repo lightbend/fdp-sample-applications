@@ -63,7 +63,7 @@ object KillrWeatherBeam {
         .withoutMetadata).setCoder(kafkaDataCoder)
       .apply("Convert to raw record", ParDo.of(new ConvertDataRecordFn))
 //      .apply("Print it", ParDo.of(new SimplePrintFn[RawWeatherData]("Raw data")))
-
+/*
     raw
       .apply("Convert to Cassandra entity", ParDo.of(new CassandraTransformFn[RawWeatherData, RawEntity](Entities.getRawEntity)))
           .setCoder(SerializableCoder.of(classOf[RawEntity]))
@@ -73,8 +73,9 @@ object KillrWeatherBeam {
         .withConsistencyLevel(LOCAL_ONE.toString)
         .withKeyspace(CassandraKeyspace)
         .withEntity(classOf[RawEntity]))
-
-    raw.apply("Write to Influx", ParDo.of(new InfluxDBWriteFn[RawWeatherData](DataTransformers.getRawPoint)))
+*/
+    raw.apply("Write to Cassandra", ParDo.of(new WriteRawToCassandraFn("127.0.0.1", CassandraNativePort)))
+    raw.apply("Write to Influx", ParDo.of(new WriteToInfluxDBFn[RawWeatherData](DataTransformers.getRawPoint)))
 
     val daily = raw
       .apply("Calculate dayily", ParDo.of(new GroupIntoBatchesFn[String, RawWeatherData, DailyWeatherData]
@@ -82,7 +83,7 @@ object KillrWeatherBeam {
         DataObjects.getRawTrigger, DataObjects.convertRawData)))
       .setCoder(KvCoder.of(ScalaStringCoder.of, SerializableCoder.of(classOf[DailyWeatherData])))
 //      .apply("Print it", ParDo.of(new SimplePrintFn[DailyWeatherData]("Daily data")))
-
+/*
     // Store daily data to Cassandra
     daily
       .apply("Convert to Cassandra temperature", ParDo.of(new CassandraTransformFn[DailyWeatherData, DailyTemperatureEntity](Entities.getDailyTempEntity)))
@@ -123,8 +124,9 @@ object KillrWeatherBeam {
         .withConsistencyLevel(LOCAL_ONE.toString)
         .withKeyspace(CassandraKeyspace)
         .withEntity(classOf[DailyPrecipEntity]))
-
-    daily.apply("Write to Influx", ParDo.of(new InfluxDBWriteFn[DailyWeatherData](DataTransformers.getDaylyPoint)))
+*/
+    daily.apply("Write to Cassandra", ParDo.of(new WriteDailyToCassandraFn("127.0.0.1", CassandraNativePort)))
+    daily.apply("Write to Influx", ParDo.of(new WriteToInfluxDBFn[DailyWeatherData](DataTransformers.getDaylyPoint)))
 
     val monthly = daily
       .apply("Calculate monthly", ParDo.of(new GroupIntoBatchesFn[String, DailyWeatherData, MonthlyWeatherData]
@@ -132,7 +134,7 @@ object KillrWeatherBeam {
         DataObjects.getDailyTrigger, DataObjects.convertDailyData)))
       .setCoder(KvCoder.of(ScalaStringCoder.of, SerializableCoder.of(classOf[MonthlyWeatherData])))
       .apply("Print it", ParDo.of(new SimplePrintFn[MonthlyWeatherData]("Monthly data")))
-
+/*
     // Store monthly data to Cassandra
     monthly
       .apply("Convert to Cassandra temperature", ParDo.of(new CassandraTransformFn[MonthlyWeatherData, MonthlyTemperatureEntity](Entities.getMonthlyTempEntity)))
@@ -173,8 +175,9 @@ object KillrWeatherBeam {
         .withConsistencyLevel(LOCAL_ONE.toString)
         .withKeyspace(CassandraKeyspace)
         .withEntity(classOf[MonthlyPrecipEntity]))
-
-    monthly.apply("Write to Influx", ParDo.of(new InfluxDBWriteFn[MonthlyWeatherData](DataTransformers.getMonthlyPoint)))
+*/
+    monthly.apply("Write to Cassandra", ParDo.of(new WriteMonthlyToCassandraFn("127.0.0.1", CassandraNativePort)))
+    monthly.apply("Write to Influx", ParDo.of(new WriteToInfluxDBFn[MonthlyWeatherData](DataTransformers.getMonthlyPoint)))
 
     // Run the pipeline
     p.run

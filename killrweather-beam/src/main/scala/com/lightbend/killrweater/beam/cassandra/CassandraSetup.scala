@@ -5,6 +5,8 @@ import com.datastax.driver.core.Session
 import scala.collection.mutable.ListBuffer
 import scala.io.Source
 
+// Some info on Cassandra can be found here http://www.baeldung.com/cassandra-with-java
+
 object CassandraSetup {
 
   def setup(session: Session, file: String = "/create-timeseries.cql"): Unit = {
