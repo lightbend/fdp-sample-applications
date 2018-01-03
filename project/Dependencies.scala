@@ -54,7 +54,7 @@ object Dependencies {
   val beamJoin          = "org.apache.beam"   % "beam-sdks-java-extensions-join-library"% beamVersion
   val beamAPI           = "org.apache.beam"   % "beam-sdks-common-fn-api"               % beamVersion
 //  val beamSQL           = "org.apache.beam"   % "beam-sdks-java-extensions-sql"         % beamVersion
-  val beamCassandra     = "org.apache.beam"   % "beam-sdks-java-io-cassandra"           % beamVersion
+//  val beamCassandra     = "org.apache.beam"   % "beam-sdks-java-io-cassandra"           % beamVersion
 
   val connector = Seq(
     sparkCassandra
@@ -108,5 +108,5 @@ object Dependencies {
 
   val appStructured = connector  ++ sparkStructured ++ Seq(influxDBClient, scalaHTTP.exclude("com.fasterxml.jackson.module", "jackson-module-scala_2.11"))
 
-  val beamDependencies = Seq(beamAPI, beamJoin, beamJava, beamCassandra, beamKafka, influxDBClient, scalaHTTP.exclude("com.fasterxml.jackson.module", "jackson-module-scala_2.11"))
+  val beamDependencies = Seq(beamAPI, beamJoin, beamJava, sparkCassandra , beamKafka, influxDBClient, scalaHTTP.exclude("com.fasterxml.jackson.module", "jackson-module-scala_2.11"))
 }

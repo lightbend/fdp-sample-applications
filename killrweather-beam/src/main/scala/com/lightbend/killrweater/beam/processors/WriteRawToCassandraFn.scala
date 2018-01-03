@@ -25,7 +25,7 @@ class WriteRawToCassandraFn(server : String, port : Int) extends DoFn[KV[String,
     var attempts = 0
     while(!connected && (attempts < MAXATTEMPTS)) {
       try {
-        cluster = Cluster.builder().addContactPoint(server).withPort(port).build()
+        cluster = Cluster.builder().addContactPoint(server).withPort(port).withoutMetrics().build()
         session = cluster.connect()
         prepared = session.prepare(s"insert into $CassandraKeyspace.$CassandraTableRaw " +
           "(wsid, year, month, day, hour, temperature, dewpoint, pressure, wind_direction, wind_speed, sky_condition, sky_condition_text, one_hour_precip, six_hour_precip) " +

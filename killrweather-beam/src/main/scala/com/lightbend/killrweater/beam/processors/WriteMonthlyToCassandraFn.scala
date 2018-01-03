@@ -28,7 +28,7 @@ class WriteMonthlyToCassandraFn(server : String, port : Int) extends DoFn[KV[Str
     var attempts = 0
     while(!connected && (attempts < MAXATTEMPTS)) {
       try {
-    cluster = Cluster.builder().addContactPoint(server).withPort(port).build()
+    cluster = Cluster.builder().addContactPoint(server).withPort(port).withoutMetrics().build()
     session = cluster.connect()
     preparedTemp = session.prepare(s"insert into $CassandraKeyspace.$CassandraTableMonthlyTemp " +
       "(wsid, year, month, high, low, mean, variance, stdev) " +

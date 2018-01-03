@@ -12,10 +12,10 @@ import com.lightbend.killrweater.beam.processors._
 import com.lightbend.killrweather.settings.WeatherSettings
 import org.apache.beam.sdk.Pipeline
 import org.apache.beam.sdk.coders.{ByteArrayCoder, KvCoder, NullableCoder, SerializableCoder}
-import org.apache.beam.sdk.io.cassandra.CassandraIO
+//import org.apache.beam.sdk.io.cassandra.CassandraIO
 import org.apache.beam.sdk.io.kafka.KafkaIO
 import org.apache.beam.sdk.transforms.ParDo
-import com.datastax.driver.core.ConsistencyLevel._
+//import com.datastax.driver.core.ConsistencyLevel._
 import com.lightbend.killrweater.beam.grafana.GrafanaSetup
 import com.lightbend.killrweater.beam.influxdb.DataTransformers
 
@@ -29,7 +29,7 @@ object KillrWeatherBeam {
     import settings._
 
     // Initialize Cassandra
-    val cluster = Cluster.builder().addContactPoint("127.0.0.1").withPort(CassandraNativePort).build()
+    val cluster = Cluster.builder().addContactPoint("127.0.0.1").withPort(CassandraNativePort).withoutMetrics().build()
     val session = cluster.connect()
     CassandraSetup.setup(session)
     session.close()
