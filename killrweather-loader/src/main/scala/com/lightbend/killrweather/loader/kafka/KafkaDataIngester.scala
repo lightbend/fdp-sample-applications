@@ -12,7 +12,7 @@ import scala.collection.mutable.ListBuffer
  */
 object KafkaDataIngester {
   val file = "data/load/"
-  val timeInterval: Long = 100 * 1      // 1 sec
+  val timeInterval: Long = 100 * 1       // 1 sec
   val batchSize = 10
 
   def main(args: Array[String]) {
