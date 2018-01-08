@@ -19,8 +19,9 @@ object KafkaDataIngester {
 
     val settings = new WeatherSettings()
 
-    //    val brokers = if (args.length > 0) args(0) else kafkaBrokers
-    val brokers = "localhost:9092"
+    import settings._
+
+    val brokers = if (args.length > 0) args(0) else kafkaBrokers
     val ingester = KafkaDataIngester(brokers)
     ingester.execute(file, settings.KafkaTopicRaw)
   }
