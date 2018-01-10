@@ -53,10 +53,10 @@ lazy val commonSettings = Seq(
   licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0")),
   libraryDependencies ++= Seq(
       "com.intel.analytics.bigdl"          % "bigdl-SPARK_2.2"   % "0.3.0" exclude("com.intel.analytics.bigdl", "bigdl-core"),
-      "com.intel.analytics.bigdl.native"   % "mkl-java"          % "0.3.0", // comment for Mac
-      "com.intel.analytics.bigdl.bigquant" % "bigquant-java"     % "0.3.0", // comment for Mac
-//    "com.intel.analytics.bigdl.native"   % "mkl-java-mac"      % "0.3.0" from mkl_native("mac"), // uncomment for Mac
-//    "com.intel.analytics.bigdl.bigquant" % "bigquant-java-mac" % "0.3.0" from bigquant_native("mac"), // uncomment for Mac
+//    "com.intel.analytics.bigdl.native"   % "mkl-java"          % "0.3.0", // comment for Mac
+//    "com.intel.analytics.bigdl.bigquant" % "bigquant-java"     % "0.3.0", // comment for Mac
+      "com.intel.analytics.bigdl.native"   % "mkl-java-mac"      % "0.3.0" from mkl_native("mac"), // uncomment for Mac
+      "com.intel.analytics.bigdl.bigquant" % "bigquant-java-mac" % "0.3.0" from bigquant_native("mac"), // uncomment for Mac
       "org.apache.spark"                  %% "spark-core"        % spark % "provided",
       "org.apache.spark"                  %% "spark-mllib"       % spark % "provided",
       "org.apache.spark"                  %% "spark-sql"         % spark % "provided",
