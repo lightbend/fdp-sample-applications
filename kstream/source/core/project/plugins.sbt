@@ -8,7 +8,7 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.3.2")
 
 addSbtPlugin("com.cavorite" % "sbt-avro-1-8" % "1.1.3")
 
-addSbtPlugin("com.github.shmishleniy" %% "sbt-deploy-ssh" % "0.1.3")
+addSbtPlugin("com.github.shmishleniy" %% "sbt-deploy-ssh" % "0.1.4")
 
 addSbtPlugin("com.dwijnand" % "sbt-dynver" % "2.0.0")
 
