@@ -31,8 +31,6 @@ Download the [ClarkNet dataset](http://ita.ee.lbl.gov/html/contrib/ClarkNet-HTTP
 
 ### Configure the Application Properties
 
-Copy `src/main/resources/application-dsl.conf.template` to  `src/main/resources/application-dsl.conf`.
-
 Edit `src/main/resources/application-dsl.conf` and set the entry for `directorytowatch` to match the folder name where you installed the ClarkNet dataset.
 
 And note that you can run the application with a bundled local Kafka server by setting `kafka.localserver` to `true` in the `application.conf` file.

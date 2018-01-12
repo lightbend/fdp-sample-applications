@@ -6,8 +6,8 @@ This project consists of 2 applications that demonstrate the use of Kafka Stream
 
 The sample application bundle uses the above dataset and has 2 separate main applications, both accessible through http interfaces:
 
-* *WeblogProcessing* - The one based on Kafka Streams DSL APIs computes aggregate information from stateful streaming like the total number of bytes transferred for a specific host or the total number of accesses made on a specific host. These can be computed on a windowed aggregation as well. 
-* *WeblogDriver* - The one based on Kafka Streams Procedure APIs implement a custom state store in Kafka Streams to check for membership information. It uses a bloom filter to implement the store on top of the APIs that KS provides. Then it consumes the Clarknet data and gives the user an http interface to check if the application has seen a specific host in its pipeline (membership query).
+* *WeblogProcessing* - The one based on **Kafka Streams DSL API**s computes aggregate information from stateful streaming like the total number of bytes transferred for a specific host or the total number of accesses made on a specific host. These can be computed on a windowed aggregation as well. 
+* *WeblogDriver* - The one based on **Kafka Streams Procedure API**s implement a custom state store in Kafka Streams to check for membership information. It uses a bloom filter to implement the store on top of the APIs that KS provides. Then it consumes the Clarknet data and gives the user an http interface to check if the application has seen a specific host in its pipeline (membership query).
 
 Together these samples demonstrate the following features of Kafka Streams:
 
@@ -22,6 +22,8 @@ Together these samples demonstrate the following features of Kafka Streams:
 
 Both the applications can be run locally without deploying in any cluster. The application suite has an embedded Kafka server that can be used to spin up local instances of the applications. Here are the steps that need to be followed:
 
+> Each of the applications `example-dsl` and `example-proc` contains README files that has more details on how to run them locally as single instance application and in distributed mode. Please refer to those documentation for more details.
+
 ### Download the ClarkNet Data Files Locally
 
 Download the ClarkNet data files locally, uncompress them and make them available in a folder.
@@ -33,7 +35,7 @@ The bundle contains 2 configuration files that need to be updated for running th
 1. `kstream/source/core/example-dsl/src/main/resources/application-dsl.conf`
 2. `kstream/source/core/example-proc/src/main/resources/application-proc.conf`
 
-3 entries need change here:
+Three entries need to be changed here:
 
 1. `kafka.localserver` needs to be set to `true`
 2. `kafka.loader.directorytowatch` needs to be set to the folder where the data files have been downloaded
