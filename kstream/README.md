@@ -94,7 +94,7 @@ $ ./app-install.sh --help
                        Default: ./app-install.properties
   --start-only X       Only start the following apps:
                          dsl         Starts topology based on Kafka Streams DSL
-                         procedure   Starts topology that implements custom state repository based on Kafka Streams procedures
+                         processor   Starts topology that implements custom state repository based on Kafka Streams Processor APIs
                        Repeat the option to run more than one.
                        Default: runs all of them
   -n | --no-exec       Do not actually run commands, just print them (for debugging).
@@ -110,10 +110,10 @@ $ ./app-install.sh --start-only dsl
 This will install the DSL based module as one of the applications running under Marathon in the DC/OS cluster.
 
 ```bash
-$ ./app-install.sh --start-only procedure
+$ ./app-install.sh --start-only processor
 ```
 
-This will install the lower level procedure based module as one of the applications running under Marathon in the DC/OS cluster.
+This will install the lower level processor based module as one of the applications running under Marathon in the DC/OS cluster.
 
 ```bash
 $ ./app-install.sh
@@ -163,7 +163,7 @@ The `bin` folder contains the script to remove the applications. This script wor
 
 ```bash
 $ cd bin
-$ ./app-remove.sh [--stop-only dsl] [--stop-only procedure] [--skip-delete-topics]
+$ ./app-remove.sh [--stop-only dsl] [--stop-only processor] [--skip-delete-topics]
 ```
 
 The above script cleans most of the data that the application generates including (optionally) the topics in Kafka. Still being a Kafka streams application, some of the state that it creates on the local filesystem has to be cleaned manually. Kafka has a utility that helps in this process. Please have a look in this [wiki page](https://cwiki.apache.org/confluence/display/KAFKA/Kafka+Streams+Application+Reset+Tool) for more details.
@@ -195,7 +195,7 @@ This reports the number of bytes transferred to the host `world.std.com`.
 
 > **Note:** In the above `curl` command, the host IP specified has to be one that's accessible from outside the cluster. In case you are not within a VPN, you may need to use a public IP address. Also the ports need to be opened up in the AWS console (if you are running on AWS).
 
-### Procedure based Custom State Store Module
+### Processor API based Custom State Store Module
 
 This module demonstrates the use of custom state stores. This module has implemented a state store based on the Bloom Filter data structure. The purpose is to store membership information in a sublinear data structure. And this module offers interactive queries on top of this custom store. The query returns true or false depending on whether the data for the queried host has been stored or not.
 
@@ -214,7 +214,7 @@ This reports `true` if the host `world.std.com` has been seen in the ingested da
 
 ## Running in Distributed mode
 
-Both the DSL based and Procedure based applications can be run in distributed mode. Multiple instances of the application can be run and all state can be queried using any of the host/port combination. Here are some things that need to be taken care of when running any of the applications in the distributed mode:
+Both the DSL based and Processor based applications can be run in distributed mode. Multiple instances of the application can be run and all state can be queried using any of the host/port combination. Here are some things that need to be taken care of when running any of the applications in the distributed mode:
 
 * The application `id` in the Marathon deployment json must be different for each of the instances. The typical way to ensure this is to use the given `app-install.sh` for installing one instance and then copying the deployment json and changing it for subsequent deployment instances.
 * Some of the settings in the `cmd`, `env` and `uris` section of the json need to be different for subsequent deployment instances. Please refer to `kstream-app-dsl-subsequent-instances.json.template` or `kstream-app-proc-subsequent-instances.json.template` for the details of such changes.
