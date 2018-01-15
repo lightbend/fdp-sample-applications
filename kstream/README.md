@@ -6,8 +6,8 @@ This project consists of 2 applications that demonstrate the use of Kafka Stream
 
 The sample application bundle uses the above dataset and has 2 separate main applications, both accessible through http interfaces:
 
-* *WeblogProcessing* - The one based on **Kafka Streams DSL API**s computes aggregate information from stateful streaming like the total number of bytes transferred for a specific host or the total number of accesses made on a specific host. These can be computed on a windowed aggregation as well. 
-* *WeblogDriver* - The one based on **Kafka Streams Procedure API**s implement a custom state store in Kafka Streams to check for membership information. It uses a bloom filter to implement the store on top of the APIs that KS provides. Then it consumes the Clarknet data and gives the user an http interface to check if the application has seen a specific host in its pipeline (membership query).
+* *WeblogProcessing* - The one based on [Kafka Streams DSL APIs](https://kafka.apache.org/10/documentation/streams/developer-guide/dsl-api.html) computes aggregate information from stateful streaming like the total number of bytes transferred for a specific host or the total number of accesses made on a specific host. These can be computed on a windowed aggregation as well. 
+* *WeblogDriver* - The one based on [Kafka Streams Processor APIs](https://kafka.apache.org/documentation/streams/developer-guide/processor-api.html) implement a custom state store in Kafka Streams to check for membership information. It uses a bloom filter to implement the store on top of the APIs that KS provides. Then it consumes the Clarknet data and gives the user an http interface to check if the application has seen a specific host in its pipeline (membership query).
 
 Together these samples demonstrate the following features of Kafka Streams:
 
@@ -55,7 +55,7 @@ One the application starts running, after some time, you can use `curl` to check
 
 `$ curl localhost:7070/weblog/bytes/world.std.com`
 
-The following sequence runs the Procedure based application.
+The following sequence runs the Processor based application.
 
 ```
 $ pwd
