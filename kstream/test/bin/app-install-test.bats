@@ -30,17 +30,17 @@ normal_properties="${test_support}/normal.app-install.properties"
 
   [[ "${lines[0]}" =~ "$normal_properties found" ]]
   [[ "${lines[2]}" =~ "DSL based" && "${lines[2]}" =~ "yes" ]]
-  [[ "${lines[3]}" =~ "Procedure based" && "${lines[3]}" =~ "no" ]]
+  [[ "${lines[3]}" =~ "Processor based" && "${lines[3]}" =~ "no" ]]
 }
 
 @test "check only jobs in --start_only are starting - start both jobs" {
-  run bin/app-install.sh --no-exec --config-file $normal_properties --start-only dsl --start-only procedure --stop-at start_only
+  run bin/app-install.sh --no-exec --config-file $normal_properties --start-only dsl --start-only processor --stop-at start_only
 
   [ $status -eq 0 ]
 
   [[ "${lines[0]}" =~ "$normal_properties found" ]]
   [[ "${lines[2]}" =~ "DSL based" && "${lines[2]}" =~ "yes" ]]
-  [[ "${lines[3]}" =~ "Procedure based" && "${lines[3]}" =~ "yes" ]]
+  [[ "${lines[3]}" =~ "Processor based" && "${lines[3]}" =~ "yes" ]]
 }
 
 @test "by default both jobs should start" {
@@ -50,5 +50,5 @@ normal_properties="${test_support}/normal.app-install.properties"
 
   [[ "${lines[0]}" =~ "$normal_properties found" ]]
   [[ "${lines[2]}" =~ "DSL based" && "${lines[2]}" =~ "yes" ]]
-  [[ "${lines[3]}" =~ "Procedure based" && "${lines[3]}" =~ "yes" ]]
+  [[ "${lines[3]}" =~ "Processor based" && "${lines[3]}" =~ "yes" ]]
 }
