@@ -3,7 +3,7 @@
 The current implementation demonstrates the following usages in Kafka Streams along with an HTTP based interactive query service:
 
 1. Data ingestion
-2. Data transformation using Kafka Streams Procedure based implementation
+2. Data transformation using Kafka Streams Processor API based implementation
 3. Implementing a custom state store (based on bloom filter)
 4. Managing local state with custom state store
 5. Interactive query service with HTTP end points

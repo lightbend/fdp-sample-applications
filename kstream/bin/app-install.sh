@@ -31,7 +31,7 @@ HELP_OPTIONS=$(cat <<EOF
                               Default: ./app-install.properties
   --start-only X              Only start the following apps:
                                 dsl         Starts topology based on Kafka Streams DSL
-                                procedure   Starts topology that implements custom state repository based on Kafka Streams procedures
+                                processor   Starts topology that implements custom state repository based on Kafka Streams Processor APIs
                               Repeat the option to run more than one.
                               Default: runs all of them
 EOF
@@ -86,7 +86,7 @@ function create_topics {
 
   if [ -n "$run_proc" ]
   then
-    echo "Creating Kafka topics for Procedure based module .."
+    echo "Creating Kafka topics for Processor based module .."
     declare -a topics=(
       $KAFKA_FROM_TOPIC_PROC
       $KAFKA_ERROR_TOPIC_PROC
@@ -152,7 +152,7 @@ function parse_arguments {
       shift
       case $1 in
         dsl)        run_dsl=yes   ;;
-        procedure)  run_proc=yes  ;;
+        processor)  run_proc=yes  ;;
         *) error "Unrecognized value for --start-only: $1" ;;
       esac
       ;;
@@ -480,7 +480,7 @@ function main {
 
   echo "Running:"
   echo "DSL based?          $(yes_or_no $run_dsl)"
-  echo "Procedure based?    $(yes_or_no $run_proc)"
+  echo "Processor based?    $(yes_or_no $run_proc)"
 
   [ "$stop_point" = "start_only" ] && exit 0
 

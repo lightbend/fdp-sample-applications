@@ -15,7 +15,7 @@ HELP_OPTIONS=$(cat <<EOF
   --skip-delete-topics        Skip deleting the topics.
   --stop-only X               Only stop the following apps:
                                 dsl         Stops topology based on Kafka Streams DSL
-                                procedure   Stops topology that implements custom state repository based on Kafka Streams procedures
+                                processor   Stops topology that implements custom state repository based on Kafka Streams Processor APIs
                               Repeat the option to run more than one.
                               Default: stops all of them
 EOF
@@ -46,7 +46,7 @@ function parse_arguments {
       shift
       case $1 in
         dsl)        stop_dsl=yes   ;;
-        procedure)  stop_proc=yes  ;;
+        processor)  stop_proc=yes  ;;
         *) error "Unrecognized value for --stop-only: $1" ;;
       esac
       ;;
