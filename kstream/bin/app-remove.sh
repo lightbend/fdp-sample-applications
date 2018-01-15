@@ -108,7 +108,7 @@ function main {
         done
 
       	## delete stateful streaming topics created by Kafka
-      	for elem in $(dcos $KAFKA_DCOS_PACKAGE topic list --name="$KAFKA_DCOS_SERVICE_NAME | grep "kstream-weblog-processing" | cut -d"," -f1 | tr -d \")
+      	for elem in $(dcos $KAFKA_DCOS_PACKAGE topic list --name="$KAFKA_DCOS_SERVICE_NAME" | grep "kstream-weblog-processing" | cut -d"," -f1 | tr -d \")
       	do
           echo "Deleting topic $elem..."
           $NOEXEC dcos $KAFKA_DCOS_PACKAGE topic delete $elem --name="$KAFKA_DCOS_SERVICE_NAME"
@@ -150,7 +150,7 @@ function main {
         done
 
       	## delete stateful streaming topics created by Kafka
-      	for elem in $(dcos $KAFKA_DCOS_PACKAGE topic list --name="$KAFKA_DCOS_SERVICE_NAME | grep "kstream-log-count" | cut -d"," -f1 | tr -d \")
+      	for elem in $(dcos $KAFKA_DCOS_PACKAGE topic list --name="$KAFKA_DCOS_SERVICE_NAME" | grep "kstream-log-count" | cut -d"," -f1 | tr -d \")
       	do
           echo "Deleting topic $elem..."
           $NOEXEC dcos $KAFKA_DCOS_PACKAGE topic delete $elem --name="$KAFKA_DCOS_SERVICE_NAME"

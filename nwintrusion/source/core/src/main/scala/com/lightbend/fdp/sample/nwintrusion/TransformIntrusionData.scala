@@ -12,16 +12,17 @@ import com.typesafe.config.ConfigFactory
 
 import org.apache.kafka.streams.kstream.KStreamBuilder
 import org.apache.kafka.common.serialization.Serdes
-import org.apache.kafka.streams.kstream.Predicate
-import org.apache.kafka.streams.StreamsConfig
-import org.apache.kafka.streams.KafkaStreams
+import org.apache.kafka.streams.kstream.Produced
+import org.apache.kafka.streams.{ StreamsConfig, KafkaStreams }
 import org.apache.kafka.streams._
-import org.apache.kafka.streams.kstream.{ KStream, ValueMapper, KeyValueMapper }
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 
 import NetworkIntrusionConfig._
+
+import com.lightbend.kafka.scala.streams._
+import ImplicitConversions._
 
 /**
  * The entry point of the streaming pipeline. Reads from a Kafka topic, does some
@@ -69,29 +70,27 @@ object TransformIntrusionData {
       settings.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String.getClass.getName)
       settings
     }
+    val tuple2StringSerde = new Tuple2StringSerde
 
-    val builder = new KStreamBuilder()
+    val builder = new StreamsBuilderS
 
     // will read network data from `fromTopic`
-    val logs: KStream[Array[Byte], String] = builder.stream(config.fromTopic)
+    val filtered: Array[KStreamS[Array[Byte], Extracted]] = builder.stream(config.fromTopic)
     
-    // extract values after transformation
-    val extracted: KStream[Array[Byte], Extracted] = logs.mapValues(extractor)
-    // val extracted = logs.mapValues(extractor)
-    
-    // need to separate labelled data and errors
-    val filtered: Array[KStream[Array[Byte], Extracted]] = extracted.branch(predicateLabelled, predicateErrors)
+      // extract values after transformation
+      .mapValues(extractor)
+           
+      // need to separate labelled data and errors
+      .branch(predicateLabelled, predicateErrors)
 
     // push the labelled data
-    val v: KStream[Array[Byte], (String, String)] = filtered(0).mapValues(simpleMapper)
-    v.to(Serdes.ByteArray, new Tuple2StringSerde, config.toTopic)
+    filtered(0).mapValues(simpleMapper).to(config.toTopic, Produced.`with`(Serdes.ByteArray, tuple2StringSerde))
 
     // push the extraction errors
-    val i: KStream[Array[Byte], (String, String)] = filtered(1).mapValues(errorMapper)
-    i.to(Serdes.ByteArray, new Tuple2StringSerde, config.errorTopic)
+    filtered(1).mapValues(errorMapper).to(config.errorTopic, Produced.`with`(Serdes.ByteArray, tuple2StringSerde))
 
     // start streaming
-    val stream = new KafkaStreams(builder, streamingConfig)
+    val stream = new KafkaStreams(builder.build, streamingConfig)
 
     stream.start()
   }
@@ -101,8 +100,8 @@ object TransformIntrusionData {
   case class Labelled(label: String, v: String) extends Extracted(v)
   case class Error(exception: Exception, v: String) extends Extracted(v)
 
-  val extractor = new ValueMapper[String, Extracted] {
-    def apply(value: String): Extracted = try {
+  val extractor: String => Extracted = { value =>
+    try {
 
       // the fields 1-3 contains non-numeric features which k-means will
       // not be able to handle. Hence we remove them as part of extraction
@@ -135,33 +134,29 @@ object TransformIntrusionData {
 
 
   // filters
-  val predicateLabelled = new Predicate[Array[Byte], Extracted] {
-    def test(key: Array[Byte], value: Extracted): Boolean = {
-      value match {
-        case i: Labelled => true
-        case _ => false
-      }
+  val predicateLabelled: (Array[Byte], Extracted) => Boolean = { (key, value) =>
+    value match {
+      case i: Labelled => true
+      case _ => false
     }
   }
 
-  val predicateErrors = new Predicate[Array[Byte], Extracted] {
-    def test(key: Array[Byte], value: Extracted): Boolean = {
-      value match {
-        case i: Error => true
-        case _ => false
-      }
+  val predicateErrors: (Array[Byte], Extracted) => Boolean = { (key, value) =>
+    value match {
+      case i: Error => true
+      case _ => false
     }
   }
 
-  val simpleMapper = new ValueMapper[Extracted, (String, String)] {
-    def apply(value: Extracted): (String, String) = value match {
+  val simpleMapper: Extracted => (String, String) = { value =>
+    value match {
       case Labelled(l, v) => (l, v)
       case _ => ("**undefined**", "**undefined**")
     }
   }
   
-  val errorMapper = new ValueMapper[Extracted, (String, String)] {
-    def apply(value: Extracted): (String, String) = value match {
+  val errorMapper: Extracted => (String, String) = { value =>
+    value match {
       case Error(e, v) =>
         val writer = new StringWriter()
         e.printStackTrace(new PrintWriter(writer))
