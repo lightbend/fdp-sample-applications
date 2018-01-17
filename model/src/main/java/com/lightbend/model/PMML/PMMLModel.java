@@ -51,7 +51,10 @@ public class PMMLModel implements Model {
         // Optimize model
         synchronized(this) {
             for (Visitor optimizer : optimizers) {
-                optimizer.applyTo(pmml);
+                try {
+                    optimizer.applyTo(pmml);
+                }
+                catch (Throwable t){}
             }
         }
 
