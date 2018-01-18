@@ -10,8 +10,9 @@ CONTENT=$(cat $CONTENT_FILE)
 
 function usage {
   cat<< EOF
-  This script packages the KillrWeather sample applications into fdp-killrweather-<version>.zip
-  in the project root directory.
+  fdp-killrweather:
+  This script packages the source and other files for KillrWeather.
+  IT DOES NOT BUILD the executables.
   Usage: $SCRIPT VERSION [-h | --help]
 
   VERSION       E.g., 0.3.0. Required
