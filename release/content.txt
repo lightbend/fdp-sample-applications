@@ -3,6 +3,8 @@ build-plugin
 data
 diagrams
 killrweather-app
+killrweather-app_structured
+killrweather-beam
 killrweather-core
 killrweather-grpclient
 killrweather-httpclient
