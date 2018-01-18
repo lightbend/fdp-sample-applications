@@ -28,19 +28,11 @@ import deployssh.DeploySSH._
 // 3. You have uncommmited changes (a dirty directory) but have not set `allowSnapshot` to `true` - Fix: `set (allowSnapshot in ThisBuild) := true`""".stripMargin)
 
 val spark = "2.2.0"
+val bigdl = "0.4.0"
 
 allowSnapshot in ThisBuild := true
 
 enablePlugins(DeploySSH)
-
-val repo = "http://repo1.maven.org/maven2"
-def mkl_native(os: String): String = {
-  s"${repo}/com/intel/analytics/bigdl/native/mkl-java-${os}/0.3.0/mkl-java-${os}-0.3.0.jar"
-}
-
-def bigquant_native(os: String): String = {
-  s"${repo}/com/intel/analytics/bigdl/bigquant/bigquant-java-${os}/0.3.0/bigquant-java-${os}-0.3.0.jar"
-}
 
 lazy val commonSettings = Seq(
   resolvers ++= Seq(
@@ -52,11 +44,7 @@ lazy val commonSettings = Seq(
   scalaVersion := "2.11.8",
   licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0")),
   libraryDependencies ++= Seq(
-      "com.intel.analytics.bigdl"          % "bigdl-SPARK_2.2"   % "0.3.0" exclude("com.intel.analytics.bigdl", "bigdl-core"),
-//    "com.intel.analytics.bigdl.native"   % "mkl-java"          % "0.3.0", // comment for Mac
-//    "com.intel.analytics.bigdl.bigquant" % "bigquant-java"     % "0.3.0", // comment for Mac
-      "com.intel.analytics.bigdl.native"   % "mkl-java-mac"      % "0.3.0" from mkl_native("mac"), // uncomment for Mac
-      "com.intel.analytics.bigdl.bigquant" % "bigquant-java-mac" % "0.3.0" from bigquant_native("mac"), // uncomment for Mac
+      "com.intel.analytics.bigdl"          % "bigdl-SPARK_2.2"   % bigdl exclude("com.intel.analytics.bigdl", "bigdl-core"),
       "org.apache.spark"                  %% "spark-core"        % spark % "provided",
       "org.apache.spark"                  %% "spark-mllib"       % spark % "provided",
       "org.apache.spark"                  %% "spark-sql"         % spark % "provided",

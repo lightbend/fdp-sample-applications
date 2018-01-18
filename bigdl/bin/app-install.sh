@@ -159,7 +159,7 @@ function deploy_app {
   fi
 }
 
-## ./spark-submit --master local[4] --conf spark.executor.memory=8G --driver-memory 8G --class com.lightbend.fdp.sample.bigdl.TrainVGG /Users/debasishghosh/typesafehub/fdp-sample-apps/bigdl/source/core/target/scala-2.11/bigdlsample-assembly-0.0.2.jar -f /tmp/cifar-10-batches-bin --download /tmp -b 8
+## ./spark-submit --master local[4] --conf spark.executor.memory=8G --driver-memory 8G --class com.lightbend.fdp.sample.bigdl.TrainVGG /Users/debasishghosh/lightbend/fdp-sample-apps/bigdl/source/core/target/scala-2.11/bigdlsample-assembly-0.0.2.jar -f /tmp/cifar-10-batches-bin --download /tmp -b 8
 
 function run_bigdl_vgg_job {
   local SPARK_APP_CLASS="com.lightbend.fdp.sample.bigdl.TrainVGG"
