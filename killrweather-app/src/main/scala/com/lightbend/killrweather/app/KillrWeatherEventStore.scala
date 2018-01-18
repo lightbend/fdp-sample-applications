@@ -32,12 +32,12 @@ object KillrWeatherEventStore {
 
     var sparkConf = new SparkConf().setAppName("KillrWeather").setMaster("local[*]")
       .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-
+    /*
     // Initialize Event Store
     val ctx = EventStoreSupport.createContext()
     EventStoreSupport.ensureTables(ctx)
     println(s"Event Store initialised")
-
+*/
     val ssc = new StreamingContext(sparkConf, Seconds(SparkStreamingBatchInterval / 1000))
     ssc.checkpoint(SparkCheckpointDir)
     val sc = ssc.sparkContext
@@ -67,7 +67,7 @@ object KillrWeatherEventStore {
     val monthlyRDD = ssc.sparkContext.emptyRDD[(String, ListBuffer[DailyWeatherDataProcess])]
 
     // Create broadcast variable for the sink definition
-    val eventStoreSink = sc.broadcast(EventStoreSink())
+    //    val eventStoreSink = sc.broadcast(EventStoreSink())
 
     val kafkaDataStream = KafkaUtils.createDirectStream[Array[Byte], Array[Byte]](
       ssc, PreferConsistent, Subscribe[Array[Byte], Array[Byte]](topics, kafkaParams)
@@ -76,7 +76,7 @@ object KillrWeatherEventStore {
     val kafkaStream = kafkaDataStream.map(r => WeatherRecord.parseFrom(r.value()))
 
     /** Saves the raw data to Cassandra - raw table. */
-    kafkaStream.foreachRDD { sqlContext.createDataFrame(_).foreachPartition(eventStoreSink.value.writeRaw(_)) }
+    //    kafkaStream.foreachRDD { sqlContext.createDataFrame(_).foreachPartition(eventStoreSink.value.writeRaw(_)) }
 
     // Calculate daily
     val dailyMappingFunc = (station: String, reading: Option[WeatherRecord], state: State[ListBuffer[WeatherRecord]]) => {
@@ -115,7 +115,7 @@ object KillrWeatherEventStore {
 
     // Just for testing
     dailyStream.print()
-
+    /*
     // Save daily temperature
     dailyStream.map(ds => DailyTemperature(ds._2))
       .foreachRDD { sqlContext.createDataFrame(_).foreachPartition(eventStoreSink.value.writeDailyTemperature(_)) }
@@ -131,7 +131,7 @@ object KillrWeatherEventStore {
     // Save daily presipitations
     dailyStream.map(ds => DailyPrecipitation(ds._2))
       .foreachRDD { sqlContext.createDataFrame(_).foreachPartition(eventStoreSink.value.writeDailyPresip(_)) }
-
+*/
     // Calculate monthly
     val monthlyMappingFunc = (station: String, reading: Option[DailyWeatherDataProcess], state: State[ListBuffer[DailyWeatherDataProcess]]) => {
       val current = state.getOption().getOrElse(new ListBuffer[DailyWeatherDataProcess])
@@ -165,7 +165,7 @@ object KillrWeatherEventStore {
 
     val monthlyStream = dailyStream.map(r => (r._1, DailyWeatherDataProcess(r._2))).
       mapWithState(StateSpec.function(monthlyMappingFunc).initialState(monthlyRDD)).filter(_.isDefined).map(_.get)
-
+    /*
     // Save monthly temperature
     monthlyStream.map(ds => MonthlyTemperature(ds._2))
       .foreachRDD { sqlContext.createDataFrame(_).foreachPartition(eventStoreSink.value.writeMothlyTemperature(_)) }
@@ -181,7 +181,7 @@ object KillrWeatherEventStore {
     // Save monthly presipitations
     monthlyStream.map(ds => MonthlyPrecipitation(ds._2))
       .foreachRDD { sqlContext.createDataFrame(_).foreachPartition(eventStoreSink.value.writeMothlyPresip(_)) }
-
+*/
     // Execute
     ssc.start()
     ssc.awaitTermination()
