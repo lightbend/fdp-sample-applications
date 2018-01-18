@@ -42,7 +42,7 @@ provides pre build version of software. Refer to [Readme](https://github.com/typ
 for this project on how to deploy and run the project
 * Users that want to use this project as a starting point for their own implementation. 
 This users need to know how to build the project and run it locally and on the cluster. 
-This information is provided in [README-DEVELOPERS]
+This information is provided in [README-DEVELOPERS](https://github.com/lightbend/fdp-killrweather/blob/master/README-DEVELOPERS.md)
 
 ## See What's Going On...
 
