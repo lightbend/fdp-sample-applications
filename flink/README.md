@@ -1,5 +1,7 @@
 # Flink Sample Application
 
+> **Disclaimer:** This sample application is provided as-is, without warranty. It is intended to illustrate techniques for implementing various scenarios using Fast Data Platform, but it has not gone through a robust validation process, nor does it use all the techniques commonly employed for highly-resilient, production applications. Please use it with appropriate caution.
+
 The sample application is adapted from the publicly-available [Flink training](http://dataartisans.github.io/flink-training/) from [dataArtisans](http://data-artisans.com/). It uses a public dataset of taxi rides in New York City. The details of the dataset can be found [here](http://dataartisans.github.io/flink-training/exercises/taxiData.html). In summary, the application does the following:
 
 1. Load the dataset through a Marathon application
@@ -71,7 +73,7 @@ laboratory-mesos-path=http://fdp-apps-lab.marathon.mesos
 
 > The installation process fetches the data required from a pre-configured S3 bucket `fdp-sample-apps-artifacts`.
 
-Once the installation is complete, both the Marathon applications  should be seen running on the DC/OS console. 
+Once the installation is complete, both the Marathon applications  should be seen running on the DC/OS console.
 
 ## Running the application
 
