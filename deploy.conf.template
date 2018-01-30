@@ -1,0 +1,9 @@
+servers = [
+  {
+    name = "killrWeather"
+    user = "publisher"
+    host = myservice.marathon.mesos
+    port = 9022
+    sshKeyFile = "id_rsa"
+  }
+]
