@@ -65,5 +65,4 @@ You can also use the _Structured Streaming_ alternative, as described in the oth
 ### Deploy the Clients
 
 Similarly, you should only need to set the correct `VERSION` string in `./killrweather-httpclient/src/main/resources/killrweatherHTTPClient.json` and `./killrweather-grpcclient/src/main/resources/killrweatherGRPCClient.json`.
-```
 

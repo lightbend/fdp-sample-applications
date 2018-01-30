@@ -1,6 +1,6 @@
 {
   "id": "/killrweatherhttpclient",
-  "cmd": "env; export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && ./httpclient-1.0.1-SNAPSHOT/bin/httpclient --source-port $PORT0 --dest-ip $HOST",
+  "cmd": "env; export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && ./httpclient-VERSION/bin/httpclient --source-port $PORT0 --dest-ip $HOST",
   "instances": 1,
   "cpus": 2,
   "mem": 4096,
@@ -9,7 +9,7 @@
       "uri": "https://downloads.mesosphere.com/java/jre-8u112-linux-x64.tar.gz"
     },
     {
-      "uri": "http://jim-lab.marathon.mesos/httpclient-1.0.1-SNAPSHOT.tgz"
+      "uri": "http://myservice.marathon.mesos/httpclient-VERSION.tgz"
     }
   ]
 }

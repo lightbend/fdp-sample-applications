@@ -1,5 +1,7 @@
 # KillrWeather - Developers
 
+These instructions describe how to build KillrWeather and deploy it yourself.
+
 ## Build the code
 
 We recommend using [IntelliJ IDEA](https://www.jetbrains.com/idea/) for managing and building the code. The project is organized as several modules:
@@ -26,7 +28,7 @@ Do the first three steps _if_ you want to run Cassandra locally. If you already 
 
 [Download the latest Cassandra](http://cassandra.apache.org/download/) and open the compressed file. For Mac users, you could try using [HomeBrew](https://brew.sh/). However, the 3.11.0 build ("bottle") appears to be misconfigured; the wrong version of the `jamm` library is provided. (You'll see this if you try running one of the start commands below.) Unfortunately, in attempting to refactor HomeBrew modules to add built-in support for installing different versions, it appears to be mostly broken now. Good luck if you can install an earlier version that hopefully works. Otherwise, [download from apache.org](  https://github.com/Homebrew/homebrew-versions) and expand it somewhere convenient.
 
-### 2.Start Cassandra
+### 2. Start Cassandra
 
 On Mac, if you successfully installed a working Cassandra distribution using Homebrew, use `brew services start cassandra` if you want to start Cassandra and install it as a service that will always start on reboot. (Use `brew services stop cassandra` to explicitly stop it.) If just want to run Cassandra in a terminal, use `cassandra -f`. This command also works if you just downloaded a build of Cassandra.
 
@@ -115,9 +117,9 @@ Enter number:
 
 
 Enter `3`.
+```
 
 There are also `-h` and `--help` options that show a help message and exit for each of these commands.
-
 
 If Running in IntelliJ. Just click on the appropriate classes and run. Any additional parameters can be set by
 editing configuration.
@@ -182,7 +184,7 @@ Now let's see how to install KillrWeather completely in an FDP DC/OS Cluster.
 
 A few services must be installed in the cluster first.
 
-#### 1. Install Required Services
+#### Install Required Services
 
 To run KillrWeather in an FDP Cluster, you'll need to start by installing the services it needs.
 
@@ -190,52 +192,86 @@ If not already installed, install our Kafka distribution, InfluxDB using [this G
 
 After installing Cassandra, run the commands above in _Cassandra Setup_.
 
-#### 2. Install jim-lab
+#### Install a Web Server
 
-Install `jim-lab`. TODO: REPLACE WITH THE SAMPLE APPS VERSION.
+The best way to serve artifacts into the cluster is to provide a web server running in the cluster or accessible to it. Ideally, this server is configured for `scp` upload of artifacts to serve. In what follows, we'll assume the following configuration can be used for this purpose.
+
+| Key          | Sample Value        | Purpose |
+| :----------- | :------------------ | :------ |
+| `name`       | `KillrWeather` | The name used for identifying the configuration. |
+| `user`       | `publisher` | User account defined in the docker image or service with rights to update files that web server serves |
+| `host`       | `myserver.marathon.mesos` | If running as a DC/OS service, it will have a routable name like this. Otherwise, use an appropriate DNS name or IP address |
+| `port`       | `9022`      | Port open for incoming `ssh/scp` traffic |
+| `sshKeyFile` | `id_rsa`    | Key file used to authenticate the connection. Should not require a password. |
+
+These values will be used below for convenient archive deployment. We'll discuss alternatives as we go.
 
 ### Build and Deploy the Application Archives
 
-The SBT build uses a [sbt-deploy-ssh](https://github.com/shmishleniy/sbt-deploy-ssh) plugin and a `/.deploy.conf` file with configuration information to copy the "uber jars" for the application to a web server provided by the `jim-lab` application container. The configuration of the plugin is defined in `./projects/Settings.scala`.
+If you have a web server configured with `scp` upload access as above, you can leverage a plugin added to the SBT build, [sbt-deploy-ssh](https://github.com/shmishleniy/sbt-deploy-ssh). You must edit `/.deploy.conf` file with configuration information to copy the application jars to the web server.
 
-#### 3. Set Up deploy.conf
+#### Set Up deploy.conf
 
-In what follows, more details of deploying to FDP-Lab and submitting the apps to Marathon are described [here](https://docs.google.com/document/d/1eMG8I4z6mQ0C4Llg1VHnpV7isnVAtnk-pOkDo8tIubI/edit#heading=h.izl4k6rmh4c0).
-TODO: remove this link before distribution. Add any additional useful bits from that document here first.
+If you have a different method of uploading artifacts, skip this section.
 
-Copy `./deploy.conf.template` to `./deploy.conf` and edit the settings if necessary. However, they are already correct for `jim-lab`. (Use `jim-lab` if you deployed the default `fdp-laboratory-base` image.) Here is the default configuration:
+Copy `./deploy.conf.template` to `./deploy.conf` and edit the settings if necessary for the fields discussed above. Here is the default configuration:
 
 ```json
 servers = [
   {
     name = "killrWeather"
     user = "publisher"
-    host = jim-lab.marathon.mesos
+    host = myservice.marathon.mesos
     port = 9022
     sshKeyFile = "id_rsa"
   }
 ]
 ```
 
-* `name`: the name used for identifying the configuration.
-* `user`: the FDP user inside the container for ssh command.
-* `host`: the Mesos name for the laboratory service.
-* `port`: the ssh port (by default laboratory uses port 9022).
-* `sshKeyFile`: the file used by the laboratory configuration to authenticate the user (should not have a password).
+There is one more piece of data you need, the path inside the server or Docker image to which the files are copied. This value has to set inside `./build.sbt`:
 
-#### 4. Deploy the Application to FDP Laboratory
+```
+deployArtifacts ++= Seq(
+    ArtifactSSH(assembly.value, "/var/www/html/")
+```
 
-Run the following SBT command:
+Change this path as appropriate for your web server.
+
+#### Deploy the Application
+
+Now run the following SBT command to build and deploy the application artifacts:
 
 ```bash
 sbt 'deploySsh killrWeather'
 ```
 
-This will create an uber jar called `killrweather-spark.jar` and copy it to the FDP "laboratory" container, directory `/var/www/html`, from where it can be served through HTTP to other nodes as you submit the apps to Marathon.
+This will create the jar files and copy them to the web server asset directory, e.g., `/var/www/html` (or other path you used), from where it can be served through HTTP to other nodes as you submit the apps to Marathon.
 
-#### 5. Run the Main Application with Marathon
+*Even if you don't have a suitably configured web server*, run this target anyway, as it will construct the artifacts you'll need to copy to your web server manually. Just ignore the errors that it couldn't deploy.
 
-The JSON file used to configure the app is `KillrWeather-app/src/main/resource/KillrweatherApp.json`. To run the app as a marathon job, use the following DC/OS CLI command:
+In that case, you'll need to copy these artifacts to the directory in your web server that serves assets:
+
+* `./killrweather-app/target/scala-2.11/killrWeatherApp-assembly-VERSION.jar`
+* `./killrweather-app_structured/target/scala-2.11/killrWeatherApp_structured-assembly-VERSION.jar`
+* `./killrweather-grpclient/target/universal/grpcclient-VERSION.tgz`
+* `./killrweather-loader/target/universal/loader-VERSION.tgz`
+* `./killrweather-httpclient/target/universal/httpclient-VERSION.tgz`
+
+Note that `VERSION` will actually be the current that you have, e.g., `1.2.3`.
+
+You also need the data set. Copy the `data` directory recursively to `killrweather-data` in the web server directory. To be specific, the contents of `killrweather-data` in the webserver should be identical to the contents of `data` locally. You should _not_ have `killrweather-data/data`!
+
+#### Run the Main Application with Marathon
+
+The JSON file used to configure the app is `KillrWeather-app/src/main/resource/KillrweatherApp.json`. First, edit this file and find the following line, then change the URL to set the correct server name or IP address:
+
+```
+{ "uri" : "http://myservice.marathon.mesos/killrWeatherApp-assembly-VERSION.jar"},
+```
+
+Then find all occurrences in the file of `killrWeatherApp-assembly-VERSION` (at least three) and set the correct `VERSION` string.
+
+Now run the app as a marathon job, use the following DC/OS CLI command:
 
 ```bash
 dcos marathon app add < killrweather-app/src/main/resource/killrweatherApp.json
@@ -243,20 +279,43 @@ dcos marathon app add < killrweather-app/src/main/resource/killrweatherApp.json
 
 (Note the redirection of input.)
 
-This starts the app running, which is a Spark Streaming app. We won't show the contents of the JSON file here, but it's a good example of running a Spark job with Marathon, 
-where the application jar is served using a web server, the one inside `jim-lab`.
+This starts the app running, which is a Spark Streaming app. We won't show the contents of the JSON file here, but it's a good example of running a Spark job with Marathon, where the application jar is served using a web server.
+
+There is an alternative that uses Spark's _Structured Streaming_. To use that version, edit the file `killrweather-app_structured/src/main/resource/killrweatherApp_structured.json` and make the same changes just described. Start by modifying the `uri` to use the correct server name/IP:
+
+```
+{ "uri" : "http://myservice.marathon.mesos/killrWeatherApp_structured-assembly-VERSION.jar"},
+```
+
+Then find all occurrences in the file of `killrWeatherApp_structured-assembly-VERSION` (at least three) and set the correct `VERSION` string.
+
+Now you can run the app:
+
+```bash
+dcos marathon app add < killrweather-app_structured/src/main/resource/killrweatherApp_structured.json
+```
 
 ### Deploy the Clients
 
-The application contains two clients, one for HTTP (`httpclient-1.0.1-SNAPSHOT.tgz`) and one for GRPC (`grpcclient-1.0.1-SNAPSHOT.tgz`). Deploying either one as a Marathon service allows it to be scaled easily (behind Marathon-LB) to increase scalability and failover. Both archives were also deployed to `jim-lab`.
+The application contains two clients, one for HTTP (`httpclient-VERSION`) and one for GRPC (`grpcclient-VERSION`). Deploying either one as a Marathon service allows it to be scaled easily (behind Marathon-LB) to increase scalability and fail over. Both archives were also deployed to the web server.
 
-1. The HTTP client uses the REST API on top of Kafka. It can be deployed on the cluster as a marathon service using the command:
+The HTTP client uses the REST API on top of Kafka. First edit its config file, `./killrweather-httpclient/src/main/resources/killrweatherHTTPClient.json`. Change the server name/IP of the URL:
+
+```
+"uri": "http://myservice.marathon.mesos/httpclient-VERSION.tgz"
+```
+
+Also, find **both** occurrences of `httpclient-VERSION...` and change the version string as required.
+
+Now deploy it to the cluster as a marathon service using the command:
 
 ```bash
 dcos marathon app add < ./killrweather-httpclient/src/main/resources/killrweatherHTTPClient.json
 ```
 
-2. The Google RPC client uses the Google RPC interface on top of Kafka. It can be deployed on the cluster as a marathon service using the following command:
+Alternatively, the Google RPC client uses the Google RPC interface on top of Kafka. Edit its config file `./killrweather-grpcclient/src/main/resources/killrweatherGRPCClient.json` and change the archive URL and `VERSION` strings in **both** places, just as for the HTTP client.
+
+Then it can be deployed on the cluster as a marathon service using the following command:
 
 ```bash
 dcos marathon app add < ./killrweather-grpcclient/src/main/resources/killrweatherGRPCClient.json
