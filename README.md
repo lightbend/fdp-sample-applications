@@ -2,6 +2,8 @@
 
 Contains sample applications for Lightbend Fast Data Platform (FDP).
 
+> **Disclaimer:** These sample applications are provided as-is, without warranty. They are intended to illustrate techniques for implementing various scenarios using Fast Data Platform, but they have not gone through a robust validation process, nor do they use all the techniques commonly employed for highly-resilient, production applications. Please use them with appropriate caution.
+
 The applications are organized in subdirectories. For details, see the corresponding READMEs:
 
 * [nwintrusion/README.md](https://github.com/typesafehub/fdp-sample-apps/blob/master/nwintrusion/README.md)

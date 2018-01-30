@@ -1,5 +1,7 @@
 # Training VGG network on cifar-10 data
 
+> **Disclaimer:** This sample application is provided as-is, without warranty. It is intended to illustrate techniques for implementing various scenarios using Fast Data Platform, but it has not gone through a robust validation process, nor does it use all the techniques commonly employed for highly-resilient, production applications. Please use it with appropriate caution.
+
 This sample application stress tests the DC/OS cluster by running a training and validation of a VGG network on a large dataset from [CIFAR-10](https://www.cs.toronto.edu/~kriz/cifar.html) image dataset. The application reports the loss for every epoch during training and validation. It uses [Intel's BigDL](https://github.com/intel-analytics/BigDL) library for deep learning on Spark.
 
 > **NOTE:** This applications demonstrates using BigDL as a third-party library for machine learning. BigDL is not part of the FDP distribution and Lightbend does not provide support for BigDL or applications that use it.

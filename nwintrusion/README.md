@@ -1,5 +1,7 @@
 # FDP sample application for network intrusion detection
 
+> **Disclaimer:** This sample application is provided as-is, without warranty. It is intended to illustrate techniques for implementing various scenarios using Fast Data Platform, but it has not gone through a robust validation process, nor does it use all the techniques commonly employed for highly-resilient, production applications. Please use it with appropriate caution.
+
 > **NOTE:** For a more complete version of these instructions, see the [online instructions](https://developer.lightbend.com/docs/fast-data-platform/0.1.0/user-guide/developing-apps/index.html#streaming-k-means).
 >
 This application runs under DC/OS and has the following components that form stages of a pipeline:
@@ -107,7 +109,7 @@ influxdb {
 }
 ```
 
-The InfluxDB instance in the cluster is pre-created with a database named `anomaly` and a retention policy named `default`. 
+The InfluxDB instance in the cluster is pre-created with a database named `anomaly` and a retention policy named `default`.
 
 #### Setting up a Grafana Dashboard
 
@@ -200,9 +202,9 @@ Once you are logged into Grafana, the following steps need to be followed to set
 
 **Step 1: Setup Datasource.** Go to the Datasource set up page and start creating a data source. Enter the following details:
 
-* Name of the datasource = `nwintrusion` 
+* Name of the datasource = `nwintrusion`
 * Type = `InfluxDB`
-* Http Settings Url = `http://influx-db.marathon.l4lb.thisdcos.directory:8086` 
+* Http Settings Url = `http://influx-db.marathon.l4lb.thisdcos.directory:8086`
 * Http Settings Access = `proxy`
 * InfluxDB Details Database = `anomaly`
 * InfluxDB Details User = `root`, Password = `root`

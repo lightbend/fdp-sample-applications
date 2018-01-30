@@ -1,12 +1,14 @@
 # Kafka Streams Sample Applications for Weblog Processing
 
+> **Disclaimer:** This sample application is provided as-is, without warranty. It is intended to illustrate techniques for implementing various scenarios using Fast Data Platform, but it has not gone through a robust validation process, nor does it use all the techniques commonly employed for highly-resilient, production applications. Please use it with appropriate caution.
+
 This project consists of 2 applications that demonstrate the use of Kafka Streams.  Both apps ingest sample web log data from the [Clarknet dataset](http://ita.ee.lbl.gov/html/contrib/ClarkNet-HTTP.html), which is described below.
 
 > These two traces contain two week's worth of all HTTP requests to the ClarkNet WWW server. ClarkNet is a full Internet access provider for the Metro Baltimore-Washington DC area.
 
 The sample application bundle uses the above dataset and has 2 separate main applications, both accessible through http interfaces:
 
-* *WeblogProcessing* - The one based on [Kafka Streams DSL APIs](https://kafka.apache.org/10/documentation/streams/developer-guide/dsl-api.html) computes aggregate information from stateful streaming like the total number of bytes transferred for a specific host or the total number of accesses made on a specific host. These can be computed on a windowed aggregation as well. 
+* *WeblogProcessing* - The one based on [Kafka Streams DSL APIs](https://kafka.apache.org/10/documentation/streams/developer-guide/dsl-api.html) computes aggregate information from stateful streaming like the total number of bytes transferred for a specific host or the total number of accesses made on a specific host. These can be computed on a windowed aggregation as well.
 * *WeblogDriver* - The one based on [Kafka Streams Processor APIs](https://kafka.apache.org/documentation/streams/developer-guide/processor-api.html) implement a custom state store in Kafka Streams to check for membership information. It uses a bloom filter to implement the store on top of the APIs that KS provides. Then it consumes the Clarknet data and gives the user an http interface to check if the application has seen a specific host in its pipeline (membership query).
 
 Together these samples demonstrate the following features of Kafka Streams:
