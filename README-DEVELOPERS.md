@@ -117,7 +117,7 @@ Enter number:
 
 
 Enter `3`.
-```
+
 
 There are also `-h` and `--help` options that show a help message and exit for each of these commands.
 
@@ -194,7 +194,7 @@ After installing Cassandra, run the commands above in _Cassandra Setup_.
 
 #### Install a Web Server
 
-The best way to serve artifacts into the cluster is to provide a web server running in the cluster or accessible to it. Ideally, this server is configured for `scp` upload of artifacts to serve. In what follows, we'll assume the following configuration can be used for this purpose.
+The best way to serve artifacts into the cluster is to provide a web server running in the cluster or accessible to it. Ideally, this server is configured for `scp` upload of artifacts to serve and `ssh` for access. In what follows, we'll assume the following configuration can be used for this purpose.
 
 | Key          | Sample Value        | Purpose |
 | :----------- | :------------------ | :------ |
@@ -227,6 +227,7 @@ servers = [
   }
 ]
 ```
+This assumes that you web server is configured to accept your certificate
 
 There is one more piece of data you need, the path inside the server or Docker image to which the files are copied. This value has to set inside `./build.sbt`:
 
@@ -247,7 +248,7 @@ sbt 'deploySsh killrWeather'
 
 This will create the jar files and copy them to the web server asset directory, e.g., `/var/www/html` (or other path you used), from where it can be served through HTTP to other nodes as you submit the apps to Marathon.
 
-*Even if you don't have a suitably configured web server*, run this target anyway, as it will construct the artifacts you'll need to copy to your web server manually. Just ignore the errors that it couldn't deploy.
+*If you don't have a suitably configured web server*, run `sbt 'deploySsh`, which will construct the artifacts you'll need to copy to your web server manually.
 
 In that case, you'll need to copy these artifacts to the directory in your web server that serves assets:
 
@@ -297,7 +298,9 @@ dcos marathon app add < killrweather-app_structured/src/main/resource/killrweath
 
 ### Deploy the Clients
 
-The application contains two clients, one for HTTP (`httpclient-VERSION`) and one for GRPC (`grpcclient-VERSION`). Deploying either one as a Marathon service allows it to be scaled easily (behind Marathon-LB) to increase scalability and fail over. Both archives were also deployed to the web server.
+In addition to Kafka driver,
+the application provides two additional clients: 
+one for HTTP (`httpclient-VERSION`) and one for GRPC (`grpcclient-VERSION`). Deploying either one as a Marathon service allows it to be scaled easily (behind Marathon-LB) to increase scalability and fail over. Both archives were also deployed to the web server.
 
 The HTTP client uses the REST API on top of Kafka. First edit its config file, `./killrweather-httpclient/src/main/resources/killrweatherHTTPClient.json`. Change the server name/IP of the URL:
 
