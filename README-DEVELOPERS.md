@@ -298,7 +298,7 @@ dcos marathon app add < killrweather-app_structured/src/main/resource/killrweath
 
 ### Deploy the Clients
 
-In addition to Kafka driver,
+In addition to the Kafka driver,
 the application provides two additional clients: 
 one for HTTP (`httpclient-VERSION`) and one for GRPC (`grpcclient-VERSION`). Deploying either one as a Marathon service allows it to be scaled easily (behind Marathon-LB) to increase scalability and fail over. Both archives were also deployed to the web server.
 
