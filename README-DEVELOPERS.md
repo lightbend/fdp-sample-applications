@@ -248,7 +248,7 @@ sbt 'deploySsh killrWeather'
 
 This will create the jar files and copy them to the web server asset directory, e.g., `/var/www/html` (or other path you used), from where it can be served through HTTP to other nodes as you submit the apps to Marathon.
 
-*If you don't have a suitably configured web server*, run `sbt 'deploySsh`, which will construct the artifacts you'll need to copy to your web server manually.
+*If you don't have a suitably configured web server*, run `sbt 'deploySsh`(*note that the `killrWeather` argument is omitted*), which will construct the artifacts you'll need to copy to your web server manually.
 
 In that case, you'll need to copy these artifacts to the directory in your web server that serves assets:
 
