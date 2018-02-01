@@ -50,7 +50,16 @@ We can use the `sbt deploySsh ...` command, because `jim-lab` supports it:
 sbt 'deploySsh killrWeather'
 ```
 
-This will create the jars and copy them to the `jim-lab` image, directory `/var/www/html`. It will also copy up the contents of the `data` directory to `/var/www/html/killrweather-data`.
+This will create the jars and copy them to the `jim-lab` image, directory `/var/www/html`. 
+If you want to run ingesters from `jim-lab` you will also have to manually copy up the contents of the `data` directory there using
+````
+scp -P 9022 "local location" "remote location"
+````
+Note - if you only want to build artifacts locally without pushing them to the web server just run
+```bash
+sbt deploySsh
+```
+which will create all of the artifacts locally without pushing them to cluster. 
 
 #### Run the Main Application with Marathon
 

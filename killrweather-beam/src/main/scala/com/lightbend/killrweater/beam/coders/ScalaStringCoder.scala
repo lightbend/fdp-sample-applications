@@ -41,7 +41,7 @@ class ScalaStringCoder extends AtomicCoder[String] {
   override def getEncodedElementByteSize(value: String) : Long = {
     if (value == null) throw new CoderException("cannot encode a null String")
     val size = Utf8.encodedLength(value)
-    return VarInt.getLength(size) + size
+    return VarInt.getLength(size).asInstanceOf[Long] + size
   }
 }
 

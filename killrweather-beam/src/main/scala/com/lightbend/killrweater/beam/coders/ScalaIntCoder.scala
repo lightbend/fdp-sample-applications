@@ -12,10 +12,9 @@ class ScalaIntCoder extends AtomicCoder[Int] {
 
   @throws[IOException]
   @throws[CoderException]
-  override def encode(value: Int, outStream: OutputStream): Unit = {
-    if (value == null) throw new CoderException("cannot encode a null Int")
+  override def encode(value: Int, outStream: OutputStream): Unit =
     new DataOutputStream(outStream).writeInt(value)
-  }
+
 
   @throws[IOException]
   @throws[CoderException]
@@ -38,10 +37,7 @@ class ScalaIntCoder extends AtomicCoder[Int] {
   override def getEncodedTypeDescriptor: TypeDescriptor[Int] = TYPE_DESCRIPTOR
 
   @throws[Exception]
-  override protected def getEncodedElementByteSize(value: Int): Long = {
-    if (value == null) throw new CoderException("cannot encode a null Int")
-    4
-  }
+  override protected def getEncodedElementByteSize(value: Int): Long = 4
 }
 
 object ScalaIntCoder{
