@@ -4,6 +4,8 @@ KillrWeather is a reference application (which is adopted from Datastax's https:
 
 This application also can be viewed as a prototypical IoT (or sensors) data collection application, which stores data in the form of a time series.
 
+> **Disclaimer:** This sample application is provided as-is, without warranty. It is intended to illustrate techniques for implementing various scenarios using Fast Data Platform, but it has not gone through a robust validation process, nor does it use all the techniques commonly employed for highly-resilient, production applications. Please use it with appropriate caution.
+
 ## Sample Use Case
 
 _I need fast access to historical data on the fly for predictive modeling with real time data from the stream._
@@ -12,13 +14,13 @@ The application does not quite do that, it stops at capturing real-time and cumu
 
 ## Reference Application
 
-There are several versions this application: 
+There are several versions this application:
 * [KillrWeather App](https://github.com/killrweather/killrweather/tree/master/killrweather-app/src/main/scala/com/datastax/killrweather) is based on Spark Streaming.
-Additional class here [KillrWeather Event Store](https://github.com/lightbend/fdp-killrweather/blob/master/killrweather-app/src/main/scala/com/lightbend/killrweather/app/KillrWeatherEventStore.scala) 
+Additional class here [KillrWeather Event Store](https://github.com/lightbend/fdp-killrweather/blob/master/killrweather-app/src/main/scala/com/lightbend/killrweather/app/KillrWeatherEventStore.scala)
 is an experimental implementation replacing Cassandra with IBM's [EventStore](https://www.ibm.com/us-en/marketplace/db2-event-store). Runs only locally (using embedded Kafka) and requires [Event Store Development Edition](https://www-01.ibm.com/marketing/iwm/iwm/web/preLogin.do?source=swerpal-eventstore-3)
 * [KillrWeather App Structured](https://github.com/lightbend/fdp-killrweather/blob/master/killrweather-app_structured/src/main/scala/com/lightbend/killrweather/app/structured/KillrWeatherStructured.scala) is a version of the same, based on Spark Structured Streaming.
 * [KillrWeather Beam](https://github.com/lightbend/fdp-killrweather/blob/master/killrweather-beam/src/main/scala/com/lightbend/killrweater/beam/KillrWeatherBeam.scala) experimental version of the same application based on [Apache Beam](https://beam.apache.org/).
-This version only runs locally (using embedded Kafka). Cluster version is coming soon 
+This version only runs locally (using embedded Kafka). Cluster version is coming soon
 
 ## Time Series Data
 
@@ -38,10 +40,10 @@ The original [KillrWeather Wiki](https://github.com/killrweather/killrweather/wi
 
 We foresee 2 groups of users:
 * Users that just want to see how application runs. For this type of users, [fdp-package-sample-apps](https://github.com/typesafehub/fdp-package-sample-apps)
-provides pre build version of software. Refer to [Readme](https://github.com/typesafehub/fdp-package-sample-apps/blob/develop/README.md) 
+provides pre build version of software. Refer to [Readme](https://github.com/typesafehub/fdp-package-sample-apps/blob/develop/README.md)
 for this project on how to deploy and run the project
-* Users that want to use this project as a starting point for their own implementation. 
-This users need to know how to build the project and run it locally and on the cluster. 
+* Users that want to use this project as a starting point for their own implementation.
+This users need to know how to build the project and run it locally and on the cluster.
 This information is provided in [README-DEVELOPERS](https://github.com/lightbend/fdp-killrweather/blob/master/README-DEVELOPERS.md)
 
 ## See What's Going On...
