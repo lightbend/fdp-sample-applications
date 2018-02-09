@@ -20,10 +20,12 @@ object KillrWeatherStructured {
     val settings = new WeatherSettings()
     import settings._
 
+    println(s"Running KillrweatherStructured. Kafka: $kafkaBrokers; Cassandra : $CassandraHosts; " +
+      s"InfluxDB : host $influxDBServer, port $influxDBPort; Grafana : host $GrafanaServer, port $GrafanaPort")
     val spark = SparkSession.builder
       .appName("KillrWeather with Structured Streaming")
       //      .master("local")
-      .config("spark.cassandra.connection.host", CassandraHosts /* "10.2.2.13"*/ )
+      .config("spark.cassandra.connection.host", CassandraHosts )
       .config("spark.sql.streaming.checkpointLocation", SparkCheckpointDir)
       .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .getOrCreate()
@@ -42,8 +44,6 @@ object KillrWeatherStructured {
     catch {
       case t: Throwable => println(s"Grafana not initialized ${t.getMessage}")
     }
-
-    //    import spark.implicits._
 
     // Message parsing
     spark.udf.register("deserialize", (data: Array[Byte]) => WeatherRecord.parseFrom(data))

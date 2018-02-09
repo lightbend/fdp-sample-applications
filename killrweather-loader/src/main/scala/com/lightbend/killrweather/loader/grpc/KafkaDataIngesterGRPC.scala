@@ -24,6 +24,8 @@ object KafkaDataIngesterGRPC {
     val host = sys.props.getOrElse("grpc.ingester.client.host", "killrweathergrpcclient.marathon.mesos") // "10.8.0.16"
     val port = sys.props.getOrElse("grpc.ingester.client.port", "50051").toInt
 
+    println(s"Running GRPC Loader. Client: $host:$port")
+
     val ingester = new KafkaDataIngesterGRPC(host, port)
     ingester.execute(file)
   }

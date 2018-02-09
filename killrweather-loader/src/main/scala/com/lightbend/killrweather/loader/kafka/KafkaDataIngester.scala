@@ -23,6 +23,9 @@ object KafkaDataIngester {
 
     val brokers = if (args.length > 0) args(0) else kafkaBrokers
     val ingester = KafkaDataIngester(brokers)
+
+    println(s"Running Kafka Loader. Kafka: $brokers")
+
     ingester.execute(file, settings.KafkaTopicRaw)
   }
 

@@ -15,8 +15,13 @@ object KafkaDataIngesterRest {
 
   def main(args: Array[String]) {
 
-    val url = "http://killrweatherhttpclient.marathon.mesos:5000/weather"
-    //    val url = "http://localhost:5000/weather"
+
+    val host = sys.props.getOrElse("rest.ingester.client.host", "killrweatherhttpclient.marathon.mesos")
+    val port = sys.props.getOrElse("rest.ingester.client.port", "5000")
+
+
+    val url = s"http://$host:$port/weather"
+    println(s"Running HTTP Loader. Client: $url")
 
     val ingester = KafkaDataIngesterRest(url)
     ingester.execute(file)

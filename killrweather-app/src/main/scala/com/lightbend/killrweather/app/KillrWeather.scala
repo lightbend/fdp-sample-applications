@@ -31,6 +31,9 @@ object KillrWeather {
     val settings = new WeatherSettings()
     import settings._
 
+    println(s"Running Killrweather. Kafka: $kafkaBrokers; Cassandra : $CassandraHosts; " +
+      s"InfluxDB : host $influxDBServer, port $influxDBPort; Grafana : host $GrafanaServer, port $GrafanaPort")
+
     var sparkConf = new SparkConf().setAppName("KillrWeather")
       .set(
         "spark.cassandra.connection.host",
@@ -50,12 +53,6 @@ object KillrWeather {
     val ssc = new StreamingContext(sparkConf, Seconds(SparkStreamingBatchInterval / 1000))
     ssc.checkpoint(SparkCheckpointDir)
     val sc = ssc.sparkContext
-
-    // Create embedded Kafka and topic
-    //       EmbeddedSingleNodeKafkaCluster.start()
-    //        EmbeddedSingleNodeKafkaCluster.createTopic(KafkaTopicRaw)
-    //        val brokers = "localhost:9092"
-    //        val brokers = EmbeddedSingleNodeKafkaCluster.bootstrapServers
 
     // Create raw data observations stream
     val kafkaParams = MessageListener.consumerProperties(

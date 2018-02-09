@@ -151,13 +151,37 @@ final class WeatherSettings() extends Serializable {
 
   // InfluxDB - These settings are effectively ignored if --without-influxdb is used.
   //  val influxDBServer: String = "http://influx-db.marathon.l4lb.thisdcos.directory"
-  val influxDBServer: String = "http://influx-db.marathon.mesos"
-  //  val influxDBPort: Int = 8086
-  val influxDBPort: Int = 12057
+  val influxDBServer = sys.props.get("influxdb.host") match {
+    case Some(kb) => kb
+    case None => "http://influx-db.marathon.mesos" // for DC/OS - only works in the cluster!
+  }
+  println(s"Using InfluxDB host s: $influxDBServer")
+  // val influxDBPort: Int = 8086
+  //val influxDBPort: Int = 12057
+
+  val influxDBPort = sys.props.get("influxdb.port") match {
+    case Some(kb) => kb
+    case None => "8086" // for DC/OS - only works in the cluster!
+  }
+  println(s"Using InfluxDB port s: $influxDBPort")
+
   val influxDBUser: String = "root"
   val influxDBPass: String = "root"
   val influxDBDatabase: String = "weather"
   val retentionPolicy: String = "default"
+
+  // Grafana
+  val GrafanaServer = sys.props.get("grafana.host") match {
+    case Some(kb) => kb
+    case None => "grafana.marathon.l4lb.thisdcos.directory" // for DC/OS - only works in the cluster!
+  }
+  println(s"Using Grafana host s: $GrafanaServer")
+
+  val GrafanaPort = sys.props.get("grafana.port") match {
+    case Some(kb) => kb
+    case None => "3000"                                      // for DC/OS - only works in the cluster!
+  }
+  println(s"Using Grafana port s: $GrafanaPort")
 
   /** Attempts to acquire from environment, then java system properties. */
   def withFallback[T](env: Try[T], key: String): Option[T] = env match {

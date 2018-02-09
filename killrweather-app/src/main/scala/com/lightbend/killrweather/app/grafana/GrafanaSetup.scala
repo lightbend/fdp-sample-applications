@@ -3,7 +3,7 @@ package com.lightbend.killrweather.app.grafana
 import scalaj.http.Http
 import scala.io.Source
 
-class GrafanaSetup(port: Int = 3000, host: String = "grafana.marathon.l4lb.thisdcos.directory", user: String = "admin", password: String = "admin") {
+class GrafanaSetup(port: String = "3000", host: String = "grafana.marathon.l4lb.thisdcos.directory", user: String = "admin", password: String = "admin") {
 
   val datasource = s"http://$host:$port/api/datasources"
   val dashboard = s"http://$host:$port/api/dashboards/db"
@@ -30,11 +30,5 @@ object GrafanaSetup {
     val data = Source.fromInputStream(stream).getLines.mkString
     stream.close()
     data
-  }
-
-  def main(args: Array[String]): Unit = {
-
-    val client = new GrafanaSetup(27359)
-    client.setGrafana()
   }
 }
