@@ -135,33 +135,33 @@ Both applications are sharing the same configurations, so it is not recommended 
 
 ### Cassandra Setup
 
-Use these CQL commands whether running Cassandra locally or in a cluster. This is only required if you want to see how this is done.
-Applications will now do this setup on startup.
+KillrWeather automatically setups up the necessary Cassandra tables. Here we show the equivalent CQL commands, using the `CQLSH` shell tool, for your reference.
 
-Start `CQLSH`. You should see something similar to:
+If you start `CQLSH`, you should see something similar to:
 
      Connected to Test Cluster at 127.0.0.1:9042.
      [cqlsh {latest.version} | Cassandra {latest.version} | CQL spec {latest.version} | Native protocol {latest.version}]
      Use HELP for help.
      cqlsh>
 
-Run the scripts, then keep the cql shell open querying once the apps are running:
+Running the following scripts would create the tables, etc.:
 
      cqlsh> source 'create-timeseries.cql';
      cqlsh> source 'load-timeseries.cql';
 
-Verify the keyspace was added:
+You can then verify the keyspace was added:
 
      describe keyspaces;
 
-Switch active keyspace context:
+You can switch the active keyspace context:
 
      use isd_weather_data ;
-List out all tables installed:
+
+You can list out all tables installed:
 
      describe tables;
 
-Weather stations table should be populated
+The `weather_stations` table should be populated:
 
      select * from weather_station limit 5;
 
@@ -171,8 +171,7 @@ To close the cql shell:
 
 ### Cassandra Cleanup
 
-To clean up data in Cassandra, start `CQLSH` and type:
-
+To clean up data in Cassandra, use this command:
 
      cqlsh> DROP KEYSPACE isd_weather_data;
 
@@ -188,9 +187,9 @@ A few services must be installed in the cluster first.
 
 To run KillrWeather in an FDP Cluster, you'll need to start by installing the services it needs.
 
-If not already installed, install our Kafka distribution, InfluxDB using [this GitHub repo](https://github.com/typesafehub/fdp-influxdb-docker-images), and use the Universe/Catalog to install Grafana and Cassandra. More information about InfluxDB and Grafana is provided below in _Monitoring and Viewing Results_
+> **Note:** If you are using the prepackaged sample applications, `fdp-package-sample-apps-X.Y.Z`, then follow the instructions there.
 
-After installing Cassandra, run the commands above in _Cassandra Setup_.
+If not already installed, install the Fast Data Platform Kafka service using the Fast Data Platform Manager. Then install InfluxDB, Grafana, and Cassandra from the DC/OS Catalog. More information about InfluxDB and Grafana is provided in `README.md`, under _Monitoring and Viewing Results_.
 
 #### Install a Web Server
 

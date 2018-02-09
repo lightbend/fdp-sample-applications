@@ -1,4 +1,3 @@
-build.sbt
 build-plugin
 data
 diagrams
@@ -11,5 +10,8 @@ killrweather-httpclient
 killrweather-loader
 project
 protobufs
+build.sbt
+deploy.conf.template
 LICENSE
+README-DEVELOPERS.md
 README.md

@@ -16,8 +16,6 @@ The application does not quite do that, it stops at capturing real-time and cumu
 
 There are several versions this application:
 * [KillrWeather App](https://github.com/killrweather/killrweather/tree/master/killrweather-app/src/main/scala/com/datastax/killrweather) is based on Spark Streaming.
-Additional class here [KillrWeather Event Store](https://github.com/lightbend/fdp-killrweather/blob/master/killrweather-app/src/main/scala/com/lightbend/killrweather/app/KillrWeatherEventStore.scala)
-is an experimental implementation replacing Cassandra with IBM's [EventStore](https://www.ibm.com/us-en/marketplace/db2-event-store). Runs only locally (using embedded Kafka) and requires [Event Store Development Edition](https://www-01.ibm.com/marketing/iwm/iwm/web/preLogin.do?source=swerpal-eventstore-3)
 * [KillrWeather App Structured](https://github.com/lightbend/fdp-killrweather/blob/master/killrweather-app_structured/src/main/scala/com/lightbend/killrweather/app/structured/KillrWeatherStructured.scala) is a version of the same, based on Spark Structured Streaming.
 * [KillrWeather Beam](https://github.com/lightbend/fdp-killrweather/blob/master/killrweather-beam/src/main/scala/com/lightbend/killrweater/beam/KillrWeatherBeam.scala) experimental version of the same application based on [Apache Beam](https://beam.apache.org/).
 This version only runs locally (using embedded Kafka). Cluster version is coming soon
@@ -39,20 +37,19 @@ The original [KillrWeather Wiki](https://github.com/killrweather/killrweather/wi
 ## Using Applications
 
 We foresee 2 groups of users:
-* Users that just want to see how application runs. For this type of users, [fdp-package-sample-apps](https://github.com/typesafehub/fdp-package-sample-apps)
-provides pre build version of software. Refer to [Readme](https://github.com/typesafehub/fdp-package-sample-apps/blob/develop/README.md)
-for this project on how to deploy and run the project
+
+* Users that just want to see how application runs. For this type of users, see the `fdp-package-sample-apps-X.Y.Z.zip` archive that comes with the FDP distribution. It includes a set of scripts for loading a prebuilt Docker image with the compiled sample apps and required tools.
 * Users that want to use this project as a starting point for their own implementation.
 This users need to know how to build the project and run it locally and on the cluster.
-This information is provided in [README-DEVELOPERS](https://github.com/lightbend/fdp-killrweather/blob/master/README-DEVELOPERS.md)
+This information is provided in the companion file, `README-DEVELOPERS.md`.
 
 ## See What's Going On...
 
 Go to the Spark Web console for this job at http://killrweatherapp.marathon.mesos:4040/jobs/
-or http://killrweatherappstructured.marathon.mesos:4040/jobs/ (if structured streaming version is used)
+or http://killrweatherappstructured.marathon.mesos:4040/jobs/ (if the structured streaming version is used)
 to see the minibatch and other jobs that are executed as part of this Spark Streaming job.
 
-Go to http://leader.mesos/mesos/#/frameworks and search for killrweatherapp or killrweatherappstructured to get more info about the corresponding executors.
+Go to http://leader.mesos/mesos/#/frameworks and search for `killrweatherapp` or `killrweatherappstructured` to get more info about the corresponding executors.
 
 ## Loading data
 
@@ -67,9 +64,9 @@ Use the commands we saw previously for data loading to run these commands locall
 
 ## Monitoring and Viewing Results
 
-For information about setting up Grafana and InfluxDB, see this [article](https://mesosphere.com/blog/monitoring-dcos-cadvisor-influxdb-grafana/).
-
 Monitoring is done using InfluxDB and Grafana.
+
+For information about setting up Grafana and InfluxDB, see this [article](https://mesosphere.com/blog/monitoring-dcos-cadvisor-influxdb-grafana/).
 
 To open the Grafana UI, click the `grafana` service in the DC/OS _Services_ panel, then click the instance link.
 Now click the URL for the `ENDPOINTS`.
@@ -82,10 +79,11 @@ Once set up and once data is flowing through the system, you can view activity i
 
 Applications themselves currently implement setup. So this information is here just for reference.
 
-
 To view execution results, a Zeppelin notebook is used, configured for [Cassandra in Zeppelin](https://zeppelin.apache.org/docs/0.7.2/interpreter/cassandra.html).
 
-To configure Zeppelin for use of Cassandra, make sure that interpreter is configured correctly. The most important settings are:
+Unfortunately, the version of Zeppelin in the DC/OS Catalog is very old. Lightbend has built an up-to-date Docker image with Zeppelin 0.7.2, which you should use. See the section _Installing Zeppelin_ in `fdp-package-sample-apps-X.Y.Z/README.md` for details.
+
+After installing Zeppelin, configure it for use with the Cassandra SQL interpreter (available already as a Zeppelin plugin in the package). The most important settings are these:
 
 ```
 name	                   value
