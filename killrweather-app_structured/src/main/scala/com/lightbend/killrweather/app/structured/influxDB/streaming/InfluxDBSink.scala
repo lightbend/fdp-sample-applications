@@ -23,7 +23,6 @@ class InfluxDBRawSink(sqlContext: SQLContext) extends Sink with Serializable {
 
     ds.foreachPartition { iter =>
       val influxDB = InfluxDBFactory.connect(s"$influxDBServer:$influxDBPort", influxDBUser, influxDBPass)
-      //val influxDB = InfluxDBFactory.connect("http://10.2.2.187:13698", influxDBUser, influxDBPass)
       if (!influxDB.databaseExists(influxDBDatabase)) {
         influxDB.createDatabase(influxDBDatabase)
         influxDB.dropRetentionPolicy("autogen", influxDBDatabase)

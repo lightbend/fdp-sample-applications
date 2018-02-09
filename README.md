@@ -4,6 +4,8 @@ KillrWeather is a reference application (which is adopted from Datastax's https:
 
 This application also can be viewed as a prototypical IoT (or sensors) data collection application, which stores data in the form of a time series.
 
+> **Disclaimer:** This sample application is provided as-is, without warranty. It is intended to illustrate techniques for implementing various scenarios using Fast Data Platform, but it has not gone through a robust validation process, nor does it use all the techniques commonly employed for highly-resilient, production applications. Please use it with appropriate caution.
+
 ## Sample Use Case
 
 _I need fast access to historical data on the fly for predictive modeling with real time data from the stream._

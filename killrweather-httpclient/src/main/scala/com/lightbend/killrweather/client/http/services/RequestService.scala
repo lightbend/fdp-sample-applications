@@ -26,10 +26,11 @@ class RequestService(implicit executionContext: ExecutionContext, materializer: 
   import settings._
   import RequestService._
 
+  println(s"Running HTTP Client. Kafka: $kafkaBrokers")
+
   val producerSettings = ProducerSettings(system, new ByteArraySerializer, new ByteArraySerializer)
     .withBootstrapServers(
       kafkaBrokers
-    //      "10.8.0.24:9757"
     )
 
   def processRequest(report: RawWeatherData): Future[Unit] = Future {

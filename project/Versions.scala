@@ -37,5 +37,4 @@ object Versions {
   val ScalaHTTPVersion  = "2.3.0"
   val influxDBClientVersion   = "2.8"
   val beamVersion       = "2.2.0"
-
 }
