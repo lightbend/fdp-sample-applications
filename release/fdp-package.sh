@@ -10,8 +10,8 @@ CONTENT=$(cat $CONTENT_FILE)
 
 function usage {
   cat<< EOF
-  This script packages the sample applications into fdp-sample-apps-<version>.zip
-  in the project root directory.
+  fdp-akka-kafka-streams-model-server:
+  This script currently DOES NOT BUILD this package. It just creates an archive of the code.
   Usage: $SCRIPT VERSION [-h | --help]
 
   VERSION       E.g., 0.3.0. Required
