@@ -14,8 +14,6 @@ The application does not quite do that, it stops at capturing real-time and cumu
 
 There are several versions this application:
 * [KillrWeather App](https://github.com/killrweather/killrweather/tree/master/killrweather-app/src/main/scala/com/datastax/killrweather) is based on Spark Streaming.
-Additional class here [KillrWeather Event Store](https://github.com/lightbend/fdp-killrweather/blob/master/killrweather-app/src/main/scala/com/lightbend/killrweather/app/KillrWeatherEventStore.scala)
-is an experimental implementation replacing Cassandra with IBM's [EventStore](https://www.ibm.com/us-en/marketplace/db2-event-store). Runs only locally (using embedded Kafka) and requires [Event Store Development Edition](https://www-01.ibm.com/marketing/iwm/iwm/web/preLogin.do?source=swerpal-eventstore-3)
 * [KillrWeather App Structured](https://github.com/lightbend/fdp-killrweather/blob/master/killrweather-app_structured/src/main/scala/com/lightbend/killrweather/app/structured/KillrWeatherStructured.scala) is a version of the same, based on Spark Structured Streaming.
 * [KillrWeather Beam](https://github.com/lightbend/fdp-killrweather/blob/master/killrweather-beam/src/main/scala/com/lightbend/killrweater/beam/KillrWeatherBeam.scala) experimental version of the same application based on [Apache Beam](https://beam.apache.org/).
 This version only runs locally (using embedded Kafka). Cluster version is coming soon
@@ -81,7 +79,9 @@ Applications themselves currently implement setup. So this information is here j
 
 To view execution results, a Zeppelin notebook is used, configured for [Cassandra in Zeppelin](https://zeppelin.apache.org/docs/0.7.2/interpreter/cassandra.html).
 
-First install Zeppelin from the DC/OS Catalog, then configure Zeppelin for use with the Cassandra SQL interpreter (available already as a Zeppelin plugin in the package). The most important settings are these:
+Unfortunately, the version of Zeppelin in the DC/OS Catalog is very old. Lightbend has built an up-to-date Docker image with Zeppelin 0.7.2, which you should use. See the section _Installing Zeppelin_ in `fdp-package-sample-apps-X.Y.Z/README.md` for details.
+
+After installing Zeppelin, configure it for use with the Cassandra SQL interpreter (available already as a Zeppelin plugin in the package). The most important settings are these:
 
 ```
 name	                   value
