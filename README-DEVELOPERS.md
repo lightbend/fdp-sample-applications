@@ -117,7 +117,7 @@ Enter number:
 
 
 Enter `3`.
-
+```
 
 There are also `-h` and `--help` options that show a help message and exit for each of these commands.
 
