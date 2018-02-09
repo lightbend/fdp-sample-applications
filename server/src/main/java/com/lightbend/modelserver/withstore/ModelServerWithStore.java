@@ -25,8 +25,10 @@ public class ModelServerWithStore {
 
     public static void main(String [ ] args) throws Throwable {
 
-        System.out.println("Using kafka brokers at " + ApplicationKafkaParameters.LOCAL_KAFKA_BROKER +
-                " with zookeeper " + ApplicationKafkaParameters.LOCAL_ZOOKEEPER_HOST);
+        System.out.println("Kafka Streams Mmdel server with kafka brokers at " + ApplicationKafkaParameters.LOCAL_KAFKA_BROKER +
+                " with zookeeper " + ApplicationKafkaParameters.LOCAL_ZOOKEEPER_HOST +
+                " With InfluxDB : host " + ApplicationKafkaParameters.influxDBServer + ", port " + ApplicationKafkaParameters.influxDBPort +
+                " With Grafana : host " + ApplicationKafkaParameters.GrafanaHost + ", port " + ApplicationKafkaParameters.GrafanaPort);
 
         Properties streamsConfiguration = new Properties();
         // Give the Streams application a unique name.  The name must be unique in the Kafka cluster

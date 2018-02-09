@@ -30,7 +30,8 @@ object AkkaModelServer {
   implicit val materializer = ActorMaterializer()
   implicit val executionContext = system.dispatcher
 
-  println(s"Using kafka brokers at ${LOCAL_KAFKA_BROKER} with zookeeper ${LOCAL_ZOOKEEPER_HOST}")
+  println(s"Akka Streams model server with kafka brokers at ${LOCAL_KAFKA_BROKER} with zookeeper ${LOCAL_ZOOKEEPER_HOST}" +
+    s"With InfluxDB : host $influxDBServer, port $influxDBPort with Grafana : host $GrafanaHost, port $GrafanaPort")
 
   val dataConsumerSettings = ConsumerSettings(system, new ByteArrayDeserializer, new ByteArrayDeserializer)
     .withBootstrapServers(LOCAL_KAFKA_BROKER)
