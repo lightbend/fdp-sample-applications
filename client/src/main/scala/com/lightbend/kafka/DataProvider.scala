@@ -32,6 +32,11 @@ object DataProvider {
     println(s"Data Message delay $dataTimeInterval")
     println(s"Model Message delay $modelTimeInterval")
 
+    publishData()
+    publishModels()
+
+    while (true)
+      pause(600000)
   }
 
   def publishData(): Future[Unit] = Future {
