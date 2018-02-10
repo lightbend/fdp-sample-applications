@@ -55,6 +55,12 @@ object Dependencies {
 
   val scalaHTTPClean = scalaHTTP.exclude("com.fasterxml.jackson.module", "jackson-module-scala_2.11")
 
+  val beamJava          = "org.apache.beam"   % "beam-runners-direct-java"              % beamVersion
+  val beamKafka         = "org.apache.beam"   % "beam-sdks-java-io-kafka"               % beamVersion
+  val beamJoin          = "org.apache.beam"   % "beam-sdks-java-extensions-join-library"% beamVersion
+  val beamAPI           = "org.apache.beam"   % "beam-sdks-common-fn-api"               % beamVersion
+//  val beamSQL           = "org.apache.beam"   % "beam-sdks-java-extensions-sql"         % beamVersion
+//  val beamCassandra     = "org.apache.beam"   % "beam-sdks-java-io-cassandra"           % beamVersion
 
   val connector = Seq(
     sparkCassandra
@@ -107,4 +113,7 @@ object Dependencies {
   val app = common ++ connector  ++ spark ++ Seq(influxDBClient, scalaHTTPClean)
 
   val appStructured = common ++ connector  ++ sparkStructured ++ Seq(influxDBClient, scalaHTTPClean)
+
+  val beamDependencies = Seq(beamAPI, beamJoin, beamJava, sparkCassandra , beamKafka, influxDBClient, scalaHTTPClean)
+
 }

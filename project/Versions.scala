@@ -16,17 +16,17 @@
 
 object Versions {
 
-  val Akka              = "2.4.19"
-  val AkkaStreams       = "2.4.19"
-  val AkkaStreamsKafka  = "0.17"
-  val AkkaHTTP          = "10.0.9"
+  val Akka              = "2.5.6"
+  val AkkaStreams       = "2.5.6"
+  val AkkaStreamsKafka  = "0.18"
+  val AkkaHTTP          = "10.0.10"
   val Cassandra         = "2.1.3"
   val Curator           = "4.0.0"
   val JDK               = "1.8"
   val JodaConvert       = "1.8.2"
   val JodaTime          = "2.9.9"
   val Json4s            = "3.2.11"
-  val Kafka             = "0.11.0.0"
+  val Kafka             = "1.0.0"
   val Logback           = "1.2.3"
   val Scala             = "2.11.11"
   val Slf4j             = "1.7.16"
@@ -35,8 +35,9 @@ object Versions {
   val GRPCNettyVersion  = "1.4.0"
   val ScalaPBJSONVersion= "0.3.1"
   val ScalaHTTPVersion  = "2.3.0"
-  val InfluxDBClientVersion   = "2.7"
+  val InfluxDBClientVersion   = "2.8"
   val TypesafeConfigVersion = "1.3.2"
   val ScalatestVersion  = "3.0.4"
   val FicusVersion      = "1.4.3"
+  val beamVersion       = "2.2.0"
 }

@@ -79,9 +79,12 @@ object InfluxDBSink {
   def make(): InfluxDBSink = {
     val f = () => {
       val influxDB = InfluxDBFactory.connect(influxConfig.url, influxConfig.user, influxConfig.password)
-      if (!influxDB.databaseExists(influxTableConfig.database))
+      if (!influxDB.databaseExists(influxTableConfig.database)) {
         influxDB.createDatabase(influxTableConfig.database)
-
+        influxDB.dropRetentionPolicy("autogen", influxTableConfig.database)
+        influxDB.createRetentionPolicy(influxTableConfig.retentionPolicy, influxTableConfig.database, "1d", "30m", 1, true)
+      }
+      
       influxDB.setDatabase(influxTableConfig.database)
       // Flush every 2000 Points, at least every 100ms
       influxDB.enableBatch(2000, 100, TimeUnit.MILLISECONDS)
@@ -95,7 +98,7 @@ object InfluxDBSink {
       influxDB
     }
     try {
-      new GrafanaSetup().setGrafana()
+      new GrafanaSetup(GrafanaPort, GrafanaServer).setGrafana()
     } catch {
       case t: Throwable => println("Grafana not initialized")
     }

@@ -18,6 +18,8 @@ object KillrWeatherStructured {
     val settings = WeatherSettings("KillrWeather", args)
     import settings._
 
+    println(s"Running KillrweatherStructured. Kafka: $kafkaBrokers; Cassandra : $CassandraHosts; " +
+      s"InfluxDB : host $influxDBServer, port $influxDBPort; Grafana : host $GrafanaServer, port $GrafanaPort")
     val spark = SparkSession.builder
       .appName("KillrWeather with Structured Streaming")
       .config(settings.sparkConf())
@@ -38,8 +40,6 @@ object KillrWeatherStructured {
     catch {
       case t: Throwable => println(s"Grafana not initialized ${t.getMessage}")
     }
-
-    //    import spark.implicits._
 
     // Message parsing
     spark.udf.register("deserialize", (data: Array[Byte]) => WeatherRecord.parseFrom(data))

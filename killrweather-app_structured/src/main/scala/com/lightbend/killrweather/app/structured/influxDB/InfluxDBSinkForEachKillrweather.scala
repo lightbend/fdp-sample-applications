@@ -19,9 +19,13 @@ class InfluxDBSinkForEachKillrweatherRaw extends ForeachWriter[WeatherRecord] {
 
   override def open(partitionId: Long, version: Long): Boolean = {
     //    influxDB = InfluxDBFactory.connect(s"$influxDBServer:$influxDBPort", influxDBUser, influxDBPass)
+
     influxDB = InfluxDBFactory.connect(influxConfig.url, influxConfig.user, influxConfig.password)
-    if (!influxDB.databaseExists(influxTableConfig.database))
+    if (!influxDB.databaseExists(influxTableConfig.database)) {
       influxDB.createDatabase(influxTableConfig.database)
+      influxDB.dropRetentionPolicy("autogen", influxTableConfig.database)
+      influxDB.createRetentionPolicy(influxTableConfig.retentionPolicy, influxTableConfig.database, "1d", "30m", 1, true)
+    }
 
     influxDB.setDatabase(influxTableConfig.database)
     // Flush every 2000 Points, at least every 100ms

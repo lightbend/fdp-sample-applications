@@ -17,7 +17,9 @@ object KafkaDataIngester {
 
   def main(args: Array[String]) {
     val kafkaConfig = WeatherSettings("DataIngester", args).kafkaConfig
-    KafkaDataIngester(kafkaConfig.brokers).execute(file, kafkaConfig.topic)
+    val ingester = KafkaDataIngester(kafkaConfig.brokers)
+    println(s"Running Kafka Loader. Kafka: $brokers")
+    ingester.execute(file, kafkaConfig.topic)
   }
 
   def pause(): Unit = Thread.sleep(timeInterval.toMillis)

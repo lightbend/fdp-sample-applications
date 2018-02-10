@@ -19,6 +19,7 @@ object KafkaDataIngesterGRPC {
     val grpcConfig = settings.grpcConfig
 
     val ingester = new KafkaDataIngesterGRPC(grpcConfig.host, grpcConfig.port)
+    println(s"Running GRPC Loader. Client: ${grpcConfig.host}:${grpcConfig.port}")
     ingester.execute(file)
   }
 

@@ -108,6 +108,11 @@ class WeatherSettings(overrides: Config) extends Serializable {
   }
 
   override def hashCode(): Int = config.hashCode()
+
+  val CassandraWriteConsistencyLevel: ConsistencyLevel = ConsistencyLevel.valueOf(ConsistencyLevel.LOCAL_ONE.name)
+
+  val CassandraDefaultMeasuredInsertsCount: Int = 128
+
 }
 
 object WeatherSettings {

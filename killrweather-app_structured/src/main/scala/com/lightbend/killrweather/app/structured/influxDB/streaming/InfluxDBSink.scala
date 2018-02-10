@@ -22,9 +22,13 @@ class InfluxDBRawSink(sqlContext: SQLContext) extends Sink with Serializable {
     val ds = df.select("*").as[WeatherRecord].rdd
 
     ds.foreachPartition { iter =>
+
       val influxDB = InfluxDBFactory.connect(influxConfig.url, influxConfig.user, influxConfig.password)
-      if (!influxDB.databaseExists(influxTableConfig.database))
+      if (!influxDB.databaseExists(influxTableConfig.database)) {
         influxDB.createDatabase(influxTableConfig.database)
+        influxDB.dropRetentionPolicy("autogen", influxTableConfig.database)
+        influxDB.createRetentionPolicy(influxTableConfig.retentionPolicy, influxTableConfig.database, "1d", "30m", 1, true)
+      }
 
       influxDB.setDatabase(influxTableConfig.database)
       // Flush every 2000 Points, at least every 100ms
@@ -59,7 +63,17 @@ class InfluxDBDailySink(sqlContext: SQLContext) extends Sink with Serializable {
     val ds = df.select("*").as[DailyWeatherData].rdd
 
     ds.foreachPartition { iter =>
+<<<<<<< HEAD
       val influxDB = InfluxDBFactory.connect(influxConfig.url, influxConfig.user, influxConfig.password)
+=======
+      val influxDB = InfluxDBFactory.connect(s"$influxDBServer:$influxDBPort", influxDBUser, influxDBPass)
+      //val influxDB = InfluxDBFactory.connect("http://10.2.2.187:13698", influxDBUser, influxDBPass)
+      if (!influxDB.databaseExists(influxDBDatabase)) {
+        influxDB.createDatabase(influxDBDatabase)
+        influxDB.dropRetentionPolicy("autogen", influxDBDatabase)
+        influxDB.createRetentionPolicy(retentionPolicy, influxDBDatabase, "1d", "30m", 1, true)
+      }
+>>>>>>> develop
 
       if (!influxDB.databaseExists(influxTableConfig.database))
         influxDB.createDatabase(influxTableConfig.database)
@@ -96,9 +110,19 @@ class InfluxDBRMonthlySink(sqlContext: SQLContext) extends Sink with Serializabl
     val ds = df.select("*").as[MonthlyWeatherData].rdd
 
     ds.foreachPartition { iter =>
+<<<<<<< HEAD
       val influxDB = InfluxDBFactory.connect(influxConfig.url, influxConfig.user, influxConfig.password)
       if (!influxDB.databaseExists(influxTableConfig.database))
         influxDB.createDatabase(influxTableConfig.database)
+=======
+      val influxDB = InfluxDBFactory.connect(s"$influxDBServer:$influxDBPort", influxDBUser, influxDBPass)
+      //val influxDB = InfluxDBFactory.connect("http://10.2.2.187:13698", influxDBUser, influxDBPass)
+      if (!influxDB.databaseExists(influxDBDatabase)) {
+        influxDB.createDatabase(influxDBDatabase)
+        influxDB.dropRetentionPolicy("autogen", influxDBDatabase)
+        influxDB.createRetentionPolicy(retentionPolicy, influxDBDatabase, "1d", "30m", 1, true)
+      }
+>>>>>>> develop
 
       influxDB.setDatabase(influxTableConfig.database)
       // Flush every 2000 Points, at least every 100ms

@@ -10,8 +10,9 @@ CONTENT=$(cat $CONTENT_FILE)
 
 function usage {
   cat<< EOF
-  This script packages the KillrWeather sample applications into fdp-killrweather-<version>.zip
-  in the project root directory.
+  fdp-killrweather:
+  This script packages the source and other files for KillrWeather.
+  IT DOES NOT BUILD the executables.
   Usage: $SCRIPT VERSION [-h | --help]
 
   VERSION       E.g., 0.3.0. Required
@@ -57,6 +58,7 @@ for f in ${CONTENT}; do cp -r ${ROOT_DIR}/$f $staging/$OUTPUT_FILE_ROOT/$f; done
 cd $staging
 
 # Remove files and directories that shouldn't be in the distribution:
+rm -f ${OUTPUT_FILE_ROOT}/README-Lightbend.md
 find ${OUTPUT_FILE_ROOT} \( -name whitesource.sbt -o -name WhitesourceLicensePlugin.scala \) -exec rm {} \;
 find ${OUTPUT_FILE_ROOT} -type d | egrep 'project/(project|target)$' | while read d; do rm -rf "$d"; done
 find ${OUTPUT_FILE_ROOT} -type d | egrep 'target$' | while read d; do rm -rf "$d"; done
