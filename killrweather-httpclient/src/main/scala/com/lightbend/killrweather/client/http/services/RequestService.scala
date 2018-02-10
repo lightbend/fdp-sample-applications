@@ -16,8 +16,7 @@ import com.lightbend.killrweather.WeatherClient.WeatherRecord
 import scala.concurrent.{ ExecutionContext, Future }
 
 /**
- * Created by boris on 7/17/17.
- * based on
+ * Based on
  *   https://github.com/DanielaSfregola/quiz-management-service/blob/master/akka-http-crud/src/main/scala/com/danielasfregola/quiz/management/services/QuestionService.scala
  */
 class RequestService(implicit executionContext: ExecutionContext, materializer: ActorMaterializer, system: ActorSystem) {
@@ -26,12 +25,11 @@ class RequestService(implicit executionContext: ExecutionContext, materializer: 
   import settings._
   import RequestService._
 
-  println(s"Running HTTP Client. Kafka: $kafkaBrokers")
+  println(s"Running HTTP Client. Kafka: ${settings.kafkaConfig.brokers}")
 
   val producerSettings = ProducerSettings(system, new ByteArraySerializer, new ByteArraySerializer)
     .withBootstrapServers(
       kafkaConfig.brokers
-      kafkaBrokers
     )
 
   def processRequest(report: RawWeatherData): Future[Unit] = Future {
@@ -47,7 +45,6 @@ object RequestService {
   private val bos = new ByteArrayOutputStream()
 
   def apply(implicit executionContext: ExecutionContext, materializer: ActorMaterializer, system: ActorSystem): RequestService = new RequestService()
-
   def convertRecord(report: RawWeatherData): Array[Byte] = {
     bos.reset
     //    println(s"got record $report")

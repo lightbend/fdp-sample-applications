@@ -25,6 +25,8 @@ import org.apache.spark.SparkConf
 import scala.concurrent.duration.FiniteDuration
 import scala.util.{ Failure, Success, Try }
 
+import com.datastax.driver.core.ConsistencyLevel
+
 /**
  * Application settings. First attempts to acquire from the deploy environment.
  * If not exists, then from -D java system properties, else a default config.
@@ -62,9 +64,17 @@ case class CassandraConfig(
   tableSky: String,
   tableStations: String
 )
+object CassandraConfig {
+  val WriteConsistencyLevel: ConsistencyLevel = ConsistencyLevel.valueOf(ConsistencyLevel.LOCAL_ONE.name)
+  val DefaultMeasuredInsertsCount: Int = 128
+}
+
+
 case class InfluxDBConfig(server: String, port: Int, user: String, password: String, enabled: Boolean) {
   def url = s"$server:$port"
 }
+case class GraphanaConfig(server: String, port: Int)
+
 case class InfluxTableConfig(database: String, retentionPolicy: String)
 case class GRPCConfig(host: String, port: Int)
 
@@ -73,7 +83,7 @@ class WeatherSettings(overrides: Config) extends Serializable {
   val baseConfig = ConfigFactory.load()
   val config = overrides.withFallback(baseConfig)
 
-  val kafkaConfig = config.as[KafkaConfig]("kafka")
+  val kafkaConfig: KafkaConfig = config.as[KafkaConfig]("kafka")
 
   def sparkConf(): SparkConf = {
     val sparkConfig = config.getConfig("spark")
@@ -99,6 +109,8 @@ class WeatherSettings(overrides: Config) extends Serializable {
 
   val grpcConfig = config.as[GRPCConfig]("grpc.ingester.client")
 
+  val graphanaConfig = config.as[GraphanaConfig]("graphana")
+
   override def equals(obj: scala.Any): Boolean = {
     obj match {
       case w: WeatherSettings =>
@@ -109,9 +121,7 @@ class WeatherSettings(overrides: Config) extends Serializable {
 
   override def hashCode(): Int = config.hashCode()
 
-  val CassandraWriteConsistencyLevel: ConsistencyLevel = ConsistencyLevel.valueOf(ConsistencyLevel.LOCAL_ONE.name)
 
-  val CassandraDefaultMeasuredInsertsCount: Int = 128
 
 }
 

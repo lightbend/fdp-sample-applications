@@ -18,8 +18,8 @@ object KillrWeatherStructured {
     val settings = WeatherSettings("KillrWeather", args)
     import settings._
 
-    println(s"Running KillrweatherStructured. Kafka: $kafkaBrokers; Cassandra : $CassandraHosts; " +
-      s"InfluxDB : host $influxDBServer, port $influxDBPort; Grafana : host $GrafanaServer, port $GrafanaPort")
+    println(s"Running KillrweatherStructured. Kafka: ${settings.kafkaConfig}; Cassandra : ${settings.cassandraConfig}; " +
+      s"InfluxDB : ${settings.influxConfig}; Grafana: ${settings.graphanaConfig}")
     val spark = SparkSession.builder
       .appName("KillrWeather with Structured Streaming")
       .config(settings.sparkConf())

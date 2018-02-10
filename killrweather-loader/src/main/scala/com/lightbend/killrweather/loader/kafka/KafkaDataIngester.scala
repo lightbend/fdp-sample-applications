@@ -18,7 +18,7 @@ object KafkaDataIngester {
   def main(args: Array[String]) {
     val kafkaConfig = WeatherSettings("DataIngester", args).kafkaConfig
     val ingester = KafkaDataIngester(kafkaConfig.brokers)
-    println(s"Running Kafka Loader. Kafka: $brokers")
+    println(s"Running Kafka Loader. Kafka: $kafkaConfig")
     ingester.execute(file, kafkaConfig.topic)
   }
 

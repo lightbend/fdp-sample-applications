@@ -25,8 +25,8 @@ object KillrWeather {
 
     val killrSettings = WeatherSettings("KillrWeather", args)
     import killrSettings._
-    println(s"Running Killrweather. Kafka: $kafkaBrokers; Cassandra : $CassandraHosts; " +
-      s"InfluxDB : host $influxDBServer, port $influxDBPort; Grafana : host $GrafanaServer, port $GrafanaPort")
+    println(s"Running Killrweather. Kafka: $kafkaConfig; Cassandra : $cassandraConfig; " +
+      s"InfluxDB: $influxConfig; Grafana: $graphanaConfig")
 
     val sparkSession = SparkSession.builder()
       .config(killrSettings.sparkConf())

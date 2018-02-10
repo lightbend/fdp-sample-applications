@@ -34,7 +34,7 @@ object WeatherGRPCClient {
     val settings = WeatherSettings("WeatherGRPCClient", args)
     import settings._
 
-    println(s"Running GRPC Client. Kafka: $kafkaBrokers")
+    println(s"Running GRPC Client. Kafka: ${kafkaConfig.brokers}")
     _producerSettings = ProducerSettings(system, new ByteArraySerializer, new ByteArraySerializer)
       .withBootstrapServers(kafkaConfig.brokers)
 
