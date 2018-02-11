@@ -36,7 +36,7 @@ object GrafanaSetup {
       case true => {
         val strings = new ListBuffer[String]()
         Source.fromInputStream(stream).getLines.foreach(s => {
-          if (s.contains("\"url\"")) strings += s""" "url":"$influxDBServer: $influxDBPort", """
+          if (s.contains("\"url\"")) strings += s""" "url":"$influxDBServer:$influxDBPort", """
           else strings += s
         })
         strings.mkString
@@ -45,11 +45,5 @@ object GrafanaSetup {
     }
     stream.close()
     data
-  }
-
-  def main(args: Array[String]): Unit = {
-
-    val client = new GrafanaSetup()
-    client.setGrafana()
   }
 }
