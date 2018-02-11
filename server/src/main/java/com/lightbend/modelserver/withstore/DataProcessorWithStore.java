@@ -26,7 +26,6 @@ public class DataProcessorWithStore extends AbstractProcessor<byte[], byte[]> {
     public void process(byte[] key, byte[] value) {
         Optional<Winerecord.WineRecord> dataRecord = DataConverter.convertData(value);
         if(!dataRecord.isPresent()) {
-//            context().commit();
             return;                                 // Bad record
         }
         if(modelStore.getNewModel() != null){
@@ -43,8 +42,6 @@ public class DataProcessorWithStore extends AbstractProcessor<byte[], byte[]> {
         if(modelStore.getCurrentModel() == null) {
             // No model currently
             System.out.println("No model available - skipping");
-//            context().forward(key,Optional.empty());
-//            context().commit();
         }
         else{
             // Score the model
@@ -52,10 +49,8 @@ public class DataProcessorWithStore extends AbstractProcessor<byte[], byte[]> {
             double quality = (double) modelStore.getCurrentModel().score(dataRecord.get());
             long duration = System.currentTimeMillis() - start;
             modelStore.getCurrentServingInfo().update(duration);
-//            System.out.println("Calculated quality - " + quality + " in " + duration + "ms");
+            System.out.println("Calculated quality - " + quality + " in " + duration + "ms");
             client.writePoint("Kafka Streams", modelStore.getCurrentServingInfo().getName(), quality, duration);
-//            context().forward(key,Optional.of(quality));
-//            context().commit();
          }
 
     }

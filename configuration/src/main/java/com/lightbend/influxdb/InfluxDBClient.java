@@ -52,10 +52,19 @@ public class InfluxDBClient {
             con.setRequestProperty("Content-Type", "application/json");
             con.setRequestProperty("Authorization", "Basic " + authStringEnc);
 
-            // Send post request
+            // Send Grafana source json
+
             con.setDoOutput(true);
             DataOutputStream wr = new DataOutputStream(con.getOutputStream());
-            streamData(this.getClass().getResourceAsStream(dsfile), wr);
+            BufferedReader in = new BufferedReader(new InputStreamReader(this.getClass().getResourceAsStream(dsfile)));
+            String line = null;
+            while((line = in.readLine()) != null) {
+                if(line.contains("\"url\""))
+                    line = " \"url\": \"" + ApplicationKafkaParameters.influxDBServer + ":" + ApplicationKafkaParameters.influxDBPort + "\",";
+                wr.write(line.getBytes());
+            }
+            wr.flush();
+            wr.close();
             System.out.println("Uploaded Grafana source");
             printResponce(con);
 
@@ -76,7 +85,9 @@ public class InfluxDBClient {
             printResponce(con);
 
         }
-        catch (Throwable t){}
+        catch (Throwable t){
+            t.printStackTrace();
+        }
     }
 
     private static void printResponce(HttpURLConnection con){

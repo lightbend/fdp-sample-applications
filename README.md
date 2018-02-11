@@ -92,7 +92,6 @@ This project contains 4 executables:
 * `akkaserver`    - Akka Streams implementation of model serving
 * `kafkaserver`   - Kafka Streams implementation of model serving
 * `dataprovider`  - Data publisher
-* `modelprovider` - Model publisher
 
 Each application can run either locally (on user's machine) or on the server.
 
@@ -102,7 +101,7 @@ Running locally can be done either using SBT or Intellij (If you run locally, ma
 kafka configuration `(broker quarum and zookeeper)`), InfluxDB configuration `(host and port)` and 
 Grafana configuration `(host and port)`
 
-Both `dataprovider` and `modelprovider` applications allow for changing of frequency of sending data, by
+`dataprovider` application allow for changing of frequency of sending data, by
 specifying desired frequency (in ms) as an application parameter. If the parameter is not specified
 data is send once a sec and model - once every 5 mins.
 

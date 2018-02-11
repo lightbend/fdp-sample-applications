@@ -73,7 +73,7 @@ class ModelStage extends GraphStageWithMaterializedValue[ModelStageShape, Readab
               val start = System.currentTimeMillis()
               val quality = model.score(record.asInstanceOf[AnyVal]).asInstanceOf[Double]
               val duration = System.currentTimeMillis() - start
-              //              println(s"Calculated quality - $quality calculated in $duration ms")
+              println(s"Calculated quality - $quality calculated in $duration ms")
               influx.writePoint("Akka", currentState.get.name, quality, duration)
               currentState.get.incrementUsage(duration)
               push(shape.scoringResultOut, Some(quality))
