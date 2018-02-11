@@ -47,7 +47,7 @@ final class WeatherSettings() extends Serializable {
   val localAddress = "localhost" //InetAddress.getLocalHost.getHostAddress
 
   // If running Kafka on your local machine, try localhost:9092
-  val kafkaBrokers = sys.props.get("kafka.brokers") match {
+  val kafkaBrokers = sys.env.get("kafka.brokers") match {
     case Some(kb) => kb
     case None => "broker.kafka.l4lb.thisdcos.directory:9092" // for DC/OS - only works in the cluster!
   }
@@ -60,7 +60,7 @@ final class WeatherSettings() extends Serializable {
   val SparkCheckpointDir = "./checkpoints/"
 
   // If running Cassandra on your local machine, try your local IP address (127.0.0.1 might work)
-  val CassandraHosts = sys.props.get("cassandra.hosts") match {
+  val CassandraHosts = sys.env.get("cassandra.hosts") match {
     case Some(ch) => ch
     case None => "node.cassandra.l4lb.thisdcos.directory" // This will work only on cluster
   }
@@ -151,15 +151,13 @@ final class WeatherSettings() extends Serializable {
 
   // InfluxDB - These settings are effectively ignored if --without-influxdb is used.
   //  val influxDBServer: String = "http://influx-db.marathon.l4lb.thisdcos.directory"
-  val influxDBServer = sys.props.get("influxdb.host") match {
+  val influxDBServer = sys.env.get("influxdb.host") match {
     case Some(kb) => kb
-    case None => "http://influx-db.marathon.mesos" // for DC/OS - only works in the cluster!
+    case None => "http://influxdb.marathon.l4lb.thisdcos.directory" // for DC/OS - only works in the cluster!
   }
   println(s"Using InfluxDB host s: $influxDBServer")
-  // val influxDBPort: Int = 8086
-  //val influxDBPort: Int = 12057
 
-  val influxDBPort = sys.props.get("influxdb.port") match {
+  val influxDBPort = sys.env.get("influxdb.port") match {
     case Some(kb) => kb
     case None => "8086" // for DC/OS - only works in the cluster!
   }
@@ -171,13 +169,13 @@ final class WeatherSettings() extends Serializable {
   val retentionPolicy: String = "default"
 
   // Grafana
-  val GrafanaServer = sys.props.get("grafana.host") match {
+  val GrafanaServer = sys.env.get("grafana.host") match {
     case Some(kb) => kb
     case None => "grafana.marathon.l4lb.thisdcos.directory" // for DC/OS - only works in the cluster!
   }
   println(s"Using Grafana host s: $GrafanaServer")
 
-  val GrafanaPort = sys.props.get("grafana.port") match {
+  val GrafanaPort = sys.env.get("grafana.port") match {
     case Some(kb) => kb
     case None => "3000"                                      // for DC/OS - only works in the cluster!
   }

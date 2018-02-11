@@ -99,14 +99,12 @@ object Dependencies {
   val loaders = json ++ Seq(
     scalaHTTP.exclude("com.fasterxml.jackson.module", "jackson-module-scala_2.11"))
   val core = logging ++ time ++ connector ++ spark ++ Seq(
-    curator.
-      exclude("io.netty", "netty"),
-    kafka.
-      exclude("org.slf4j", "slf4j-log4j12").
-      exclude("io.netty", "netty"))
+    curator.exclude("io.netty", "netty"),
+    kafka.exclude("org.slf4j", "slf4j-log4j12").exclude("io.netty", "netty"),
+    scalaHTTP.exclude("com.fasterxml.jackson.module", "jackson-module-scala_2.11"))
   val app = connector  ++ spark ++ Seq(influxDBClient, scalaHTTP.exclude("com.fasterxml.jackson.module", "jackson-module-scala_2.11"))
 
-  val appStructured = connector  ++ sparkStructured ++ Seq(influxDBClient, scalaHTTP.exclude("com.fasterxml.jackson.module", "jackson-module-scala_2.11"))
+  val appStructured = connector  ++ sparkStructured ++ Seq(influxDBClient)
 
-  val beamDependencies = Seq(beamAPI, beamJoin, beamJava, sparkCassandra , beamKafka, influxDBClient, scalaHTTP.exclude("com.fasterxml.jackson.module", "jackson-module-scala_2.11"))
+  val beamDependencies = Seq(beamAPI, beamJoin, beamJava, sparkCassandra , beamKafka, influxDBClient)
 }

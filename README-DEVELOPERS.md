@@ -189,7 +189,9 @@ To run KillrWeather in an FDP Cluster, you'll need to start by installing the se
 
 > **Note:** If you are using the prepackaged sample applications, `fdp-package-sample-apps-X.Y.Z`, then follow the instructions there.
 
-If not already installed, install the Fast Data Platform Kafka service using the Fast Data Platform Manager. Then install InfluxDB, Grafana, and Cassandra from the DC/OS Catalog. More information about InfluxDB and Grafana is provided in `README.md`, under _Monitoring and Viewing Results_.
+If not already installed, install the Fast Data Platform Kafka service using the Fast Data Platform Manager. Then install InfluxDB, Grafana, and Cassandra from the DC/OS Catalog. **Note** that if Grafana is installed directly from the catalog, an application will not be able to automatically populate Grafana information.
+In order for this to work, install Grafana using FDP-Sample_Apps, which fixes Grafana's access port using VIP.
+More information about InfluxDB and Grafana is provided in `README.md`, under _Monitoring and Viewing Results_.
 
 #### Install a Web Server
 

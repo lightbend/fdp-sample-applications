@@ -2,7 +2,7 @@ package com.lightbend.killrweather.app.structured
 
 import com.lightbend.killrweather.WeatherClient.WeatherRecord
 import com.lightbend.killrweather.app.structured.cassandra._
-import com.lightbend.killrweather.app.structured.grafana.GrafanaSetup
+import com.lightbend.killrweather.grafana.GrafanaSetup
 //import com.lightbend.killrweather.app.structured.influxDB._
 import com.lightbend.killrweather.settings.WeatherSettings
 //import com.lightbend.killrweather.utils.{ DailyWeatherData, MonthlyWeatherData }
@@ -39,8 +39,7 @@ object KillrWeatherStructured {
 
     // Initialize Grafana
     try
-      //new GrafanaSetup(4086, "10.2.2.198").setGrafana()
-      new GrafanaSetup().setGrafana()
+       new GrafanaSetup().setGrafana()
     catch {
       case t: Throwable => println(s"Grafana not initialized ${t.getMessage}")
     }
