@@ -11,9 +11,9 @@ object Dependencies {
   val cats                  =      "org.typelevel"                %%   "cats"                           % catsVersion
   val alpakka               =      "com.lightbend.akka"           %%   "akka-stream-alpakka-file"       % alpakkaFileVersion
   val reactiveKafka         =      "com.typesafe.akka"            %%   "akka-stream-kafka"              % reactiveKafkaVersion
-  val flinkScala            =      "org.apache.flink"             %%   "flink-scala"                    % flinkVersion
-  val flinkStreamingScala   =      "org.apache.flink"             %%   "flink-streaming-scala"          % flinkVersion  // % "provided"
-  val flinkKafka            =      "org.apache.flink"             %%   "flink-connector-kafka-0.10"     % flinkVersion  // % "provided"
+  val flinkScala            =      "org.apache.flink"             %%   "flink-scala"                    % flinkVersion % "provided"
+  val flinkStreamingScala   =      "org.apache.flink"             %%   "flink-streaming-scala"          % flinkVersion % "provided"
+  val flinkKafka            =      "org.apache.flink"             %%   "flink-connector-kafka-0.10"     % flinkVersion 
 
   val common = Seq(kafka, jodaTime, jodaConvert, scalaLogging, logback)
   val ingestion = common ++ Seq(alpakka, reactiveKafka, config, cats)
