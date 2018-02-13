@@ -109,6 +109,9 @@ lazy val app = appProject("app")("./app")
     }
   )
   .settings(
+    assemblyOption in assembly := (assemblyOption in assembly).value.copy(includeScala = false)
+  )
+  .settings(
     resourceDirectory in Compile := (resourceDirectory in Compile).value,
     deployResourceConfigFiles ++= Seq("deploy.conf"),
     deployArtifacts ++= Seq(

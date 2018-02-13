@@ -89,7 +89,7 @@ The distribution includes a configuration file for InfluxDB named `influx.conf`:
 
 ```
 influxdb {
-  server = "http://influx-db.marathon.l4lb.thisdcos.directory"
+  server = "http://influxdb.marathon.l4lb.thisdcos.directory"
   server = ${?INFLUXDB_SERVER}
 
   port = 8086
@@ -204,7 +204,7 @@ Once you are logged into Grafana, the following steps need to be followed to set
 
 * Name of the datasource = `nwintrusion`
 * Type = `InfluxDB`
-* Http Settings Url = `http://influx-db.marathon.l4lb.thisdcos.directory:8086`
+* Http Settings Url = `http://influxdb.marathon.l4lb.thisdcos.directory:8086`
 * Http Settings Access = `proxy`
 * InfluxDB Details Database = `anomaly`
 * InfluxDB Details User = `root`, Password = `root`
