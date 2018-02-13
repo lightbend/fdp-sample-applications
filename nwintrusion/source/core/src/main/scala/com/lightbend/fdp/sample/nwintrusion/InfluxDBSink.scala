@@ -24,7 +24,10 @@ class InfluxDBSink(createWriter: () => InfluxDB) extends Serializable {
   private def write(point: Point): Unit = {
     try {
       influxDB.write(point)
-    } catch { case t: Throwable => println(s"Exception writing to Influx $t") }
+    } catch { case t: Throwable => 
+      println(s"Exception writing to Influx") 
+      t.printStackTrace
+    }
   }
 }
 
@@ -52,6 +55,8 @@ object InfluxDBSink {
       // hence need to do all validations in config reading, which will be quite exhaustive
       // Maybe we revisit this later
       influxDB.createRetentionPolicy(retentionPolicy, database, "1d", "30m", 1, true)
+      // set retention policy
+      influxDB.setRetentionPolicy(retentionPolicy)
 
       sys.addShutdownHook {
         influxDB.flush()
