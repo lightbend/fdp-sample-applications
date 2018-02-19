@@ -15,6 +15,7 @@ object InfluxPublisher {
     println(s"Config = $c")
     val influxDBSink = streamingContext.sparkContext.broadcast(InfluxDBSink(c))
     writeToInflux(labeledData, model.latestModel, influxDBSink.value)
+
     // artificial delay inserted to simulate real life streaming
     Thread.sleep(1)
   }

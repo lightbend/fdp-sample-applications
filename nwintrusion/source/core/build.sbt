@@ -12,6 +12,7 @@ val spark = "2.2.0"
 val logbackVersion = "1.2.3"
 val influxDBClientVersion = "2.8"
 val kafkaStreamsScalaVersion = "0.1.0"
+val scalaHttpVersion = "2.3.0"
 
 allowSnapshot in ThisBuild := true
 
@@ -49,7 +50,9 @@ libraryDependencies ++= Seq(
   "org.apache.spark"             %%   "spark-streaming"                % spark % "provided",
   "org.apache.spark"             %%   "spark-mllib"                    % spark % "provided",
   "org.apache.spark"             %%   "spark-sql"                      % spark % "provided",
-  "org.influxdb"                  %   "influxdb-java"                  % influxDBClientVersion
+  "org.influxdb"                  %   "influxdb-java"                  % influxDBClientVersion,
+  "org.scalaj"                    %   "scalaj-http_2.11"               % scalaHttpVersion
+
 
 )
 
