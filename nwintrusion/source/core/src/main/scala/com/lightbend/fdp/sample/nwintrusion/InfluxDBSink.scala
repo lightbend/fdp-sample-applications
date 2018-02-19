@@ -64,6 +64,10 @@ object InfluxDBSink {
       }
       influxDB
     }
+
+    // setup Grafana
+    new GrafanaSetup(c).setGrafana
+
     new InfluxDBSink(f)
   }
 }
