@@ -73,7 +73,8 @@ object CassandraConfig {
 case class InfluxDBConfig(server: String, port: Int, user: String, password: String, enabled: Boolean) {
   def url = s"$server:$port"
 }
-case class GraphanaConfig(server: String, port: Int)
+case class GrafanaConfig(server: String, port: Int)
+
 
 case class InfluxTableConfig(database: String, retentionPolicy: String)
 case class GRPCConfig(host: String, port: Int)
@@ -109,7 +110,7 @@ class WeatherSettings(overrides: Config) extends Serializable {
 
   val grpcConfig = config.as[GRPCConfig]("grpc.ingester.client")
 
-  val graphanaConfig = config.as[GraphanaConfig]("graphana")
+  val graphanaConfig = config.as[GrafanaConfig]("graphana")
 
   override def equals(obj: scala.Any): Boolean = {
     obj match {
@@ -120,8 +121,6 @@ class WeatherSettings(overrides: Config) extends Serializable {
   }
 
   override def hashCode(): Int = config.hashCode()
-
-
 
 }
 

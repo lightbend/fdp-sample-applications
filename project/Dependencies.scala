@@ -103,17 +103,20 @@ object Dependencies {
   /** Module deps */
   val clientHTTP = logging ++ akka ++ json
   val clientGRPC = logging ++ akka ++ grpc
+
   val loaders = common ++ json :+ scalaHTTPClean
   val core = common ++ logging ++ time ++ connector ++ spark ++ Seq(
     curator.
       exclude("io.netty", "netty"),
     kafka.
       exclude("org.slf4j", "slf4j-log4j12").
-      exclude("io.netty", "netty"))
+      exclude("io.netty", "netty"),
+    scalaHTTPClean
+  )
   val app = common ++ connector  ++ spark ++ Seq(influxDBClient, scalaHTTPClean)
 
-  val appStructured = common ++ connector  ++ sparkStructured ++ Seq(influxDBClient, scalaHTTPClean)
+  val appStructured = common ++ connector  ++ sparkStructured ++ Seq(influxDBClient)
 
-  val beamDependencies = Seq(beamAPI, beamJoin, beamJava, sparkCassandra , beamKafka, influxDBClient, scalaHTTPClean)
+  val beamDependencies = Seq(beamAPI, beamJoin, beamJava, sparkCassandra , beamKafka, influxDBClient)
 
 }

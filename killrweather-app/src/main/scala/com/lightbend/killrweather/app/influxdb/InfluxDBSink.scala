@@ -3,11 +3,11 @@ package com.lightbend.killrweather.app.influxdb
 import java.util.concurrent.TimeUnit
 
 import com.lightbend.killrweather.WeatherClient.WeatherRecord
-import com.lightbend.killrweather.app.grafana.GrafanaSetup
+import com.lightbend.killrweather.grafana.GrafanaSetup
 import com.lightbend.killrweather.settings.WeatherSettings
-import com.lightbend.killrweather.utils.{ DailyTemperature, MonthlyTemperature }
+import com.lightbend.killrweather.utils.{DailyTemperature, MonthlyTemperature}
 import org.influxdb.dto.Point
-import org.influxdb.{ InfluxDB, InfluxDBFactory }
+import org.influxdb.{InfluxDB, InfluxDBFactory}
 
 class InfluxDBSink(createWriter: () => InfluxDB) extends Serializable {
 
@@ -98,8 +98,10 @@ object InfluxDBSink {
       influxDB
     }
     try {
+
       val graphanaConfig = settings.graphanaConfig
       new GrafanaSetup(graphanaConfig.port.toString, graphanaConfig.server).setGrafana()
+
     } catch {
       case t: Throwable => println("Grafana not initialized")
     }
