@@ -110,7 +110,7 @@ class WeatherSettings(overrides: Config) extends Serializable {
 
   val grpcConfig = config.as[GRPCConfig]("grpc.ingester.client")
 
-  val graphanaConfig = config.as[GrafanaConfig]("graphana")
+  val graphanaConfig = config.as[GrafanaConfig]("grafana")
 
   override def equals(obj: scala.Any): Boolean = {
     obj match {
