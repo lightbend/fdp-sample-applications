@@ -119,4 +119,5 @@ object Dependencies {
 
   val beamDependencies = Seq(beamAPI, beamJoin, beamJava, sparkCassandra , beamKafka, influxDBClient)
 
+
 }

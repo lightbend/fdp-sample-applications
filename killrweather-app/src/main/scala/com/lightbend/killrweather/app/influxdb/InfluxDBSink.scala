@@ -98,10 +98,8 @@ object InfluxDBSink {
       influxDB
     }
     try {
-
       val graphanaConfig = settings.graphanaConfig
       new GrafanaSetup(graphanaConfig.port.toString, graphanaConfig.server).setGrafana()
-
     } catch {
       case t: Throwable => println("Grafana not initialized")
     }

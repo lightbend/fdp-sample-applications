@@ -48,6 +48,7 @@ import com.datastax.driver.core.ConsistencyLevel
  *
  */
 
+
 case class KafkaConfig(brokers: String, topic: String, group: String)
 case class StreamingConfig(batchInterval: FiniteDuration, checkpointDir: String)
 case class CassandraConfig(
@@ -70,14 +71,17 @@ object CassandraConfig {
 }
 
 
+
 case class InfluxDBConfig(server: String, port: Int, user: String, password: String, enabled: Boolean) {
   def url = s"$server:$port"
 }
 case class GrafanaConfig(server: String, port: Int)
 
 
+
 case class InfluxTableConfig(database: String, retentionPolicy: String)
 case class GRPCConfig(host: String, port: Int)
+
 
 class WeatherSettings(overrides: Config) extends Serializable {
 

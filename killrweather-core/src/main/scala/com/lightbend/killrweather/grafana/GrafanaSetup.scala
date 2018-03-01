@@ -1,6 +1,7 @@
 package com.lightbend.killrweather.grafana
 
 import com.lightbend.killrweather.settings.WeatherSettings
+
 import scala.io.Source
 import scalaj.http.Http
 
@@ -20,12 +21,14 @@ class GrafanaSetup(user: String = "admin", password: String = "admin") {
 }
 
 object GrafanaSetup {
+
   val settings = WeatherSettings()
 
   val grafanaServer = settings.graphanaConfig.server
   val grafanaPort = settings.graphanaConfig.port
   val datasource = s"http://$grafanaServer:$grafanaPort/api/datasources"
   val dashboard = s"http://$grafanaServer:$grafanaPort/api/dashboards/db"
+
   val dsfile = "/grafana-source.json"
   val dashfile = "/grafana-dashboard.json"
 
