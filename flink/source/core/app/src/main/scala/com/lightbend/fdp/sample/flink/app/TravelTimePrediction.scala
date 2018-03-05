@@ -10,25 +10,13 @@ import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrderness
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.streaming.api.TimeCharacteristic
 import org.apache.flink.streaming.api.windowing.time.{ Time => StreamingTime }
-import org.apache.flink.streaming.connectors.kafka.{FlinkKafkaConsumer010, FlinkKafkaProducer010}
+import org.apache.flink.streaming.connectors.kafka.{FlinkKafkaConsumer011, FlinkKafkaProducer011}
 
 object TravelTimePrediction {
 
   private val RIDE_SPEED_GROUP = s"rideSpeedGroup${System.currentTimeMillis}"
-  private val MAX_EVENT_DELAY = 60 // events are out of order by max 60 seconds
+  val MAX_EVENT_DELAY = 60 // events are out of order by max 60 seconds
   
-  /**
-    * Assigns timestamps to TaxiRide records.
-    * Watermarks are periodically assigned, a fixed time interval behind the max timestamp.
-    */
-  class TaxiRideTSAssigner
-    extends BoundedOutOfOrdernessTimestampExtractor[TaxiRide](StreamingTime.seconds(MAX_EVENT_DELAY)) {
-
-    override def extractTimestamp(ride: TaxiRide): Long = {
-      if(ride.isStart) ride.startTime.getMillis else ride.endTime.getMillis
-    }
-  }
-
   def main(args: Array[String]): Unit = {
 
     // parse parameters
@@ -61,7 +49,7 @@ object TravelTimePrediction {
     kafkaProps.setProperty("auto.offset.reset", "earliest")
 
     // create a Kafka consumer
-    val consumer = new FlinkKafkaConsumer010[TaxiRide](
+    val consumer = new FlinkKafkaConsumer011[TaxiRide](
       inTopic,
       new TaxiRideSchema,
       kafkaProps)
@@ -72,6 +60,14 @@ object TravelTimePrediction {
     // create a Kafka source
     // get the taxi ride data stream
     val rides: DataStream[TaxiRide] = env.addSource(consumer)
+    /*
+    rides
+      .filter(r => GeoUtils.isInNYC(r.startLon, r.startLat) && GeoUtils.isInNYC(r.endLon, r.endLat))
+      .map(r => (GeoUtils.mapToGridCell(r.endLon, r.endLat), r))
+      .keyBy(_._1)
+      .flatMap(new PredictionModel())
+      .print()
+      */
     
     val filteredRides: DataStream[PredictedTime] = rides
 
@@ -89,13 +85,25 @@ object TravelTimePrediction {
 
     // output the predictions
     filteredRides.addSink(
-      new FlinkKafkaProducer010[PredictedTime](
+      new FlinkKafkaProducer011[PredictedTime](
         brokers,
         outTopic,
         new PredictedTimeSchema))
 
     // run the prediction pipeline
     env.execute("Travel Time Prediction")
+  }
+}
+
+/**
+  * Assigns timestamps to TaxiRide records.
+  * Watermarks are periodically assigned, a fixed time interval behind the max timestamp.
+  */
+class TaxiRideTSAssigner
+  extends BoundedOutOfOrdernessTimestampExtractor[TaxiRide](StreamingTime.seconds(TravelTimePrediction.MAX_EVENT_DELAY)) {
+
+  override def extractTimestamp(ride: TaxiRide): Long = {
+    if(ride.isStart) ride.startTime.getMillis else ride.endTime.getMillis
   }
 }
 

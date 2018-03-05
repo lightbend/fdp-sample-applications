@@ -16,7 +16,7 @@
 
 package com.lightbend.fdp.sample.flink.app;
 
-import org.apache.flink.streaming.api.checkpoint.Checkpointed;
+import org.apache.flink.streaming.api.checkpoint.ListCheckpointed;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.apache.flink.streaming.api.watermark.Watermark;
 
@@ -25,6 +25,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Collections;
+import java.util.List;
 import java.util.zip.GZIPInputStream;
 
 /**
@@ -50,7 +52,7 @@ import java.util.zip.GZIPInputStream;
  *   StreamExecutionEnvironment.enableCheckpointing(Long)
  *
  */
-public class CheckpointedTaxiRideSource implements SourceFunction<TaxiRide>, Checkpointed<Long> {
+public class CheckpointedTaxiRideSource implements SourceFunction<TaxiRide>, ListCheckpointed<Long> {
 
 	private final String dataFilePath;
 	private final int servingSpeed;
@@ -94,7 +96,7 @@ public class CheckpointedTaxiRideSource implements SourceFunction<TaxiRide>, Che
 		gzipStream = new GZIPInputStream(new FileInputStream(dataFilePath));
 		reader = new BufferedReader(new InputStreamReader(gzipStream, "UTF-8"));
 
-		long prevRideTime = 0;
+		Long prevRideTime = null;
 
 		String line;
 		long cnt = 0;
@@ -111,9 +113,11 @@ public class CheckpointedTaxiRideSource implements SourceFunction<TaxiRide>, Che
 
 			TaxiRide ride = TaxiRide.fromString(line);
 			long rideTime = getEventTime(ride);
-			long diff = (rideTime - prevRideTime) / servingSpeed;
 
-			Thread.sleep(diff);
+			if (prevRideTime != null) {
+			  long diff = (rideTime - prevRideTime) / servingSpeed;
+			  Thread.sleep(diff);
+			}
 
 			synchronized (lock) {
 				eventCnt++;
@@ -132,12 +136,7 @@ public class CheckpointedTaxiRideSource implements SourceFunction<TaxiRide>, Che
 	}
 
 	public long getEventTime(TaxiRide ride) {
-		if (ride.isStart) {
-			return ride.startTime.getMillis();
-		}
-		else {
-			return ride.endTime.getMillis();
-		}
+		return ride.getEventTime();
 	}
 
 	@Override
@@ -158,13 +157,14 @@ public class CheckpointedTaxiRideSource implements SourceFunction<TaxiRide>, Che
 	}
 
 	@Override
-	public Long snapshotState(long checkpointId, long checkpointTimestamp) throws Exception {
-		return eventCnt;
+	public List<Long> snapshotState(long checkpointId, long checkpointTimestamp) throws Exception {
+		return Collections.singletonList(eventCnt);
 	}
 
 	@Override
-	public void restoreState(Long state) throws Exception {
-		this.eventCnt = state;
+	public void restoreState(List<Long> state) throws Exception {
+		for (Long s : state)
+			this.eventCnt = s;
 	}
 }
 

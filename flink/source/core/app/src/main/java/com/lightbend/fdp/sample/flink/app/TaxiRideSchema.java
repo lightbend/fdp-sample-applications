@@ -18,8 +18,8 @@ package com.lightbend.fdp.sample.flink.app;
 
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.typeutils.TypeExtractor;
-import org.apache.flink.streaming.util.serialization.DeserializationSchema;
-import org.apache.flink.streaming.util.serialization.SerializationSchema;
+import org.apache.flink.api.common.serialization.DeserializationSchema;
+import org.apache.flink.api.common.serialization.SerializationSchema;
 
 /**
  * Implements a SerializationSchema and DeserializationSchema for TaxiRide for Kafka data sources and sinks.

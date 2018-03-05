@@ -1,5 +1,5 @@
 object Versions {
-  val flinkVersion = "1.3.2"
+  val flinkVersion = "1.4.0"
   val kafkaVersion = "1.0.0"
   val scalaLoggingVersion = "3.5.0"
   val alpakkaFileVersion = "0.16"
