@@ -11,7 +11,7 @@ import org.influxdb.dto.Point
 
 class InfluxDBSinkForEachKillrweatherRaw extends ForeachWriter[WeatherRecord] {
 
-  val settings = new WeatherSettings()
+  val settings = WeatherSettings()
 
   import settings._
 
@@ -19,18 +19,19 @@ class InfluxDBSinkForEachKillrweatherRaw extends ForeachWriter[WeatherRecord] {
 
   override def open(partitionId: Long, version: Long): Boolean = {
     //    influxDB = InfluxDBFactory.connect(s"$influxDBServer:$influxDBPort", influxDBUser, influxDBPass)
-    influxDB = InfluxDBFactory.connect("http://10.2.2.187:13698", influxDBUser, influxDBPass)
-    if (!influxDB.databaseExists(influxDBDatabase)) {
-      influxDB.createDatabase(influxDBDatabase)
-      influxDB.dropRetentionPolicy("autogen", influxDBDatabase)
-      influxDB.createRetentionPolicy(retentionPolicy, influxDBDatabase, "1d", "30m", 1, true)
+
+    influxDB = InfluxDBFactory.connect(influxConfig.url, influxConfig.user, influxConfig.password)
+    if (!influxDB.databaseExists(influxTableConfig.database)) {
+      influxDB.createDatabase(influxTableConfig.database)
+      influxDB.dropRetentionPolicy("autogen", influxTableConfig.database)
+      influxDB.createRetentionPolicy(influxTableConfig.retentionPolicy, influxTableConfig.database, "1d", "30m", 1, true)
     }
 
-    influxDB.setDatabase(influxDBDatabase)
+    influxDB.setDatabase(influxTableConfig.database)
     // Flush every 2000 Points, at least every 100ms
     influxDB.enableBatch(2000, 100, TimeUnit.MILLISECONDS)
     // set retention policy
-    influxDB.setRetentionPolicy(retentionPolicy)
+    influxDB.setRetentionPolicy(influxTableConfig.retentionPolicy)
     //    println(s"InfluxDB opening raw with connector $influxDB")
     true
   }
@@ -66,24 +67,23 @@ class InfluxDBSinkForEachKillrweatherRaw extends ForeachWriter[WeatherRecord] {
 }
 
 class InfluxDBSinkForEachKillrweatherDaily extends ForeachWriter[DailyWeatherData] {
-
-  val settings = new WeatherSettings()
+  //TODO: Review propagation of config
+  val settings = WeatherSettings()
 
   import settings._
 
   var influxDB: InfluxDB = null
-
+  //TODO: Review DRY
   override def open(partitionId: Long, version: Long): Boolean = {
-    //influxDB = InfluxDBFactory.connect(s"$influxDBServer:$influxDBPort", influxDBUser, influxDBPass)
-    influxDB = InfluxDBFactory.connect("http://10.2.2.187:13698", influxDBUser, influxDBPass)
-    if (!influxDB.databaseExists(influxDBDatabase))
-      influxDB.createDatabase(influxDBDatabase)
+    influxDB = InfluxDBFactory.connect(influxConfig.url, influxConfig.user, influxConfig.password)
+    if (!influxDB.databaseExists(influxTableConfig.database))
+      influxDB.createDatabase(influxTableConfig.database)
 
-    influxDB.setDatabase(influxDBDatabase)
+    influxDB.setDatabase(influxTableConfig.database)
     // Flush every 2000 Points, at least every 100ms
     influxDB.enableBatch(2000, 100, TimeUnit.MILLISECONDS)
     // set retention policy
-    influxDB.setRetentionPolicy(retentionPolicy)
+    influxDB.setRetentionPolicy(influxTableConfig.retentionPolicy)
     true
   }
 
@@ -115,28 +115,27 @@ class InfluxDBSinkForEachKillrweatherDaily extends ForeachWriter[DailyWeatherDat
 
 class InfluxDBSinkForEachKillrweatherMonthly extends ForeachWriter[MonthlyWeatherData] {
 
-  val settings = new WeatherSettings()
+  val settings = WeatherSettings()
 
   import settings._
 
   var influxDB: InfluxDB = null
-
+  // TODO: Really cleanup repetition here!
   override def open(partitionId: Long, version: Long): Boolean = {
-    //influxDB = InfluxDBFactory.connect(s"$influxDBServer:$influxDBPort", influxDBUser, influxDBPass)
-    influxDB = InfluxDBFactory.connect("http://10.2.2.187:13698", influxDBUser, influxDBPass)
-    if (!influxDB.databaseExists(influxDBDatabase))
-      influxDB.createDatabase(influxDBDatabase)
+    influxDB = InfluxDBFactory.connect(influxConfig.url, influxConfig.user, influxConfig.password)
+    if (!influxDB.databaseExists(influxTableConfig.database))
+      influxDB.createDatabase(influxTableConfig.database)
 
-    influxDB.setDatabase(influxDBDatabase)
+    influxDB.setDatabase(influxTableConfig.database)
     // Flush every 2000 Points, at least every 100ms
     influxDB.enableBatch(2000, 100, TimeUnit.MILLISECONDS)
     // set retention policy
-    influxDB.setRetentionPolicy(retentionPolicy)
+    influxDB.setRetentionPolicy(influxTableConfig.retentionPolicy)
     true
   }
 
   override def process(point: MonthlyWeatherData): Unit = {
-    influxDB.write(converNonthly(point))
+    influxDB.write(convertMonthly(point))
   }
 
   override def close(errorOrNull: Throwable): Unit = {
@@ -146,7 +145,7 @@ class InfluxDBSinkForEachKillrweatherMonthly extends ForeachWriter[MonthlyWeathe
     }
   }
 
-  def converNonthly(monthlyTemp: MonthlyWeatherData): Point = {
+  def convertMonthly(monthlyTemp: MonthlyWeatherData): Point = {
     val monthlyTempPoint = Point.measurement("monthly_temp_weather").time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
     monthlyTempPoint.addField("year", monthlyTemp.year.toLong)
     monthlyTempPoint.addField("month", monthlyTemp.month.toLong)

@@ -2,7 +2,6 @@ package com.lightbend.killrweather.grafana
 
 import com.lightbend.killrweather.settings.WeatherSettings
 
-import scala.collection.mutable.ListBuffer
 import scala.io.Source
 import scalaj.http.Http
 
@@ -22,27 +21,28 @@ class GrafanaSetup(user: String = "admin", password: String = "admin") {
 }
 
 object GrafanaSetup {
-  val settings = new WeatherSettings()
-  import settings._
 
-  val datasource = s"http://$GrafanaServer:$GrafanaPort/api/datasources"
-  val dashboard = s"http://$GrafanaServer:$GrafanaPort/api/dashboards/db"
+  val settings = WeatherSettings()
+
+  val grafanaServer = settings.graphanaConfig.server
+  val grafanaPort = settings.graphanaConfig.port
+  val datasource = s"http://$grafanaServer:$grafanaPort/api/datasources"
+  val dashboard = s"http://$grafanaServer:$grafanaPort/api/dashboards/db"
+
   val dsfile = "/grafana-source.json"
   val dashfile = "/grafana-dashboard.json"
 
   def getData(name: String, replace: Boolean): String = {
     val stream = getClass.getResourceAsStream(name)
-    val data = replace match {
-      case true => {
-        val strings = new ListBuffer[String]()
-        Source.fromInputStream(stream).getLines.foreach(s => {
-          if (s.contains("\"url\"")) strings += s""" "url":"$influxDBServer:$influxDBPort", """
-          else strings += s
-        })
-        strings.mkString
+    val lines = Source.fromInputStream(stream).getLines
+    val data = if(replace) {
+        lines.map{ s =>
+          if (s.contains("\"url\""))  s""" "url":"${settings.influxConfig.server}:${settings.influxConfig.port}", """
+          else  s
+        }.mkString
+      } else {
+        lines.mkString
       }
-      case _ => Source.fromInputStream(stream).getLines.mkString
-    }
     stream.close()
     data
   }

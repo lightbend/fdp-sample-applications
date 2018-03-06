@@ -15,19 +15,15 @@ object KillrWeatherStructured {
   def main(args: Array[String]): Unit = {
 
     // Create context
-
-    WeatherSettings.handleArgs("KillrWeather", args)
-    val settings = new WeatherSettings()
+    val settings = WeatherSettings("KillrWeather", args)
     import settings._
 
-    println(s"Running KillrweatherStructured. Kafka: $kafkaBrokers; Cassandra : $CassandraHosts; " +
-      s"InfluxDB : host $influxDBServer, port $influxDBPort; Grafana : host $GrafanaServer, port $GrafanaPort")
+    println(s"Running KillrweatherStructured. Kafka: ${settings.kafkaConfig}; Cassandra : ${settings.cassandraConfig}; " +
+      s"InfluxDB : ${settings.influxConfig}; Grafana: ${settings.graphanaConfig}")
     val spark = SparkSession.builder
       .appName("KillrWeather with Structured Streaming")
-      //      .master("local")
-      .config("spark.cassandra.connection.host", CassandraHosts )
-      .config("spark.sql.streaming.checkpointLocation", SparkCheckpointDir)
-      .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+      .config(settings.sparkConf())
+      .config("spark.sql.streaming.checkpointLocation", streamingConfig.checkpointDir)
       .getOrCreate()
 
     // Initialize Cassandra
@@ -51,10 +47,10 @@ object KillrWeatherStructured {
     val raw = spark
       .readStream
       .format("kafka")
-      .option("kafka.bootstrap.servers", /*"10.2.2.221:1025" */ kafkaBrokers)
-      .option("subscribe", KafkaTopicRaw)
+      .option("kafka.bootstrap.servers", kafkaConfig.brokers)
+      .option("subscribe", kafkaConfig.topic)
       //      .option(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true) // Cannot be set to true in Spark Strucutured Streaming https://spark.apache.org/docs/latest/structured-streaming-kafka-integration.html#kafka-specific-configurations
-      .option(ConsumerConfig.GROUP_ID_CONFIG, KafkaGroupId + ".structured")
+      .option(ConsumerConfig.GROUP_ID_CONFIG, kafkaConfig.group)
       .option(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest")
       .option("startingOffsets", "latest")
       .option("failOnDataLoss", "false")

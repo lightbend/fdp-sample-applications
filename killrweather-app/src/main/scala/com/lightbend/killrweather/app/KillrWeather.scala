@@ -1,45 +1,37 @@
 package com.lightbend.killrweather.app
 
-import com.lightbend.killrweather.kafka.MessageListener
-import org.apache.spark.SparkConf
-import org.apache.spark.streaming.{ Seconds, State, StateSpec, StreamingContext }
-import com.lightbend.killrweather.settings.WeatherSettings
+import org.apache.spark.streaming._
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
 import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
 import org.apache.spark.streaming.kafka010.KafkaUtils
 import org.apache.spark.streaming.kafka010.LocationStrategies.PreferConsistent
 import com.datastax.spark.connector.streaming._
+import com.lightbend.killrweather.kafka.MessageListener
+import com.lightbend.killrweather.settings.WeatherSettings
 import com.lightbend.killrweather.WeatherClient.WeatherRecord
 import com.lightbend.killrweather.app.cassandra.CassandraSetup
 import com.lightbend.killrweather.app.influxdb.InfluxDBSink
 import com.lightbend.killrweather.utils._
+import org.apache.spark.sql.SparkSession
 import org.apache.spark.util.StatCounter
 
 import scala.collection.mutable.ListBuffer
 
-/**
- * Created by boris on 7/9/17.
- */
 object KillrWeather {
 
   def main(args: Array[String]): Unit = {
 
     // Create context
 
-    WeatherSettings.handleArgs("KillrWeather", args)
+    val killrSettings = WeatherSettings("KillrWeather", args)
+    import killrSettings._
+    println(s"Running Killrweather. Kafka: $kafkaConfig; Cassandra : $cassandraConfig; " +
+      s"InfluxDB: $influxConfig; Grafana: $graphanaConfig")
 
-    val settings = new WeatherSettings()
-    import settings._
-
-    println(s"Running Killrweather. Kafka: $kafkaBrokers; Cassandra : $CassandraHosts; " +
-      s"InfluxDB : host $influxDBServer, port $influxDBPort; Grafana : host $GrafanaServer, port $GrafanaPort")
-
-    var sparkConf = new SparkConf().setAppName("KillrWeather")
-      .set(
-        "spark.cassandra.connection.host",
-        CassandraHosts
-      )
-      .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+    val sparkSession = SparkSession.builder()
+      .config(killrSettings.sparkConf())
+      .appName("KillrWeather")
+      .getOrCreate()
 
     // Initialize Cassandra
     try {
@@ -47,19 +39,17 @@ object KillrWeather {
     } catch {
       case t: Throwable => println("Cassandra not initialized")
     }
+    val sc = sparkSession.sparkContext
+    val ssc = new StreamingContext(sc, Duration(streamingConfig.batchInterval.toMillis))
 
-    sys.props.get("spark.master").foreach(master => sparkConf = sparkConf.setMaster(master))
-
-    val ssc = new StreamingContext(sparkConf, Seconds(SparkStreamingBatchInterval / 1000))
-    ssc.checkpoint(SparkCheckpointDir)
-    val sc = ssc.sparkContext
+    ssc.checkpoint(streamingConfig.checkpointDir)
 
     // Create raw data observations stream
     val kafkaParams = MessageListener.consumerProperties(
-      kafkaBrokers,
-      KafkaGroupId, classOf[ByteArrayDeserializer].getName, classOf[ByteArrayDeserializer].getName
+      kafkaConfig.brokers,
+      kafkaConfig.group, classOf[ByteArrayDeserializer].getName, classOf[ByteArrayDeserializer].getName
     )
-    val topics = List(KafkaTopicRaw)
+    val topics = List(kafkaConfig.topic)
 
     // Initial state RDD for daily accumulator
     val dailyRDD = ssc.sparkContext.emptyRDD[(String, ListBuffer[WeatherRecord])]
@@ -81,7 +71,7 @@ object KillrWeather {
     })
 
     /** Saves the raw data to Cassandra - raw table. */
-    kafkaStream.saveToCassandra(CassandraKeyspace, CassandraTableRaw)
+    kafkaStream.saveToCassandra(cassandraConfig.keyspace, cassandraConfig.tableRaw)
 
     // Calculate daily
     val dailyMappingFunc = (station: String, reading: Option[WeatherRecord], state: State[ListBuffer[WeatherRecord]]) => {
@@ -126,16 +116,16 @@ object KillrWeather {
       val dt = DailyTemperature(ds._2)
       influxDBSink.value.write(dt)
       dt
-    }).saveToCassandra(CassandraKeyspace, CassandraTableDailyTemp)
+    }).saveToCassandra(cassandraConfig.keyspace, cassandraConfig.tableDailyTemp)
 
     // Save daily wind
-    dailyStream.map(ds => DailyWindSpeed(ds._2)).saveToCassandra(CassandraKeyspace, CassandraTableDailyWind)
+    dailyStream.map(ds => DailyWindSpeed(ds._2)).saveToCassandra(cassandraConfig.keyspace, cassandraConfig.tableDailyWind)
 
     // Save daily pressure
-    dailyStream.map(ds => DailyPressure(ds._2)).saveToCassandra(CassandraKeyspace, CassandraTableDailyPressure)
+    dailyStream.map(ds => DailyPressure(ds._2)).saveToCassandra(cassandraConfig.keyspace, cassandraConfig.tableDailyPressure)
 
-    // Save daily presipitations
-    dailyStream.map(ds => DailyPrecipitation(ds._2)).saveToCassandra(CassandraKeyspace, CassandraTableDailyPrecip)
+    // Save daily precipitations
+    dailyStream.map(ds => DailyPrecipitation(ds._2)).saveToCassandra(cassandraConfig.keyspace, cassandraConfig.tableDailyPrecip)
 
     // Calculate monthly
     val monthlyMappingFunc = (station: String, reading: Option[DailyWeatherDataProcess], state: State[ListBuffer[DailyWeatherDataProcess]]) => {
@@ -176,16 +166,16 @@ object KillrWeather {
       val mt = MonthlyTemperature(ds._2)
       influxDBSink.value.write(mt)
       mt
-    }).saveToCassandra(CassandraKeyspace, CassandraTableMonthlyTemp)
+    }).saveToCassandra(cassandraConfig.keyspace, cassandraConfig.tableMonthlyTemp)
 
     // Save monthly wind
-    monthlyStream.map(ds => MonthlyWindSpeed(ds._2)).saveToCassandra(CassandraKeyspace, CassandraTableMonthlyWind)
+    monthlyStream.map(ds => MonthlyWindSpeed(ds._2)).saveToCassandra(cassandraConfig.keyspace, cassandraConfig.tableMonthlyWind)
 
     // Save monthly pressure
-    monthlyStream.map(ds => MonthlyPressure(ds._2)).saveToCassandra(CassandraKeyspace, CassandraTableMonthlyPressure)
+    monthlyStream.map(ds => MonthlyPressure(ds._2)).saveToCassandra(cassandraConfig.keyspace, cassandraConfig.tableMonthlyPressure)
 
     // Save monthly presipitations
-    monthlyStream.map(ds => MonthlyPrecipitation(ds._2)).saveToCassandra(CassandraKeyspace, CassandraTableMonthlyPrecip)
+    monthlyStream.map(ds => MonthlyPrecipitation(ds._2)).saveToCassandra(cassandraConfig.keyspace, cassandraConfig.tableMonthlyPrecip)
 
     // Execute
     ssc.start()

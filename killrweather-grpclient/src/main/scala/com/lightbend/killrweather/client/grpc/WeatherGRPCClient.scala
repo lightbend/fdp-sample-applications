@@ -31,18 +31,14 @@ object WeatherGRPCClient {
 
   def main(args: Array[String]): Unit = {
 
-    WeatherSettings.handleArgs("WeatherGRPCClient", args)
-
-    val settings = new WeatherSettings()
+    val settings = WeatherSettings("WeatherGRPCClient", args)
     import settings._
 
-    println(s"Running GRPC Client. Kafka: $kafkaBrokers")
+    println(s"Running GRPC Client. Kafka: ${kafkaConfig.brokers}")
     _producerSettings = ProducerSettings(system, new ByteArraySerializer, new ByteArraySerializer)
-      .withBootstrapServers(
-        kafkaBrokers
-      )
+      .withBootstrapServers(kafkaConfig.brokers)
 
-    val server = WeatherGRPCClient(KafkaTopicRaw)
+    val server = WeatherGRPCClient(kafkaConfig.topic)
     server.start()
     server.blockUntilShutdown()
 

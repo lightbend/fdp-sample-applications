@@ -17,16 +17,13 @@ import org.apache.spark.util.StatCounter
 
 import scala.collection.mutable.ListBuffer
 
-/**
- * Created by boris on 7/9/17.
- */
 object KillrWeatherEventStore {
 
   def main(args: Array[String]): Unit = {
 
     // Create context
 
-    val settings = new WeatherSettings()
+    val settings = WeatherSettings()
     import settings._
 
     // Initialize Event Store
@@ -37,7 +34,7 @@ object KillrWeatherEventStore {
     // Create embedded Kafka and topic
     val kafka = KafkaLocalServer(true)
     kafka.start()
-    kafka.createTopic(KafkaTopicRaw)
+    kafka.createTopic(kafkaConfig.topic)
 
     println(s"Kafka Cluster created")
     val brokers = "localhost:9092"
@@ -49,22 +46,16 @@ object KillrWeatherEventStore {
       .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .getOrCreate()
 
-    val ssc = new StreamingContext(spark.sparkContext, Seconds(SparkStreamingBatchInterval / 1000))
-    ssc.checkpoint(SparkCheckpointDir)
+    val ssc = new StreamingContext(spark.sparkContext, Seconds(streamingConfig.batchInterval.toSeconds))
+    ssc.checkpoint(streamingConfig.checkpointDir)
 
 
     // Create raw data observations stream
     val kafkaParams = MessageListener.consumerProperties(
       brokers,
-      KafkaGroupId, classOf[ByteArrayDeserializer].getName, classOf[ByteArrayDeserializer].getName
+      kafkaConfig.group, classOf[ByteArrayDeserializer].getName, classOf[ByteArrayDeserializer].getName
     )
-    val topics = List(KafkaTopicRaw)
-
-    // Initial state RDD for daily accumulator
-    val dailyRDD = ssc.sparkContext.emptyRDD[(String, ListBuffer[WeatherRecord])]
-
-    // Initial state RDD for monthly accumulator
-    val monthlyRDD = ssc.sparkContext.emptyRDD[(String, ListBuffer[DailyWeatherDataProcess])]
+    val topics = List(kafkaConfig.topic)
 
     // Create broadcast variable for the sink definition
     val eventStoreSink = spark.sparkContext.broadcast(EventStoreSink())
@@ -75,7 +66,7 @@ object KillrWeatherEventStore {
 
     val kafkaStream = kafkaDataStream.map(r => WeatherRecord.parseFrom(r.value()))
 
-    /** Saves the raw data to Cassandra - raw table. */
+    /** Saves the raw data to EventStore - raw table. */
     kafkaStream.foreachRDD { spark.createDataFrame(_).foreachPartition(eventStoreSink.value.writeRaw(_)) }
 
     // Calculate daily
@@ -110,7 +101,7 @@ object KillrWeatherEventStore {
     }
 
     // Define StateSpec<KeyType,ValueType,StateType,MappedType> - types are derived from function
-    val dailyStream = kafkaStream.map(r => (r.wsid, r)).mapWithState(StateSpec.function(dailyMappingFunc).initialState(dailyRDD))
+    val dailyStream = kafkaStream.map(r => (r.wsid, r)).mapWithState(StateSpec.function(dailyMappingFunc))
       .filter(_.isDefined).map(_.get)
 
     // Just for testing
@@ -164,7 +155,7 @@ object KillrWeatherEventStore {
     }
 
     val monthlyStream = dailyStream.map(r => (r._1, DailyWeatherDataProcess(r._2))).
-      mapWithState(StateSpec.function(monthlyMappingFunc).initialState(monthlyRDD)).filter(_.isDefined).map(_.get)
+      mapWithState(StateSpec.function(monthlyMappingFunc)).filter(_.isDefined).map(_.get)
 
     // Save monthly temperature
     monthlyStream.map(ds => MonthlyTemperature(ds._2))
@@ -178,7 +169,7 @@ object KillrWeatherEventStore {
     monthlyStream.map(ds => MonthlyPressure(ds._2))
       .foreachRDD { spark.createDataFrame(_).foreachPartition(eventStoreSink.value.writeMothlyPressure(_)) }
 
-    // Save monthly presipitations
+    // Save monthly precipitations
     monthlyStream.map(ds => MonthlyPrecipitation(ds._2))
       .foreachRDD { spark.createDataFrame(_).foreachPartition(eventStoreSink.value.writeMothlyPresip(_)) }
 

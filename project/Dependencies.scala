@@ -45,9 +45,15 @@ object Dependencies {
   val scalaPBGRPC       =  "com.trueaccord.scalapb" %% "scalapb-runtime-grpc"           % com.trueaccord.scalapb.compiler.Version.scalapbVersion
   val grpcNetty         = "io.grpc"                 %  "grpc-netty"                     % GRPCNettyVersion
   val scalaPBJSON       = "com.trueaccord.scalapb"  %% "scalapb-json4s"                 % ScalaPBJSONVersion
-  val scalaHTTP         = "org.scalaj"              % "scalaj-http_2.11"                % ScalaHTTPVersion
+  val scalaHTTP         = "org.scalaj"              %  "scalaj-http_2.11"               % ScalaHTTPVersion
+  val typesafeConfig    = "com.typesafe"            %  "config"                         % TypesafeConfigVersion
+  val ficus             = "com.iheart"              %% "ficus"                          % FicusVersion
+  val scalaTest         = "org.scalatest"           %% "scalatest"                      % ScalatestVersion % "test"
 
-  val influxDBClient    = "org.influxdb"            % "influxdb-java"                   % influxDBClientVersion
+
+  val influxDBClient    = "org.influxdb"            % "influxdb-java"                   % InfluxDBClientVersion
+
+  val scalaHTTPClean = scalaHTTP.exclude("com.fasterxml.jackson.module", "jackson-module-scala_2.11")
 
   val beamJava          = "org.apache.beam"   % "beam-runners-direct-java"              % beamVersion
   val beamKafka         = "org.apache.beam"   % "beam-sdks-java-io-kafka"               % beamVersion
@@ -93,18 +99,25 @@ object Dependencies {
     .exclude("org.spark-project.spark", "unused")
   )
 
+  val common = Seq(scalaTest, typesafeConfig, ficus)
   /** Module deps */
   val clientHTTP = logging ++ akka ++ json
   val clientGRPC = logging ++ akka ++ grpc
-  val loaders = json ++ Seq(
-    scalaHTTP.exclude("com.fasterxml.jackson.module", "jackson-module-scala_2.11"))
-  val core = logging ++ time ++ connector ++ spark ++ Seq(
-    curator.exclude("io.netty", "netty"),
-    kafka.exclude("org.slf4j", "slf4j-log4j12").exclude("io.netty", "netty"),
-    scalaHTTP.exclude("com.fasterxml.jackson.module", "jackson-module-scala_2.11"))
-  val app = connector  ++ spark ++ Seq(influxDBClient, scalaHTTP.exclude("com.fasterxml.jackson.module", "jackson-module-scala_2.11"))
 
-  val appStructured = connector  ++ sparkStructured ++ Seq(influxDBClient)
+  val loaders = common ++ json :+ scalaHTTPClean
+  val core = common ++ logging ++ time ++ connector ++ spark ++ Seq(
+    curator.
+      exclude("io.netty", "netty"),
+    kafka.
+      exclude("org.slf4j", "slf4j-log4j12").
+      exclude("io.netty", "netty"),
+    scalaHTTPClean
+  )
+  val app = common ++ connector  ++ spark ++ Seq(influxDBClient, scalaHTTPClean)
+
+  val appStructured = common ++ connector  ++ sparkStructured ++ Seq(influxDBClient)
 
   val beamDependencies = Seq(beamAPI, beamJoin, beamJava, sparkCassandra , beamKafka, influxDBClient)
+
+
 }

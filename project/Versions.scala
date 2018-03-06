@@ -35,6 +35,9 @@ object Versions {
   val GRPCNettyVersion  = "1.4.0"
   val ScalaPBJSONVersion= "0.3.1"
   val ScalaHTTPVersion  = "2.3.0"
-  val influxDBClientVersion   = "2.8"
+  val InfluxDBClientVersion   = "2.8"
+  val TypesafeConfigVersion = "1.3.2"
+  val ScalatestVersion  = "3.0.4"
+  val FicusVersion      = "1.4.3"
   val beamVersion       = "2.2.0"
 }

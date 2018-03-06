@@ -15,9 +15,17 @@
  */
 package com.lightbend.killrweather.settings
 
-import scala.util.Try
+import com.typesafe.config.{ Config, ConfigFactory }
+
+import scala.collection.JavaConverters._
+import net.ceedubs.ficus.Ficus._
+import net.ceedubs.ficus.readers.ArbitraryTypeReader._
+import org.apache.spark.SparkConf
+
+import scala.concurrent.duration.FiniteDuration
+import scala.util.{ Failure, Success, Try }
+
 import com.datastax.driver.core.ConsistencyLevel
-import com.datastax.spark.connector.cql.{ AuthConf, NoAuthConf, PasswordAuthConf }
 
 /**
  * Application settings. First attempts to acquire from the deploy environment.
@@ -38,162 +46,91 @@ import com.datastax.spark.connector.cql.{ AuthConf, NoAuthConf, PasswordAuthConf
  *
  * Any of these can also be overridden by your own application.conf.
  *
- * TODO: Revert back to using Typesafe Config as in the original implementation and as the comments here suggest!!
  */
-final class WeatherSettings() extends Serializable {
 
-  // val AppName: String = "KillrWeather"  // Don't use, as different apps use WeatherSettings
 
-  val localAddress = "localhost" //InetAddress.getLocalHost.getHostAddress
+case class KafkaConfig(brokers: String, topic: String, group: String)
+case class StreamingConfig(batchInterval: FiniteDuration, checkpointDir: String)
+case class CassandraConfig(
+  keyspace: String,
+  tableRaw: String,
+  tableDailyTemp: String,
+  tableDailyWind: String,
+  tableDailyPressure: String,
+  tableDailyPrecip: String,
+  tableMonthlyTemp: String,
+  tableMonthlyWind: String,
+  tableMonthlyPressure: String,
+  tableMonthlyPrecip: String,
+  tableSky: String,
+  tableStations: String
+)
+object CassandraConfig {
+  val WriteConsistencyLevel: ConsistencyLevel = ConsistencyLevel.valueOf(ConsistencyLevel.LOCAL_ONE.name)
+  val DefaultMeasuredInsertsCount: Int = 128
+}
 
-  // If running Kafka on your local machine, try localhost:9092
-  val kafkaBrokers = sys.env.get("kafka.brokers") match {
-    case Some(kb) => kb
-    case None => "broker.kafka.l4lb.thisdcos.directory:9092" // for DC/OS - only works in the cluster!
-  }
-  println(s"Using Kafka Brokers: $kafkaBrokers")
 
-  val SparkCleanerTtl = (3600 * 2)
 
-  val SparkStreamingBatchInterval = 5000L
+case class InfluxDBConfig(server: String, port: Int, user: String, password: String, enabled: Boolean) {
+  def url = s"$server:$port"
+}
+case class GrafanaConfig(server: String, port: Int)
 
-  val SparkCheckpointDir = "./checkpoints/"
 
-  // If running Cassandra on your local machine, try your local IP address (127.0.0.1 might work)
-  val CassandraHosts = sys.env.get("cassandra.hosts") match {
-    case Some(ch) => ch
-    case None => "node.cassandra.l4lb.thisdcos.directory" // This will work only on cluster
-  }
-  println(s"Using Cassandra Hosts: $CassandraHosts")
 
-  val CassandraAuthUsername: Option[String] = sys.props.get("spark.cassandra.auth.username")
+case class InfluxTableConfig(database: String, retentionPolicy: String)
+case class GRPCConfig(host: String, port: Int)
 
-  val CassandraAuthPassword: Option[String] = sys.props.get("spark.cassandra.auth.password")
 
-  val CassandraAuth: AuthConf = {
-    val credentials = for (
-      username <- CassandraAuthUsername;
-      password <- CassandraAuthPassword
-    ) yield (username, password)
+class WeatherSettings(overrides: Config) extends Serializable {
 
-    credentials match {
-      case Some((user, password)) => PasswordAuthConf(user, password)
-      case None => NoAuthConf
+  val baseConfig = ConfigFactory.load()
+  val config = overrides.withFallback(baseConfig)
+
+  val kafkaConfig: KafkaConfig = config.as[KafkaConfig]("kafka")
+
+  def sparkConf(): SparkConf = {
+    val sparkConfig = config.getConfig("spark")
+      .atKey("spark")
+      .entrySet()
+      .asScala
+      .map { entry => (entry.getKey, entry.getValue.unwrapped.toString) }
+      .toMap
+    val sparkConf = new SparkConf()
+    sparkConfig.foldLeft(sparkConf.setMaster(sparkConfig("spark.master"))) {
+      case (conf, (setting, value)) =>
+        conf.set(setting, value)
     }
   }
 
-  val CassandraRpcPort = 9160
+  val streamingConfig = config.as[StreamingConfig]("streaming")
 
-  val CassandraNativePort = 9042
+  val cassandraConfig = config.as[CassandraConfig]("app.cassandra")
 
-  /* Tuning */
+  val influxConfig = config.as[InfluxDBConfig]("influx")
 
-  val CassandraKeepAlive = 1000
+  val influxTableConfig = config.as[InfluxTableConfig]("app.influx")
 
-  val CassandraRetryCount = 10
+  val grpcConfig = config.as[GRPCConfig]("grpc.ingester.client")
 
-  val CassandraConnectionReconnectDelayMin = 1000
+  val graphanaConfig = config.as[GrafanaConfig]("grafana")
 
-  val CassandraConnectionReconnectDelayMax = 60000
-
-  /* Reads */
-  val CassandraReadPageRowSize = 1000
-
-  val CassandraReadConsistencyLevel: ConsistencyLevel = ConsistencyLevel.valueOf(ConsistencyLevel.LOCAL_ONE.name)
-
-  val CassandraReadSplitSize = 100000
-
-  /* Writes */
-
-  val CassandraWriteParallelismLevel = 5
-
-  val CassandraWriteBatchSizeBytes = 64 * 1024
-
-  private val CassandraWriteBatchSizeRows = "auto"
-
-  val CassandraWriteBatchRowSize: Option[Int] = {
-    val NumberPattern = "([0-9]+)".r
-    CassandraWriteBatchSizeRows match {
-      case "auto" => None
-      case NumberPattern(x) => Some(x.toInt)
-      case other =>
-        throw new IllegalArgumentException(
-          s"Invalid value for 'cassandra.output.batch.size.rows': $other. Number or 'auto' expected"
-        )
+  override def equals(obj: scala.Any): Boolean = {
+    obj match {
+      case w: WeatherSettings =>
+        w.config == this.config
+      case _ => false
     }
   }
 
-  val CassandraWriteConsistencyLevel: ConsistencyLevel = ConsistencyLevel.valueOf(ConsistencyLevel.LOCAL_ONE.name)
+  override def hashCode(): Int = config.hashCode()
 
-  val CassandraDefaultMeasuredInsertsCount: Int = 128
-
-  val KafkaGroupId = "killrweather.group"
-  val KafkaTopicRaw = "killrweather.raw"
-
-  val CassandraKeyspace = "isd_weather_data"
-
-  val CassandraTableRaw = "raw_weather_data"
-
-  val CassandraTableDailyTemp = "daily_aggregate_temperature"
-  val CassandraTableDailyWind = "daily_aggregate_windspeed"
-  val CassandraTableDailyPressure = "daily_aggregate_pressure"
-  val CassandraTableDailyPrecip = "daily_aggregate_precip"
-
-  val CassandraTableMonthlyTemp = "monthly_aggregate_temperature"
-  val CassandraTableMonthlyWind = "monthly_aggregate_windspeed"
-  val CassandraTableMonthlyPressure = "monthly_aggregate_pressure"
-  val CassandraTableMonthlyPrecip = "monthly_aggregate_precip"
-
-  val CassandraTableSky = "sky_condition_lookup"
-  val CassandraTableStations = "weather_station"
-  val DataLoadPath = "./data/load"
-  val DataFileExtension = ".csv.gz"
-
-  // InfluxDB - These settings are effectively ignored if --without-influxdb is used.
-  //  val influxDBServer: String = "http://influx-db.marathon.l4lb.thisdcos.directory"
-  val influxDBServer = sys.env.get("influxdb.host") match {
-    case Some(kb) => kb
-    case None => "http://influxdb.marathon.l4lb.thisdcos.directory" // for DC/OS - only works in the cluster!
-  }
-  println(s"Using InfluxDB host s: $influxDBServer")
-
-  val influxDBPort = sys.env.get("influxdb.port") match {
-    case Some(kb) => kb
-    case None => "8086" // for DC/OS - only works in the cluster!
-  }
-  println(s"Using InfluxDB port s: $influxDBPort")
-
-  val influxDBUser: String = "root"
-  val influxDBPass: String = "root"
-  val influxDBDatabase: String = "weather"
-  val retentionPolicy: String = "default"
-
-  // Grafana
-  val GrafanaServer = sys.env.get("grafana.host") match {
-    case Some(kb) => kb
-    case None => "grafana.marathon.l4lb.thisdcos.directory" // for DC/OS - only works in the cluster!
-  }
-  println(s"Using Grafana host s: $GrafanaServer")
-
-  val GrafanaPort = sys.env.get("grafana.port") match {
-    case Some(kb) => kb
-    case None => "3000"                                      // for DC/OS - only works in the cluster!
-  }
-  println(s"Using Grafana port s: $GrafanaPort")
-
-  /** Attempts to acquire from environment, then java system properties. */
-  def withFallback[T](env: Try[T], key: String): Option[T] = env match {
-    case null => None
-    case value => value.toOption
-  }
 }
 
 object WeatherSettings {
 
-  val USE_INFLUXDB_KEY = "killrweather.useinfluxdb"
-  val USE_INFLUXDB_DEFAULT_VALUE = true;
-
-  def handleArgs(appName: String, args: Array[String]): Unit = {
+  def apply(appName: String, args: Array[String]): WeatherSettings = {
 
     // TODO: If WeatherSettings is switched to use Typesafe Config, then some of these flags can be handled through application.conf.
     def showHelp(): Unit = {
@@ -202,8 +139,8 @@ object WeatherSettings {
 
         where the options are:
           -h | --help              Show this message and exit.
-          --with-influxdb          Set the system property ${USE_INFLUXDB_KEY} to ${USE_INFLUXDB_DEFAULT_VALUE} (default)
-          --without-influxdb       Set the system property ${USE_INFLUXDB_KEY} to ${!USE_INFLUXDB_DEFAULT_VALUE}
+          --with-influxdb          Uses InfluxDB as data timeseries store (default)
+          --without-influxdb       Do not use InfluxDB as timeseries store
           --kafka-brokers kb       IP or domain name for Kafka brokers (default: broker.kafka.l4lb.thisdcos.directory:9092).
           --cassandra-hosts ch     IP or domain name for Cassandra hosts (default: node.cassandra.l4lb.thisdcos.directory).
 
@@ -215,54 +152,46 @@ object WeatherSettings {
         """)
     }
 
-    // Parse the args and set system properties for the optional flags
-    def parseArgs(args2: Seq[String]): Unit = args2 match {
+    class HelpOptionException extends Exception("show help")
 
-      case ("-h" | "--help") +: tail =>
-        showHelp()
-        sys.exit(0)
+    // Parse the args and set system properties for the optional flags
+    def parseArgs(args2: Seq[String]): Try[Map[String, String]] = args2 match {
+      case ("-h" | "--help") +: _ =>
+        Failure(new HelpOptionException)
 
       case "--master" +: master +: tail =>
         println(s"Using Spark master: $master")
-        setProp("spark.master", master)
-        parseArgs(tail)
+        parseArgs(tail).map(m => m + ("spark.master" -> master))
 
       case "--with-influxdb" +: tail =>
-        setProp(USE_INFLUXDB_KEY, USE_INFLUXDB_DEFAULT_VALUE.toString)
-        parseArgs(tail)
+        parseArgs(tail).map(m => m + ("influx.enabled" -> "true"))
 
       case "--without-influxdb" +: tail =>
-        setProp(USE_INFLUXDB_KEY, (!USE_INFLUXDB_DEFAULT_VALUE).toString)
-        parseArgs(tail)
+        parseArgs(tail).map(m => m + ("influx.enabled" -> "false"))
 
       case "--kafka-brokers" +: kb +: tail =>
-        setProp("kafka.brokers", kb)
-        parseArgs(tail)
+        parseArgs(tail).map(m => m + ("kafka.brokers" -> kb))
 
       case "--cassandra-hosts" +: ch +: tail =>
-        setProp("cassandra.hosts", ch)
-        parseArgs(tail)
+        parseArgs(tail).map(m => m + ("spark.cassandra.connection.host" -> ch))
 
       case "--grpc-host" +: gh +: tail =>
-        gh.split(":", 2) match {
-          case Array(host, port) =>
-            setProp("grpc.ingester.client.host", host)
-            setProp("grpc.ingester.client.port", port)
-          case Array(host) =>
-            setProp("grpc.ingester.client.host", host)
-        }
-        parseArgs(tail)
+        parseArgs(tail).map(m => m ++ (Seq("grpc.ingester.client.host", "grpc.ingester.client.port")).zip(gh.split(":", 2)))
 
-      case Nil => // end of arguments
+      case head +: tail => parseArgs(tail) // unknown "head" is ignored
 
-      case head +: tail => parseArgs(tail) // "head" is ignored
+      case Nil => Success(Map.empty[String, String])
     }
 
-    def setProp(key: String, value: String): Unit = {
-      sys.props.update(key, value)
-      println(s"Setting $key property to $value")
+    val overrides = parseArgs(args).getOrElse {
+      showHelp()
+      sys.exit(1)
     }
-
-    parseArgs(args)
+    new WeatherSettings(ConfigFactory.parseMap(overrides.asJava))
   }
+
+  def apply(): WeatherSettings = {
+    new WeatherSettings(ConfigFactory.empty())
+  }
+
 }

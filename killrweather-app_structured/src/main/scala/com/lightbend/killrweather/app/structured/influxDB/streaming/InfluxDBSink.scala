@@ -14,7 +14,7 @@ class InfluxDBRawSink(sqlContext: SQLContext) extends Sink with Serializable {
   private val spark = sqlContext.sparkSession
   import spark.implicits._
 
-  val settings = new WeatherSettings()
+  val settings = WeatherSettings()
   import settings._
 
   override def addBatch(batchId: Long, df: DataFrame) = {
@@ -22,18 +22,19 @@ class InfluxDBRawSink(sqlContext: SQLContext) extends Sink with Serializable {
     val ds = df.select("*").as[WeatherRecord].rdd
 
     ds.foreachPartition { iter =>
-      val influxDB = InfluxDBFactory.connect(s"$influxDBServer:$influxDBPort", influxDBUser, influxDBPass)
-      if (!influxDB.databaseExists(influxDBDatabase)) {
-        influxDB.createDatabase(influxDBDatabase)
-        influxDB.dropRetentionPolicy("autogen", influxDBDatabase)
-        influxDB.createRetentionPolicy(retentionPolicy, influxDBDatabase, "1d", "30m", 1, true)
+
+      val influxDB = InfluxDBFactory.connect(influxConfig.url, influxConfig.user, influxConfig.password)
+      if (!influxDB.databaseExists(influxTableConfig.database)) {
+        influxDB.createDatabase(influxTableConfig.database)
+        influxDB.dropRetentionPolicy("autogen", influxTableConfig.database)
+        influxDB.createRetentionPolicy(influxTableConfig.retentionPolicy, influxTableConfig.database, "1d", "30m", 1, true)
       }
 
-      influxDB.setDatabase(influxDBDatabase)
+      influxDB.setDatabase(influxTableConfig.database)
       // Flush every 2000 Points, at least every 100ms
       influxDB.enableBatch(2000, 100, TimeUnit.MILLISECONDS)
       // set retention policy
-      influxDB.setRetentionPolicy(retentionPolicy)
+      influxDB.setRetentionPolicy(influxTableConfig.retentionPolicy)
       iter.foreach { raw =>
         {
           val rawPoint = Point.measurement("raw_weather").time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
@@ -54,7 +55,7 @@ class InfluxDBDailySink(sqlContext: SQLContext) extends Sink with Serializable {
   private val spark = sqlContext.sparkSession
   import spark.implicits._
 
-  val settings = new WeatherSettings()
+  val settings = WeatherSettings()
   import settings._
 
   override def addBatch(batchId: Long, df: DataFrame) = {
@@ -62,19 +63,22 @@ class InfluxDBDailySink(sqlContext: SQLContext) extends Sink with Serializable {
     val ds = df.select("*").as[DailyWeatherData].rdd
 
     ds.foreachPartition { iter =>
-      val influxDB = InfluxDBFactory.connect(s"$influxDBServer:$influxDBPort", influxDBUser, influxDBPass)
+      val influxDB = InfluxDBFactory.connect(influxConfig.url, influxConfig.user, influxConfig.password)
       //val influxDB = InfluxDBFactory.connect("http://10.2.2.187:13698", influxDBUser, influxDBPass)
-      if (!influxDB.databaseExists(influxDBDatabase)) {
-        influxDB.createDatabase(influxDBDatabase)
-        influxDB.dropRetentionPolicy("autogen", influxDBDatabase)
-        influxDB.createRetentionPolicy(retentionPolicy, influxDBDatabase, "1d", "30m", 1, true)
+      if (!influxDB.databaseExists(influxTableConfig.database)) {
+        influxDB.createDatabase(influxTableConfig.database)
+        influxDB.dropRetentionPolicy("autogen", influxTableConfig.database)
+        influxDB.createRetentionPolicy(influxTableConfig.retentionPolicy, influxTableConfig.database, "1d", "30m", 1, true)
       }
 
-      influxDB.setDatabase(influxDBDatabase)
+      if (!influxDB.databaseExists(influxTableConfig.database))
+        influxDB.createDatabase(influxTableConfig.database)
+
+      influxDB.setDatabase(influxTableConfig.database)
       // Flush every 2000 Points, at least every 100ms
       influxDB.enableBatch(2000, 100, TimeUnit.MILLISECONDS)
       // set retention policy
-      influxDB.setRetentionPolicy(retentionPolicy)
+      influxDB.setRetentionPolicy(influxTableConfig.retentionPolicy)
       iter.foreach { dailyTemp =>
         {
           val dailyTempPoint = Point.measurement("daily_temp_weather").time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
@@ -94,7 +98,7 @@ class InfluxDBRMonthlySink(sqlContext: SQLContext) extends Sink with Serializabl
   private val spark = sqlContext.sparkSession
   import spark.implicits._
 
-  val settings = new WeatherSettings()
+  val settings = WeatherSettings()
   import settings._
 
   override def addBatch(batchId: Long, df: DataFrame) = {
@@ -102,19 +106,19 @@ class InfluxDBRMonthlySink(sqlContext: SQLContext) extends Sink with Serializabl
     val ds = df.select("*").as[MonthlyWeatherData].rdd
 
     ds.foreachPartition { iter =>
-      val influxDB = InfluxDBFactory.connect(s"$influxDBServer:$influxDBPort", influxDBUser, influxDBPass)
-      //val influxDB = InfluxDBFactory.connect("http://10.2.2.187:13698", influxDBUser, influxDBPass)
-      if (!influxDB.databaseExists(influxDBDatabase)) {
-        influxDB.createDatabase(influxDBDatabase)
-        influxDB.dropRetentionPolicy("autogen", influxDBDatabase)
-        influxDB.createRetentionPolicy(retentionPolicy, influxDBDatabase, "1d", "30m", 1, true)
+
+      val influxDB = InfluxDBFactory.connect(influxConfig.url, influxConfig.user, influxConfig.password)
+      if (!influxDB.databaseExists(influxTableConfig.database)) {
+        influxDB.createDatabase(influxTableConfig.database)
+        influxDB.dropRetentionPolicy("autogen", influxTableConfig.database)
+        influxDB.createRetentionPolicy(influxTableConfig.retentionPolicy, influxTableConfig.database, "1d", "30m", 1, true)
       }
 
-      influxDB.setDatabase(influxDBDatabase)
+      influxDB.setDatabase(influxTableConfig.database)
       // Flush every 2000 Points, at least every 100ms
       influxDB.enableBatch(2000, 100, TimeUnit.MILLISECONDS)
       // set retention policy
-      influxDB.setRetentionPolicy(retentionPolicy)
+      influxDB.setRetentionPolicy(influxTableConfig.retentionPolicy)
       iter.foreach { monthlyTemp =>
         {
           val monthlyTempPoint = Point.measurement("monthly_temp_weather").time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)

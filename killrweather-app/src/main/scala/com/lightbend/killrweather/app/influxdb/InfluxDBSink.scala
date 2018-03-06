@@ -66,39 +66,30 @@ class InfluxDBSink(createWriter: () => InfluxDB) extends Serializable {
 
 object InfluxDBSink {
 
-  import com.lightbend.killrweather.settings.WeatherSettings.{ USE_INFLUXDB_KEY, USE_INFLUXDB_DEFAULT_VALUE }
-
-  lazy val useInfluxDBProp =
-    sys.props.getOrElse(USE_INFLUXDB_KEY, USE_INFLUXDB_DEFAULT_VALUE.toString)
-  lazy val useInfluxDB = try {
-    println(s"Using InfluxDB? $useInfluxDBProp")
-    useInfluxDBProp.toBoolean
-  } catch {
-    case scala.util.control.NonFatal(ex) =>
-      throw new RuntimeException(s"""ERROR: ${USE_INFLUXDB_KEY} property defined as "${useInfluxDBProp}", which is not convertable to a Boolean!""", ex)
-  }
-
-  val settings = new WeatherSettings()
+  val settings = WeatherSettings()
   import settings._
+
+  //TODO: this access is wrong. We should not export config from this context
+  def useInfluxDB = influxConfig.enabled
 
   // TODO the implementation is a bit messy.
   def apply(): InfluxDBSink =
-    if (useInfluxDB) make() else makeNull()
+    if (influxConfig.enabled) make() else makeNull()
 
   def make(): InfluxDBSink = {
     val f = () => {
-      val influxDB = InfluxDBFactory.connect(s"$influxDBServer:$influxDBPort", influxDBUser, influxDBPass)
-      if (!influxDB.databaseExists(influxDBDatabase)) {
-        influxDB.createDatabase(influxDBDatabase)
-        influxDB.dropRetentionPolicy("autogen", influxDBDatabase)
-        influxDB.createRetentionPolicy(retentionPolicy, influxDBDatabase, "1d", "30m", 1, true)
+      val influxDB = InfluxDBFactory.connect(influxConfig.url, influxConfig.user, influxConfig.password)
+      if (!influxDB.databaseExists(influxTableConfig.database)) {
+        influxDB.createDatabase(influxTableConfig.database)
+        influxDB.dropRetentionPolicy("autogen", influxTableConfig.database)
+        influxDB.createRetentionPolicy(influxTableConfig.retentionPolicy, influxTableConfig.database, "1d", "30m", 1, true)
       }
-
-      influxDB.setDatabase(influxDBDatabase)
+      
+      influxDB.setDatabase(influxTableConfig.database)
       // Flush every 2000 Points, at least every 100ms
       influxDB.enableBatch(2000, 100, TimeUnit.MILLISECONDS)
       // set retention policy
-      influxDB.setRetentionPolicy(retentionPolicy)
+      influxDB.setRetentionPolicy(influxTableConfig.retentionPolicy)
 
       sys.addShutdownHook {
         influxDB.flush()
@@ -107,7 +98,8 @@ object InfluxDBSink {
       influxDB
     }
     try {
-      new GrafanaSetup().setGrafana()
+      val graphanaConfig = settings.graphanaConfig
+      new GrafanaSetup(graphanaConfig.port.toString, graphanaConfig.server).setGrafana()
     } catch {
       case t: Throwable => println("Grafana not initialized")
     }
