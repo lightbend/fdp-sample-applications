@@ -10,7 +10,7 @@ object Dependencies {
   val akkaStream    = "com.typesafe.akka"               % "akka-stream_2.11"              % akkaVersion
   val akkaHttp      = "com.typesafe.akka"               % "akka-http_2.11"                % akkaHttpVersion
   val akkaHttpJsonJackson = "de.heikoseeberger"         % "akka-http-jackson_2.11"        % akkaHttpJsonVersion
-  
+
 
   val kafka         = "org.apache.kafka"                % "kafka_2.11"                    % kafkaVersion
   val kafkaclients  = "org.apache.kafka"                % "kafka-clients"                 % kafkaVersion
@@ -33,12 +33,13 @@ object Dependencies {
   val influxDBClient    = "org.influxdb"            % "influxdb-java"                   % influxDBClientVersion
 
   val codecBase64   = "commons-codec"               % "commons-codec"                   % codecVersion
+  val typesafeConfig    = "com.typesafe"            %  "config"                         % TypesafeConfigVersion
 
-
+  val configuration = Seq(typesafeConfig)
   val modelsDependencies    = Seq(jpmml, jpmmlextras, tensorflow)
-  val kafkabaseDependencies = Seq(reactiveKafka) ++ Seq(kafka, kafkaclients)
-  val kafkaDependencies     = Seq(reactiveKafka) ++ Seq(kafka, kafkaclients, kafkastreams)
+  val kafkabaseDependencies = configuration ++ Seq(kafka, kafkaclients, reactiveKafka)
+  val kafkaDependencies     = Seq(reactiveKafka, kafka, kafkaclients, kafkastreams)
   val webDependencies       = Seq(gson, jersey, jerseymedia, jettyserver, jettyservlet, wsrs)
-  val akkaServerDependencies = Seq(reactiveKafka) ++ Seq(akkaStream, akkaHttp, akkaHttpJsonJackson, reactiveKafka)
+  val akkaServerDependencies = Seq(reactiveKafka, akkaStream, akkaHttp, akkaHttpJsonJackson, reactiveKafka)
 
 }

@@ -7,6 +7,7 @@ import com.google.protobuf.ByteString
 import com.lightbend.configuration.kafka.ApplicationKafkaParameters._
 import com.lightbend.model.modeldescriptor.ModelDescriptor
 import com.lightbend.model.winerecord.WineRecord
+import com.typesafe.config.ConfigFactory
 
 import scala.concurrent.{ Await, Future }
 import scala.io.Source
@@ -26,22 +27,26 @@ object DataProvider {
 
   def main(args: Array[String]) {
 
-    println(s"Data Provider with kafka brokers at $LOCAL_KAFKA_BROKER with zookeeper $LOCAL_ZOOKEEPER_HOST")
+    val config = ConfigFactory.load()
+    val kafkaBrokers = config.getString("kafka.brokers")
+    val zookeeperHosts = config.getString("zookeeper.hosts")
+
+    println(s"Data Provider with kafka brokers at $kafkaBrokers with zookeeper $zookeeperHosts")
     val dataTimeInterval = if (args.length > 0) args(0).toInt.millis else DataTimeInterval
     val modelTimeInterval = if (args.length > 1) args(1).toInt.millis else ModelTimeInterval
     println(s"Data Message delay $dataTimeInterval")
     println(s"Model Message delay $modelTimeInterval")
 
-    val dataPublisher = publishData(dataTimeInterval)
-    val modelPublisher = publishModels(modelTimeInterval)
+    val dataPublisher = publishData(dataTimeInterval, kafkaBrokers, zookeeperHosts)
+    val modelPublisher = publishModels(modelTimeInterval, kafkaBrokers, zookeeperHosts)
 
     val result = Future.firstCompletedOf(Seq(dataPublisher, modelPublisher))
 
     Await.result(result, Duration.Inf)
   }
 
-  def publishData(timeInterval: Duration): Future[Unit] = Future {
-    val sender = KafkaMessageSender(LOCAL_KAFKA_BROKER, LOCAL_ZOOKEEPER_HOST)
+  def publishData(timeInterval: Duration, kafkaBrokers: String, zookeeperHosts: String): Future[Unit] = Future {
+    val sender = KafkaMessageSender(kafkaBrokers, zookeeperHosts)
     sender.createTopic(DATA_TOPIC)
     val bos = new ByteArrayOutputStream()
     val records = getListOfRecords(file)
@@ -52,14 +57,14 @@ object DataProvider {
         r.writeTo(bos)
         sender.writeValue(DATA_TOPIC, bos.toByteArray)
         nrec = nrec + 1
-        if (nrec % 10 == 0)  println(s"printed $nrec records")
+        if (nrec % 10 == 0) println(s"printed $nrec records")
         pause(timeInterval)
       })
     }
   }
 
-  def publishModels(timeInterval: Duration): Future[Unit] = Future {
-    val sender = KafkaMessageSender(LOCAL_KAFKA_BROKER, LOCAL_ZOOKEEPER_HOST)
+  def publishModels(timeInterval: Duration, kafkaBrokers: String, zookeeperHosts: String): Future[Unit] = Future {
+    val sender = KafkaMessageSender(kafkaBrokers, zookeeperHosts)
     sender.createTopic(MODELS_TOPIC)
     val files = getListOfModelFiles(directory)
     val bos = new ByteArrayOutputStream()
