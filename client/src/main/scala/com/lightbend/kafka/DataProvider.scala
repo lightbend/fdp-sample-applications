@@ -84,12 +84,9 @@ object DataProvider {
   private def pause(timeInterval: Duration): Unit = Thread.sleep(timeInterval.toMillis)
 
   def getListOfRecords(file: String): Seq[WineRecord] = {
-
-    var result = Seq.empty[WineRecord]
-    val bufferedSource = Source.fromFile(file)
-    for (line <- bufferedSource.getLines) {
+    Source.fromFile(file).getLines.map { line =>
       val cols = line.split(";").map(_.trim)
-      val record = new WineRecord(
+      new WineRecord(
         fixedAcidity = cols(0).toDouble,
         volatileAcidity = cols(1).toDouble,
         citricAcid = cols(2).toDouble,
@@ -103,10 +100,7 @@ object DataProvider {
         alcohol = cols(10).toDouble,
         dataType = "wine"
       )
-      result = record +: result
-    }
-    bufferedSource.close
-    result
+    }.toSeq
   }
 
   private def getListOfModelFiles(dir: String): Seq[String] = {
