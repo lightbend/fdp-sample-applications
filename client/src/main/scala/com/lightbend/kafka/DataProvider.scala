@@ -7,40 +7,46 @@ import com.google.protobuf.ByteString
 import com.lightbend.configuration.kafka.ApplicationKafkaParameters._
 import com.lightbend.model.modeldescriptor.ModelDescriptor
 import com.lightbend.model.winerecord.WineRecord
+import com.typesafe.config.ConfigFactory
 
-import scala.concurrent.Future
+import scala.concurrent.{ Await, Future }
 import scala.io.Source
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
 
 /**
- * Created by boris on 5/10/17.
  *
  * Application publishing models from /data directory to Kafka
  */
 object DataProvider {
 
   val file = "data/winequality_red.csv"
-  var dataTimeInterval = 1000 * 1 // 1 sec
+  val DataTimeInterval = 1.second
+  val ModelTimeInterval = 5.minutes
   val directory = "data/"
-  var modelTimeInterval = 1000 * 60 * 5 // 5 mins
 
   def main(args: Array[String]) {
 
-    println(s"Data Provider with kafka brokers at $LOCAL_KAFKA_BROKER with zookeeper $LOCAL_ZOOKEEPER_HOST")
-    if (args.length > 0) dataTimeInterval = args(0).toInt
-    if (args.length > 1) modelTimeInterval = args(1).toInt
+    val config = ConfigFactory.load()
+    val kafkaBrokers = config.getString("kafka.brokers")
+    val zookeeperHosts = config.getString("zookeeper.hosts")
+
+    println(s"Data Provider with kafka brokers at $kafkaBrokers with zookeeper $zookeeperHosts")
+    val dataTimeInterval = if (args.length > 0) args(0).toInt.millis else DataTimeInterval
+    val modelTimeInterval = if (args.length > 1) args(1).toInt.millis else ModelTimeInterval
     println(s"Data Message delay $dataTimeInterval")
     println(s"Model Message delay $modelTimeInterval")
 
-    publishData()
-    publishModels()
+    val dataPublisher = publishData(dataTimeInterval, kafkaBrokers, zookeeperHosts)
+    val modelPublisher = publishModels(modelTimeInterval, kafkaBrokers, zookeeperHosts)
 
-    while (true)
-      pause(600000)
+    val result = Future.firstCompletedOf(Seq(dataPublisher, modelPublisher))
+
+    Await.result(result, Duration.Inf)
   }
 
-  def publishData(): Future[Unit] = Future {
-    val sender = KafkaMessageSender(LOCAL_KAFKA_BROKER, LOCAL_ZOOKEEPER_HOST)
+  def publishData(timeInterval: Duration, kafkaBrokers: String, zookeeperHosts: String): Future[Unit] = Future {
+    val sender = KafkaMessageSender(kafkaBrokers, zookeeperHosts)
     sender.createTopic(DATA_TOPIC)
     val bos = new ByteArrayOutputStream()
     val records = getListOfRecords(file)
@@ -51,15 +57,14 @@ object DataProvider {
         r.writeTo(bos)
         sender.writeValue(DATA_TOPIC, bos.toByteArray)
         nrec = nrec + 1
-        if (nrec % 10 == 0)
-          println(s"printed $nrec records")
-        pause(dataTimeInterval)
+        if (nrec % 10 == 0) println(s"printed $nrec records")
+        pause(timeInterval)
       })
     }
   }
 
-  def publishModels(): Future[Unit] = Future {
-    val sender = KafkaMessageSender(LOCAL_KAFKA_BROKER, LOCAL_ZOOKEEPER_HOST)
+  def publishModels(timeInterval: Duration, kafkaBrokers: String, zookeeperHosts: String): Future[Unit] = Future {
+    val sender = KafkaMessageSender(kafkaBrokers, zookeeperHosts)
     sender.createTopic(MODELS_TOPIC)
     val files = getListOfModelFiles(directory)
     val bos = new ByteArrayOutputStream()
@@ -75,27 +80,18 @@ object DataProvider {
         bos.reset()
         pRecord.writeTo(bos)
         sender.writeValue(MODELS_TOPIC, bos.toByteArray)
-        pause(modelTimeInterval)
+        pause(timeInterval)
       })
     }
 
   }
 
-  private def pause(timeInterval: Long): Unit = {
-    try {
-      Thread.sleep(timeInterval)
-    } catch {
-      case _: Throwable => // Ignore
-    }
-  }
+  private def pause(timeInterval: Duration): Unit = Thread.sleep(timeInterval.toMillis)
 
   def getListOfRecords(file: String): Seq[WineRecord] = {
-
-    var result = Seq.empty[WineRecord]
-    val bufferedSource = Source.fromFile(file)
-    for (line <- bufferedSource.getLines) {
+    Source.fromFile(file).getLines.map { line =>
       val cols = line.split(";").map(_.trim)
-      val record = new WineRecord(
+      new WineRecord(
         fixedAcidity = cols(0).toDouble,
         volatileAcidity = cols(1).toDouble,
         citricAcid = cols(2).toDouble,
@@ -109,10 +105,7 @@ object DataProvider {
         alcohol = cols(10).toDouble,
         dataType = "wine"
       )
-      result = record +: result
-    }
-    bufferedSource.close
-    result
+    }.toSeq
   }
 
   private def getListOfModelFiles(dir: String): Seq[String] = {

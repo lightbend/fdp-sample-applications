@@ -23,4 +23,5 @@ object Versions {
   val influxDBClientVersion   = "2.8"
 
   val codecVersion = "1.10"
+  val TypesafeConfigVersion = "1.3.2"
 }
