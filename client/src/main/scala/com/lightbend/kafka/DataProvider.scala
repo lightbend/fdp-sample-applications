@@ -8,9 +8,10 @@ import com.lightbend.configuration.kafka.ApplicationKafkaParameters._
 import com.lightbend.model.modeldescriptor.ModelDescriptor
 import com.lightbend.model.winerecord.WineRecord
 
-import scala.concurrent.Future
+import scala.concurrent.{ Await, Future }
 import scala.io.Source
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.Duration
 
 /**
  * Created by boris on 5/10/17.
@@ -32,11 +33,12 @@ object DataProvider {
     println(s"Data Message delay $dataTimeInterval")
     println(s"Model Message delay $modelTimeInterval")
 
-    publishData()
-    publishModels()
+    val dataPublisher = publishData()
+    val modelPublisher = publishModels()
 
-    while (true)
-      pause(600000)
+    val result = Future.firstCompletedOf(Seq(dataPublisher, modelPublisher))
+
+    Await.result(result, Duration.Inf)
   }
 
   def publishData(): Future[Unit] = Future {
