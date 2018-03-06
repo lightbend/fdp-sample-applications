@@ -11,37 +11,36 @@ import com.lightbend.model.winerecord.WineRecord
 import scala.concurrent.{ Await, Future }
 import scala.io.Source
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 
 /**
- * Created by boris on 5/10/17.
  *
  * Application publishing models from /data directory to Kafka
  */
 object DataProvider {
 
   val file = "data/winequality_red.csv"
-  var dataTimeInterval = 1000 * 1 // 1 sec
+  val DataTimeInterval = 1.second
+  val ModelTimeInterval = 5.minutes
   val directory = "data/"
-  var modelTimeInterval = 1000 * 60 * 5 // 5 mins
 
   def main(args: Array[String]) {
 
     println(s"Data Provider with kafka brokers at $LOCAL_KAFKA_BROKER with zookeeper $LOCAL_ZOOKEEPER_HOST")
-    if (args.length > 0) dataTimeInterval = args(0).toInt
-    if (args.length > 1) modelTimeInterval = args(1).toInt
+    val dataTimeInterval = if (args.length > 0) args(0).toInt.millis else DataTimeInterval
+    val modelTimeInterval = if (args.length > 1) args(1).toInt.millis else ModelTimeInterval
     println(s"Data Message delay $dataTimeInterval")
     println(s"Model Message delay $modelTimeInterval")
 
-    val dataPublisher = publishData()
-    val modelPublisher = publishModels()
+    val dataPublisher = publishData(dataTimeInterval)
+    val modelPublisher = publishModels(modelTimeInterval)
 
     val result = Future.firstCompletedOf(Seq(dataPublisher, modelPublisher))
 
     Await.result(result, Duration.Inf)
   }
 
-  def publishData(): Future[Unit] = Future {
+  def publishData(timeInterval: Duration): Future[Unit] = Future {
     val sender = KafkaMessageSender(LOCAL_KAFKA_BROKER, LOCAL_ZOOKEEPER_HOST)
     sender.createTopic(DATA_TOPIC)
     val bos = new ByteArrayOutputStream()
@@ -53,14 +52,13 @@ object DataProvider {
         r.writeTo(bos)
         sender.writeValue(DATA_TOPIC, bos.toByteArray)
         nrec = nrec + 1
-        if (nrec % 10 == 0)
-          println(s"printed $nrec records")
-        pause(dataTimeInterval)
+        if (nrec % 10 == 0)  println(s"printed $nrec records")
+        pause(timeInterval)
       })
     }
   }
 
-  def publishModels(): Future[Unit] = Future {
+  def publishModels(timeInterval: Duration): Future[Unit] = Future {
     val sender = KafkaMessageSender(LOCAL_KAFKA_BROKER, LOCAL_ZOOKEEPER_HOST)
     sender.createTopic(MODELS_TOPIC)
     val files = getListOfModelFiles(directory)
@@ -77,19 +75,13 @@ object DataProvider {
         bos.reset()
         pRecord.writeTo(bos)
         sender.writeValue(MODELS_TOPIC, bos.toByteArray)
-        pause(modelTimeInterval)
+        pause(timeInterval)
       })
     }
 
   }
 
-  private def pause(timeInterval: Long): Unit = {
-    try {
-      Thread.sleep(timeInterval)
-    } catch {
-      case _: Throwable => // Ignore
-    }
-  }
+  private def pause(timeInterval: Duration): Unit = Thread.sleep(timeInterval.toMillis)
 
   def getListOfRecords(file: String): Seq[WineRecord] = {
 
