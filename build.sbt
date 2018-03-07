@@ -16,6 +16,7 @@ lazy val protobufs = (project in file("./protobufs"))
 
 lazy val client = (project in file("./client"))
   .settings(
+    name :="model-server-publisher",
     buildInfoPackage := "build",
     mainClass in Compile := Some("com.lightbend.kafka.DataProvider"),
     maintainer := "Boris Lublinsky <boris.lublinsky@lightbend.com>",
