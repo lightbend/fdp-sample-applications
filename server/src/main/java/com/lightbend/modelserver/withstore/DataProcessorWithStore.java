@@ -1,6 +1,8 @@
 package com.lightbend.modelserver.withstore;
 
-import com.lightbend.influxdb.InfluxDBClient;
+import com.lightbend.configuration.AppConfig;
+import com.lightbend.configuration.GrafanaClient;
+import com.lightbend.configuration.InfluxDBClient;
 import com.lightbend.model.DataConverter;
 import com.lightbend.model.Winerecord;
 import com.lightbend.modelserver.store.ModelStateStore;
@@ -63,6 +65,7 @@ public class DataProcessorWithStore extends AbstractProcessor<byte[], byte[]> {
         Objects.requireNonNull(modelStore, "State store can't be null");
 
         // Create InfluxDB connection
-        client = new InfluxDBClient();
+        client = new InfluxDBClient(AppConfig.INFLUX_DB_CONFIG);
+        new GrafanaClient(AppConfig.GRAFANA_CONFIG, AppConfig.INFLUX_DB_CONFIG);
     }
 }
