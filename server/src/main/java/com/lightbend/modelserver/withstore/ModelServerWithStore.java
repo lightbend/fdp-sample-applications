@@ -25,8 +25,8 @@ public class ModelServerWithStore {
 
     public static void main(String [ ] args) throws Throwable {
 
-        System.out.println("Kafka Streams Mmdel server with kafka brokers at " + ApplicationParameters.LOCAL_KAFKA_BROKER +
-                " with zookeeper " + ApplicationParameters.LOCAL_ZOOKEEPER_HOST +
+        System.out.println("Kafka Streams Mmdel server with kafka brokers at " + ApplicationParameters.KAFKA_BROKER +
+                " with zookeeper " + ApplicationParameters.ZOOKEEPER_HOST +
                 " With InfluxDB : host " + ApplicationParameters.influxDBServer + ", port " + ApplicationParameters.influxDBPort +
                 " With Grafana : host " + ApplicationParameters.GrafanaHost + ", port " + ApplicationParameters.GrafanaPort);
 
@@ -36,7 +36,7 @@ public class ModelServerWithStore {
         streamsConfiguration.put(StreamsConfig.APPLICATION_ID_CONFIG, "interactive-queries-example");
         streamsConfiguration.put(StreamsConfig.CLIENT_ID_CONFIG, "interactive-queries-example-client");
         // Where to find Kafka broker(s).
-        streamsConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, ApplicationParameters.LOCAL_KAFKA_BROKER);
+        streamsConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, ApplicationParameters.KAFKA_BROKER);
         // Provide the details of our embedded http service that we'll use to connect to this streams
         // instance and discover locations of stores.
         streamsConfiguration.put(StreamsConfig.APPLICATION_SERVER_CONFIG, "localhost:" + port);

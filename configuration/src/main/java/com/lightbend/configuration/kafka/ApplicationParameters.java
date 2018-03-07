@@ -8,8 +8,8 @@ public class ApplicationParameters {
 
     private ApplicationParameters(){}
 
-    public static final String LOCAL_ZOOKEEPER_HOST = getEnv("zookepers","zk-1.zk:2181/dcos-service-kafka");
-    public static final String LOCAL_KAFKA_BROKER = getEnv("kafka.brokers","broker.kafka.l4lb.thisdcos.directory:9092");
+    public static final String ZOOKEEPER_HOST = getEnv("zookepers","zk-1.zk:2181/dcos-service-kafka");
+    public static final String KAFKA_BROKER = getEnv("kafka.brokers","broker.kafka.l4lb.thisdcos.directory:9092");
 
     public static final String DATA_TOPIC = "models_data";
     public static final String MODELS_TOPIC = "models_models";
