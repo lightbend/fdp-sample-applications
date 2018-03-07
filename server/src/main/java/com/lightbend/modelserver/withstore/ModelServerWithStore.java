@@ -1,6 +1,6 @@
 package com.lightbend.modelserver.withstore;
 
-import com.lightbend.configuration.kafka.ApplicationKafkaParameters;
+import com.lightbend.configuration.kafka.ApplicationParameters;
 import com.lightbend.modelserver.store.ModelStateSerde;
 import com.lightbend.modelserver.store.ModelStateStoreSupplier;
 import com.lightbend.modelserver.store.StoreState;
@@ -25,10 +25,10 @@ public class ModelServerWithStore {
 
     public static void main(String [ ] args) throws Throwable {
 
-        System.out.println("Kafka Streams Mmdel server with kafka brokers at " + ApplicationKafkaParameters.LOCAL_KAFKA_BROKER +
-                " with zookeeper " + ApplicationKafkaParameters.LOCAL_ZOOKEEPER_HOST +
-                " With InfluxDB : host " + ApplicationKafkaParameters.influxDBServer + ", port " + ApplicationKafkaParameters.influxDBPort +
-                " With Grafana : host " + ApplicationKafkaParameters.GrafanaHost + ", port " + ApplicationKafkaParameters.GrafanaPort);
+        System.out.println("Kafka Streams Mmdel server with kafka brokers at " + ApplicationParameters.LOCAL_KAFKA_BROKER +
+                " with zookeeper " + ApplicationParameters.LOCAL_ZOOKEEPER_HOST +
+                " With InfluxDB : host " + ApplicationParameters.influxDBServer + ", port " + ApplicationParameters.influxDBPort +
+                " With Grafana : host " + ApplicationParameters.GrafanaHost + ", port " + ApplicationParameters.GrafanaPort);
 
         Properties streamsConfiguration = new Properties();
         // Give the Streams application a unique name.  The name must be unique in the Kafka cluster
@@ -36,7 +36,7 @@ public class ModelServerWithStore {
         streamsConfiguration.put(StreamsConfig.APPLICATION_ID_CONFIG, "interactive-queries-example");
         streamsConfiguration.put(StreamsConfig.CLIENT_ID_CONFIG, "interactive-queries-example-client");
         // Where to find Kafka broker(s).
-        streamsConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, ApplicationKafkaParameters.LOCAL_KAFKA_BROKER);
+        streamsConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, ApplicationParameters.LOCAL_KAFKA_BROKER);
         // Provide the details of our embedded http service that we'll use to connect to this streams
         // instance and discover locations of stores.
         streamsConfiguration.put(StreamsConfig.APPLICATION_SERVER_CONFIG, "localhost:" + port);
@@ -69,9 +69,9 @@ public class ModelServerWithStore {
         KStreamBuilder builder = new KStreamBuilder();
         // Data input streams
 
-        builder.addSource("data-source", deserializer, deserializer, ApplicationKafkaParameters.DATA_TOPIC)
+        builder.addSource("data-source", deserializer, deserializer, ApplicationParameters.DATA_TOPIC)
                 .addProcessor("ProcessData", DataProcessorWithStore::new, "data-source");
-        builder.addSource("model-source", deserializer, deserializer, ApplicationKafkaParameters.MODELS_TOPIC)
+        builder.addSource("model-source", deserializer, deserializer, ApplicationParameters.MODELS_TOPIC)
                 .addProcessor("ProcessModels", ModelProcessorWithStore::new, "model-source");
         builder.addStateStore(storeSupplier, "ProcessData", "ProcessModels");
 

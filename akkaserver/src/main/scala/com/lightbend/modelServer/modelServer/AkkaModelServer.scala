@@ -12,7 +12,7 @@ import akka.stream.scaladsl.{ GraphDSL, Sink, Source }
 import akka.util.Timeout
 
 import scala.concurrent.duration._
-import com.lightbend.configuration.kafka.ApplicationKafkaParameters._
+import com.lightbend.configuration.kafka.ApplicationParameters._
 import com.lightbend.model.winerecord.WineRecord
 import com.lightbend.modelServer.ModelToServe
 import com.lightbend.modelServer.model.DataRecord

@@ -4,9 +4,9 @@ package com.lightbend.configuration.kafka;
  * Created by boris on 5/18/17.
  * Set of parameters for running applications
  */
-public class ApplicationKafkaParameters {
+public class ApplicationParameters {
 
-    private ApplicationKafkaParameters(){}
+    private ApplicationParameters(){}
 
     public static final String LOCAL_ZOOKEEPER_HOST = getEnv("zookepers","zk-1.zk:2181/dcos-service-kafka");
     public static final String LOCAL_KAFKA_BROKER = getEnv("kafka.brokers","broker.kafka.l4lb.thisdcos.directory:9092");

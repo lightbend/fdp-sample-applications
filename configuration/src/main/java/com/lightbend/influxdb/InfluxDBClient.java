@@ -1,6 +1,6 @@
 package com.lightbend.influxdb;
 
-import com.lightbend.configuration.kafka.ApplicationKafkaParameters;
+import com.lightbend.configuration.kafka.ApplicationParameters;
 import org.apache.commons.codec.binary.Base64;
 import org.influxdb.InfluxDB;
 import org.influxdb.InfluxDBFactory;
@@ -22,28 +22,28 @@ public class InfluxDBClient {
     private static String dashfile = "/grafana-dashboard.json";
 
     public InfluxDBClient() {
-        influxDB = InfluxDBFactory.connect(ApplicationKafkaParameters.influxDBServer + ":" + ApplicationKafkaParameters.influxDBPort,
-                ApplicationKafkaParameters.influxDBUser, ApplicationKafkaParameters.influxDBPass);
-        if(!influxDB.databaseExists(ApplicationKafkaParameters.influxDBDatabase)){
-            influxDB.createDatabase(ApplicationKafkaParameters.influxDBDatabase);
-            influxDB.dropRetentionPolicy("autogen", ApplicationKafkaParameters.influxDBDatabase);
-            influxDB.createRetentionPolicy(ApplicationKafkaParameters.retentionPolicy, ApplicationKafkaParameters.influxDBDatabase,
+        influxDB = InfluxDBFactory.connect(ApplicationParameters.influxDBServer + ":" + ApplicationParameters.influxDBPort,
+                ApplicationParameters.influxDBUser, ApplicationParameters.influxDBPass);
+        if(!influxDB.databaseExists(ApplicationParameters.influxDBDatabase)){
+            influxDB.createDatabase(ApplicationParameters.influxDBDatabase);
+            influxDB.dropRetentionPolicy("autogen", ApplicationParameters.influxDBDatabase);
+            influxDB.createRetentionPolicy(ApplicationParameters.retentionPolicy, ApplicationParameters.influxDBDatabase,
                     "1d", "30m", 1, true);
         }
 
-        influxDB.setDatabase(ApplicationKafkaParameters.influxDBDatabase);
+        influxDB.setDatabase(ApplicationParameters.influxDBDatabase);
         // Flush every 2000 Points, at least every 100ms
         influxDB.enableBatch(2000, 100, TimeUnit.MILLISECONDS);
         // set retention policy
-        influxDB.setRetentionPolicy(ApplicationKafkaParameters.retentionPolicy);
+        influxDB.setRetentionPolicy(ApplicationParameters.retentionPolicy);
 
         // Make sure Grafana is set up
-        String authString = ApplicationKafkaParameters.GrafanaUser + ":" + ApplicationKafkaParameters.GrafanaPass;
+        String authString = ApplicationParameters.GrafanaUser + ":" + ApplicationParameters.GrafanaPass;
         String authStringEnc = new String(Base64.encodeBase64(authString.getBytes()));
 
         try {
             // Source
-            String source = "http://" + ApplicationKafkaParameters.GrafanaHost + ":" + ApplicationKafkaParameters.GrafanaPort + "/api/datasources";
+            String source = "http://" + ApplicationParameters.GrafanaHost + ":" + ApplicationParameters.GrafanaPort + "/api/datasources";
             URL url = new URL(source);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
 
@@ -60,7 +60,7 @@ public class InfluxDBClient {
             String line = null;
             while((line = in.readLine()) != null) {
                 if(line.contains("\"url\""))
-                    line = " \"url\": \"" + ApplicationKafkaParameters.influxDBServer + ":" + ApplicationKafkaParameters.influxDBPort + "\",";
+                    line = " \"url\": \"" + ApplicationParameters.influxDBServer + ":" + ApplicationParameters.influxDBPort + "\",";
                 wr.write(line.getBytes());
             }
             wr.flush();
@@ -68,7 +68,7 @@ public class InfluxDBClient {
             System.out.println("Uploaded Grafana source");
             printResponce(con);
 
-            String dashboard = "http://" + ApplicationKafkaParameters.GrafanaHost + ":" + ApplicationKafkaParameters.GrafanaPort + "/api/dashboards/db";
+            String dashboard = "http://" + ApplicationParameters.GrafanaHost + ":" + ApplicationParameters.GrafanaPort + "/api/dashboards/db";
             url = new URL(dashboard);
             con = (HttpURLConnection) url.openConnection();
 
