@@ -20,8 +20,6 @@ import java.util.Properties;
 @SuppressWarnings("Duplicates")
 public class ModelServerWithStore {
 
-    //final static int port = 8888;                             // Port for queryable state
-
     public static void main(String [ ] args) throws Throwable {
 
         System.out.println("Kafka Streams Model server: "+AppConfig.stringify());
