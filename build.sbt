@@ -38,6 +38,7 @@ lazy val model = (project in file("./model"))
 lazy val server = (project in file("./server"))
   .settings(
     buildInfoPackage := "build",
+    name :="model-server-kstreams",
     mainClass in Compile := Some("com.lightbend.modelserver.withstore.ModelServerWithStore"),
     maintainer := "Boris Lublinsky <boris.lublinsky@lightbend.com",
     packageSummary := "Model Server Kafka Streams",
@@ -45,16 +46,22 @@ lazy val server = (project in file("./server"))
     deployResourceConfigFiles ++= Seq("deploy.conf"),
     deployArtifacts ++= Seq(
       ArtifactSSH((packageZipTarball in Universal).value, "/var/www/html/")
-    )
+    ),
+    dockerBaseImage := "openjdk:8u151-jre",
+    dockerRepository := Some("fdp-reg.lightbend.com:443"),
+    version in Docker := version.value.takeWhile(c => c != '+')
+
   )
   .settings(libraryDependencies ++= Dependencies.kafkaDependencies ++ Dependencies.webDependencies)
   .dependsOn(model, configuration)
   .enablePlugins(DeploySSH)
   .enablePlugins(JavaAppPackaging)
+  .enablePlugins(DockerPlugin)
 
 lazy val akkaServer = (project in file("./akkaserver"))
   .settings(
     buildInfoPackage := "build",
+    name :="model-server-akkastreams",
     mainClass in Compile := Some("com.lightbend.modelServer.modelServer.AkkaModelServer"),
     maintainer := "Boris Lublinsky <boris.lublinsky@lightbend.com>",
     packageSummary := "Model Server Akka Streams",
@@ -62,12 +69,16 @@ lazy val akkaServer = (project in file("./akkaserver"))
     deployResourceConfigFiles ++= Seq("deploy.conf"),
     deployArtifacts ++= Seq(
       ArtifactSSH((packageZipTarball in Universal).value, "/var/www/html/")
-    )
+    ),
+    dockerBaseImage := "openjdk:8u151-jre",
+    dockerRepository := Some("fdp-reg.lightbend.com:443"),
+    version in Docker := version.value.takeWhile(c => c != '+')
   )    .settings(libraryDependencies ++= Dependencies.kafkaDependencies ++ Dependencies.akkaServerDependencies
     ++ Dependencies.modelsDependencies ++ Seq(Dependencies.curator))
   .dependsOn(protobufs, configuration)
   .enablePlugins(DeploySSH)
   .enablePlugins(JavaAppPackaging)
+  .enablePlugins(DockerPlugin)
 
 lazy val configuration = (project in file("./configuration"))
   .settings(libraryDependencies ++= Seq(typesafeConfig, influxDBClient, codecBase64))
