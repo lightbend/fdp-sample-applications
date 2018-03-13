@@ -20,7 +20,7 @@ import scala.concurrent.duration._
  */
 object DataProvider {
 
-  val file = "data/winequality_red.csv"
+  val DataFile = "data/winequality_red.csv"
   val DataTimeInterval = 1.second
   val ModelTimeInterval = 5.minutes
   val directory = "data/"
@@ -49,7 +49,8 @@ object DataProvider {
     val sender = KafkaMessageSender(kafkaBrokers, zookeeperHosts)
     sender.createTopic(DATA_TOPIC)
     val bos = new ByteArrayOutputStream()
-    val records = getListOfRecords(file)
+    val records = getListOfRecords(DataFile)
+    println(s"Records found in data: ${records.size}")
     var nrec = 0
     while (true) {
       records.foreach(r => {

@@ -1,6 +1,8 @@
 
 import Dependencies._
 import deployssh.DeploySSH._
+import com.typesafe.sbt.packager.docker._
+import NativePackagerHelper._
 
 allowSnapshot in ThisBuild := true
 
@@ -16,6 +18,7 @@ lazy val protobufs = (project in file("./protobufs"))
 
 lazy val client = (project in file("./client"))
   .settings(
+    name :="model-server-publisher",
     buildInfoPackage := "build",
     mainClass in Compile := Some("com.lightbend.kafka.DataProvider"),
     maintainer := "Boris Lublinsky <boris.lublinsky@lightbend.com>",
@@ -24,12 +27,19 @@ lazy val client = (project in file("./client"))
     deployResourceConfigFiles ++= Seq("deploy.conf"),
     deployArtifacts ++= Seq(
       ArtifactSSH((packageZipTarball in Universal).value, "/var/www/html/")
-    )
+    ),
+    // mappings in Universal ++= directory("data"),
+    dockerBaseImage := "openjdk:8u151-jre",
+    dockerRepository := Some("fdp-reg.lightbend.com:443"),
+    //dockerCommands += Cmd("ADD", "data", "/opt/docker/data"),
+    version in Docker := version.value.takeWhile(c => c != '+')
+
   )
   .settings(libraryDependencies ++= Dependencies.kafkabaseDependencies)
   .dependsOn(protobufs, configuration)
   .enablePlugins(DeploySSH)
   .enablePlugins(JavaAppPackaging)
+  .enablePlugins(DockerPlugin)
 
 lazy val model = (project in file("./model"))
   .settings(libraryDependencies ++= Dependencies.modelsDependencies)
