@@ -21,7 +21,7 @@ public class GrafanaClient {
 
         try {
             // Source
-            String source = "http://" + grafanaConfig.url() + "/api/datasources";
+            String source = grafanaConfig.url() + "/api/datasources";
             URL url = new URL(source);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
 
@@ -46,7 +46,7 @@ public class GrafanaClient {
             System.out.println("Uploaded Grafana source");
             printResponse(con);
 
-            String dashboard = "http://" + grafanaConfig.url() + "/api/dashboards/db";
+            String dashboard = grafanaConfig.url() + "/api/dashboards/db";
             url = new URL(dashboard);
             con = (HttpURLConnection) url.openConnection();
 

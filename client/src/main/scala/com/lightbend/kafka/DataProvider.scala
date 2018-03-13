@@ -46,6 +46,7 @@ object DataProvider {
   }
 
   def publishData(timeInterval: Duration, kafkaBrokers: String, zookeeperHosts: String): Future[Unit] = Future {
+    println("Starting data publisher")
     val sender = KafkaMessageSender(kafkaBrokers, zookeeperHosts)
     sender.createTopic(DATA_TOPIC)
     val bos = new ByteArrayOutputStream()
@@ -65,13 +66,16 @@ object DataProvider {
   }
 
   def publishModels(timeInterval: Duration, kafkaBrokers: String, zookeeperHosts: String): Future[Unit] = Future {
+    println("Starting model publisher")
     val sender = KafkaMessageSender(kafkaBrokers, zookeeperHosts)
     sender.createTopic(MODELS_TOPIC)
     val files = getListOfModelFiles(directory)
+    println(s"Models found: [${files.size}] => ${files.mkString(",")}")
     val bos = new ByteArrayOutputStream()
     while (true) {
       files.foreach(f => {
         // PMML
+        println(s"Publishing model found on file: $f")
         val pByteArray = Files.readAllBytes(Paths.get(directory + f))
         val pRecord = ModelDescriptor(
           name = f.dropRight(5),

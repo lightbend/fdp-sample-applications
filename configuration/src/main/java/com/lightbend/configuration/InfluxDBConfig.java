@@ -16,7 +16,7 @@ public class InfluxDBConfig {
     }
 
     public String url() {
-        return host+":"+port;
+        return "http://"+host+":"+port;
     }
 
     public String toString() {

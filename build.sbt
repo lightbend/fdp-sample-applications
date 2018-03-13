@@ -13,7 +13,8 @@ lazy val protobufs = (project in file("./protobufs"))
       PB.targets in Compile := Seq(
         PB.gens.java -> (sourceManaged in Compile).value,
         scalapb.gen(javaConversions=true) -> (sourceManaged in Compile).value
-      )
+      ),
+      publish := { }
     )
 
 lazy val client = (project in file("./client"))
@@ -42,8 +43,10 @@ lazy val client = (project in file("./client"))
   .enablePlugins(DockerPlugin)
 
 lazy val model = (project in file("./model"))
-  .settings(libraryDependencies ++= Dependencies.modelsDependencies)
+  .settings(libraryDependencies ++= Dependencies.modelsDependencies,
+    publish := { })
   .dependsOn(protobufs)
+  .disablePlugins(DockerPlugin)
 
 lazy val server = (project in file("./server"))
   .settings(
@@ -91,8 +94,11 @@ lazy val akkaServer = (project in file("./akkaserver"))
   .enablePlugins(DockerPlugin)
 
 lazy val configuration = (project in file("./configuration"))
-  .settings(libraryDependencies ++= Seq(typesafeConfig, influxDBClient, codecBase64))
+  .settings(libraryDependencies ++= Seq(typesafeConfig, influxDBClient, codecBase64),
+    publish := { })
+  .disablePlugins(DockerPlugin)
 
-lazy val modelserver = (project in file(".")).
-  aggregate(protobufs, client, model, configuration, server, akkaServer)
+lazy val modelserver = (project in file("."))
+  .settings(publish := { })
+  .aggregate(protobufs, client, model, configuration, server, akkaServer)
 
