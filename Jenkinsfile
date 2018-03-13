@@ -22,7 +22,7 @@ pipeline {
                 echo "TODO: Docker Publish stage"
                 // Run the Docker tool to build the image
                 //script {
-                //     sh "${tool name: 'sbt-1.1.0', type: 'org.jvnet.hudson.plugins.SbtPluginBuilder$SbtInstallation'}/bin/sbt -Dsbt.log.noformat=true dockerBuildAndPush"
+                //     sh "${tool name: 'sbt-1.1.0', type: 'org.jvnet.hudson.plugins.SbtPluginBuilder$SbtInstallation'}/bin/sbt -Dsbt.log.noformat=true docker:publish"
                 //}
             }
         }
