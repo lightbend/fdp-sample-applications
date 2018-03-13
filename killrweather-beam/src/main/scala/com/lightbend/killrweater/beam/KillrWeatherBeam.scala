@@ -9,7 +9,6 @@ import com.lightbend.killrweater.beam.coders.ScalaStringCoder
 import com.lightbend.killrweater.beam.data.{DailyWeatherData, DataObjects, MonthlyWeatherData, RawWeatherData}
 import com.lightbend.killrweater.beam.kafka.JobConfiguration
 import com.lightbend.killrweater.beam.processors._
-import com.lightbend.killrweather.settings.WeatherSettings
 import org.apache.beam.sdk.Pipeline
 import org.apache.beam.sdk.coders.{ByteArrayCoder, KvCoder, NullableCoder, SerializableCoder}
 //import org.apache.beam.sdk.io.cassandra.CassandraIO
@@ -23,13 +22,8 @@ object KillrWeatherBeam {
 
   def main(args: Array[String]): Unit = {
 
-    WeatherSettings.handleArgs("KillrWeather", args)
-
-    val settings = new WeatherSettings()
-    import settings._
-
     // Initialize Cassandra
-    val cluster = Cluster.builder().addContactPoint("127.0.0.1").withPort(CassandraNativePort).withoutMetrics().build()
+    val cluster = Cluster.builder().addContactPoint("127.0.0.1").withoutMetrics().build()
     val session = cluster.connect()
     CassandraSetup.setup(session)
     session.close()
@@ -74,7 +68,7 @@ object KillrWeatherBeam {
         .withKeyspace(CassandraKeyspace)
         .withEntity(classOf[RawEntity]))
 */
-    raw.apply("Write to Cassandra", ParDo.of(new WriteRawToCassandraFn("127.0.0.1", CassandraNativePort)))
+    raw.apply("Write to Cassandra", ParDo.of(new WriteRawToCassandraFn("127.0.0.1", 9042)))
     raw.apply("Write to Influx", ParDo.of(new WriteToInfluxDBFn[RawWeatherData](DataTransformers.getRawPoint)))
 
     val daily = raw
@@ -125,7 +119,7 @@ object KillrWeatherBeam {
         .withKeyspace(CassandraKeyspace)
         .withEntity(classOf[DailyPrecipEntity]))
 */
-    daily.apply("Write to Cassandra", ParDo.of(new WriteDailyToCassandraFn("127.0.0.1", CassandraNativePort)))
+    daily.apply("Write to Cassandra", ParDo.of(new WriteDailyToCassandraFn("127.0.0.1", 9042)))
     daily.apply("Write to Influx", ParDo.of(new WriteToInfluxDBFn[DailyWeatherData](DataTransformers.getDaylyPoint)))
 
     val monthly = daily
@@ -176,7 +170,7 @@ object KillrWeatherBeam {
         .withKeyspace(CassandraKeyspace)
         .withEntity(classOf[MonthlyPrecipEntity]))
 */
-    monthly.apply("Write to Cassandra", ParDo.of(new WriteMonthlyToCassandraFn("127.0.0.1", CassandraNativePort)))
+    monthly.apply("Write to Cassandra", ParDo.of(new WriteMonthlyToCassandraFn("127.0.0.1", 9042)))
     monthly.apply("Write to Influx", ParDo.of(new WriteToInfluxDBFn[MonthlyWeatherData](DataTransformers.getMonthlyPoint)))
 
     // Run the pipeline

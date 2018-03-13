@@ -58,7 +58,7 @@ object Dependencies {
   val beamJava          = "org.apache.beam"   % "beam-runners-direct-java"              % beamVersion
   val beamKafka         = "org.apache.beam"   % "beam-sdks-java-io-kafka"               % beamVersion
   val beamJoin          = "org.apache.beam"   % "beam-sdks-java-extensions-join-library"% beamVersion
-  val beamAPI           = "org.apache.beam"   % "beam-sdks-common-fn-api"               % beamVersion
+//  val beamAPI           = "org.apache.beam"   % "beam-sdks-common-fn-api"               % beamVersion
 //  val beamSQL           = "org.apache.beam"   % "beam-sdks-java-extensions-sql"         % beamVersion
 //  val beamCassandra     = "org.apache.beam"   % "beam-sdks-java-io-cassandra"           % beamVersion
 
@@ -117,7 +117,7 @@ object Dependencies {
 
   val appStructured = common ++ connector  ++ sparkStructured ++ Seq(influxDBClient)
 
-  val beamDependencies = Seq(beamAPI, beamJoin, beamJava, sparkCassandra , beamKafka, influxDBClient)
+  val beamDependencies = Seq(beamJoin, beamJava, sparkCassandra , beamKafka, influxDBClient)
 
 
 }

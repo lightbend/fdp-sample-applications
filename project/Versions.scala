@@ -39,5 +39,5 @@ object Versions {
   val TypesafeConfigVersion = "1.3.2"
   val ScalatestVersion  = "3.0.4"
   val FicusVersion      = "1.4.3"
-  val beamVersion       = "2.2.0"
+  val beamVersion       = "2.3.0"
 }

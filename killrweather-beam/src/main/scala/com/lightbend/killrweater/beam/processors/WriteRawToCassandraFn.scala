@@ -12,8 +12,8 @@ import org.apache.beam.sdk.values.KV
 class WriteRawToCassandraFn(server : String, port : Int) extends DoFn[KV[String, RawWeatherData], Unit] {
 
   val MAXATTEMPTS = 3
-  val settings = new WeatherSettings()
-  import settings._
+  val killrSettings = WeatherSettings("KillrWeather", new Array[String](0))
+  import killrSettings._
 
   var cluster : Cluster = null
   var session : Session = null
@@ -27,7 +27,7 @@ class WriteRawToCassandraFn(server : String, port : Int) extends DoFn[KV[String,
       try {
         cluster = Cluster.builder().addContactPoint(server).withPort(port).withoutMetrics().build()
         session = cluster.connect()
-        prepared = session.prepare(s"insert into $CassandraKeyspace.$CassandraTableRaw " +
+        prepared = session.prepare(s"insert into ${cassandraConfig.keyspace}.${cassandraConfig.tableRaw} " +
           "(wsid, year, month, day, hour, temperature, dewpoint, pressure, wind_direction, wind_speed, sky_condition, sky_condition_text, one_hour_precip, six_hour_precip) " +
           "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
         connected = true

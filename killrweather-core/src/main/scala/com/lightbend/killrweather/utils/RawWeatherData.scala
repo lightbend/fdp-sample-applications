@@ -48,7 +48,7 @@ object RawWeatherData {
       windDirection = array(8).toInt,
       windSpeed = array(9).toDouble,
       skyCondition = array(10).toInt,
-      skyConditionText = array(11),
+      skyConditionText = "",
       oneHourPrecip = array(11).toDouble,
       sixHourPrecip = Option(array(12).toDouble).getOrElse(0)
     )

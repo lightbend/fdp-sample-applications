@@ -12,8 +12,8 @@ import org.apache.beam.sdk.values.KV
 class WriteMonthlyToCassandraFn(server : String, port : Int) extends DoFn[KV[String, MonthlyWeatherData], Unit] {
 
   val MAXATTEMPTS = 3
-  val settings = new WeatherSettings()
-  import settings._
+  val killrSettings = WeatherSettings("KillrWeather", new Array[String](0))
+  import killrSettings._
 
   var cluster : Cluster = null
   var session : Session = null
@@ -30,16 +30,16 @@ class WriteMonthlyToCassandraFn(server : String, port : Int) extends DoFn[KV[Str
       try {
     cluster = Cluster.builder().addContactPoint(server).withPort(port).withoutMetrics().build()
     session = cluster.connect()
-    preparedTemp = session.prepare(s"insert into $CassandraKeyspace.$CassandraTableMonthlyTemp " +
+    preparedTemp = session.prepare(s"insert into ${cassandraConfig.keyspace}.${cassandraConfig.tableMonthlyTemp}  "  +
       "(wsid, year, month, high, low, mean, variance, stdev) " +
       "values (?, ?, ?, ?, ?, ?, ?, ?)")
-    preparedWind = session.prepare(s"insert into $CassandraKeyspace.$CassandraTableMonthlyWind " +
+    preparedWind = session.prepare(s"insert into ${cassandraConfig.keyspace}.${cassandraConfig.tableMonthlyWind}  " +
       "(wsid, year, month, high, low, mean, variance, stdev) " +
       "values (?, ?, ?, ?, ?, ?, ?, ?)")
-    preparedPressure = session.prepare(s"insert into $CassandraKeyspace.$CassandraTableMonthlyPressure " +
+    preparedPressure = session.prepare(s"insert into ${cassandraConfig.keyspace}.${cassandraConfig.tableMonthlyPressure}  " +
       "(wsid, year, month, high, low, mean, variance, stdev) " +
       "values (?, ?, ?, ?, ?, ?, ?, ?)")
-    preparedPrecip = session.prepare(s"insert into $CassandraKeyspace.$CassandraTableMonthlyPrecip " +
+    preparedPrecip = session.prepare(s"insert into ${cassandraConfig.keyspace}.${cassandraConfig.tableMonthlyPrecip}  " +
       "(wsid, year, month, high, low, mean, variance, stdev) " +
       "values (?, ?, ?, ?, ?, ?, ?, ?)")
 

@@ -14,8 +14,8 @@ import org.influxdb.dto.Point
 class WriteToInfluxDBFn[InputT](convertData : KV[String, InputT] => Point) extends DoFn[KV[String, InputT], Unit] {
 
   val MAXATTEMPTS = 3
-  val settings = new WeatherSettings()
-  import settings._
+  val killrSettings = WeatherSettings("KillrWeather", new Array[String](0))
+  import killrSettings._
 
   private var influxDB : InfluxDB = null
 
@@ -25,18 +25,18 @@ class WriteToInfluxDBFn[InputT](convertData : KV[String, InputT] => Point) exten
     var attempts = 0
     while(!connected && (attempts < MAXATTEMPTS)) {
       try {
-        influxDB = InfluxDBFactory.connect(s"$influxDBServer:$influxDBPort", influxDBUser, influxDBPass)
-        if (!influxDB.databaseExists(influxDBDatabase)) {
-          influxDB.createDatabase(influxDBDatabase)
-          influxDB.dropRetentionPolicy("autogen", influxDBDatabase)
-          influxDB.createRetentionPolicy(retentionPolicy, influxDBDatabase, "1d", "30m", 1, true)
+        influxDB = InfluxDBFactory.connect(s"${influxConfig.server}:${influxConfig.port}", influxConfig.user, influxConfig.password)
+        if (!influxDB.databaseExists(influxTableConfig.database)) {
+          influxDB.createDatabase(influxTableConfig.database)
+          influxDB.dropRetentionPolicy("autogen", influxTableConfig.database)
+          influxDB.createRetentionPolicy(influxTableConfig.retentionPolicy, influxTableConfig.database, "1d", "30m", 1, true)
         }
 
-        influxDB.setDatabase(influxDBDatabase)
+        influxDB.setDatabase(influxTableConfig.database)
         // Flush every 2000 Points, at least every 100ms
         influxDB.enableBatch(2000, 100, TimeUnit.MILLISECONDS)
         // set retention policy
-        influxDB.setRetentionPolicy(retentionPolicy)
+        influxDB.setRetentionPolicy(influxTableConfig.retentionPolicy)
         connected = true
       }
       catch {

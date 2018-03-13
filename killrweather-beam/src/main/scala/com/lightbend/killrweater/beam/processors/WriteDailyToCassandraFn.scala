@@ -11,10 +11,10 @@ import org.apache.beam.sdk.values.KV
 
 class WriteDailyToCassandraFn(server : String, port : Int) extends DoFn[KV[String, DailyWeatherData], Unit] {
 
-  val MAXATTEMPTS = 3
-  val settings = new WeatherSettings()
-  import settings._
+  val killrSettings = WeatherSettings("KillrWeather", new Array[String](0))
+  import killrSettings._
 
+  val MAXATTEMPTS = 3
   var cluster : Cluster = null
   var session : Session = null
   var preparedTemp : PreparedStatement = null
@@ -30,16 +30,16 @@ class WriteDailyToCassandraFn(server : String, port : Int) extends DoFn[KV[Strin
       try {
     cluster = Cluster.builder().addContactPoint(server).withPort(port).withoutMetrics().build()
     session = cluster.connect()
-    preparedTemp = session.prepare(s"insert into $CassandraKeyspace.$CassandraTableDailyTemp " +
+    preparedTemp = session.prepare(s"insert into ${cassandraConfig.keyspace}.${cassandraConfig.tableDailyTemp} " +
       "(wsid, year, month, day, high, low, mean, variance, stdev) " +
       "values (?, ?, ?, ?, ?, ?, ?, ?, ?)")
-    preparedWind = session.prepare(s"insert into $CassandraKeyspace.$CassandraTableDailyWind " +
+    preparedWind = session.prepare(s"insert into ${cassandraConfig.keyspace}.${cassandraConfig.tableDailyWind} " +
       "(wsid, year, month, day, high, low, mean, variance, stdev) " +
       "values (?, ?, ?, ?, ?, ?, ?, ?, ?)")
-    preparedPressure = session.prepare(s"insert into $CassandraKeyspace.$CassandraTableDailyPressure " +
+    preparedPressure = session.prepare(s"insert into ${cassandraConfig.keyspace}.${cassandraConfig.tableDailyPressure} " +
       "(wsid, year, month, day, high, low, mean, variance, stdev) " +
       "values (?, ?, ?, ?, ?, ?, ?, ?, ?)")
-    preparedPrecip = session.prepare(s"insert into $CassandraKeyspace.$CassandraTableDailyPrecip " +
+    preparedPrecip = session.prepare(s"insert into ${cassandraConfig.keyspace}.${cassandraConfig.tableDailyPrecip} " +
       "(wsid, year, month, day, precipitation) " +
       "values (?, ?, ?, ?, ?)")
 
