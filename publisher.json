@@ -11,7 +11,7 @@
     "volumes": [],
     "docker": {
       "image": "fdp-reg.lightbend.com:443/model-server-publisher:1.1.0",
-      "forcePullImage": false,
+      "forcePullImage": true,
       "privileged": false,
       "parameters": []
     }
