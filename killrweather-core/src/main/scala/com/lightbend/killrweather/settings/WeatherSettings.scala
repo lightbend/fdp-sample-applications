@@ -70,7 +70,7 @@ object CassandraConfig {
   val DefaultMeasuredInsertsCount: Int = 128
 }
 
-
+case class CassandraServerConfig(host: String, port: Int = 9042)
 
 case class InfluxDBConfig(server: String, port: Int, user: String, password: String, enabled: Boolean) {
   def url = s"$server:$port"
@@ -83,10 +83,7 @@ case class InfluxTableConfig(database: String, retentionPolicy: String)
 case class GRPCConfig(host: String, port: Int)
 
 
-class WeatherSettings(overrides: Config) extends Serializable {
-
-  val baseConfig = ConfigFactory.load()
-  val config = overrides.withFallback(baseConfig)
+class WeatherSettings(val config: Config) extends Serializable {
 
   val kafkaConfig: KafkaConfig = config.as[KafkaConfig]("kafka")
 
@@ -116,6 +113,12 @@ class WeatherSettings(overrides: Config) extends Serializable {
 
   val graphanaConfig = config.as[GrafanaConfig]("grafana")
 
+  val cassandraServerConfig = {
+    val host = config.getString("spark.cassandra.connection.host")
+    val port = config.getInt("spark.cassandra.connection.port")
+    CassandraServerConfig(host, port)
+  }
+
   override def equals(obj: scala.Any): Boolean = {
     obj match {
       case w: WeatherSettings =>
@@ -129,6 +132,8 @@ class WeatherSettings(overrides: Config) extends Serializable {
 }
 
 object WeatherSettings {
+
+  val baseConfig = ConfigFactory.load()
 
   def apply(appName: String, args: Array[String]): WeatherSettings = {
 
@@ -187,11 +192,12 @@ object WeatherSettings {
       showHelp()
       sys.exit(1)
     }
-    new WeatherSettings(ConfigFactory.parseMap(overrides.asJava))
+    val config = ConfigFactory.parseMap(overrides.asJava).withFallback(baseConfig)
+    new WeatherSettings(config)
   }
 
   def apply(): WeatherSettings = {
-    new WeatherSettings(ConfigFactory.empty())
+    new WeatherSettings(baseConfig)
   }
 
 }
