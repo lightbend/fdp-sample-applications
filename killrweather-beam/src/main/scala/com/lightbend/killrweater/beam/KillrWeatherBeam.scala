@@ -25,10 +25,11 @@ object KillrWeatherBeam {
 
     val config = WeatherSettings()
 
-
-
     // Initialize Cassandra
-    val cluster = Cluster.builder().addContactPoint("127.0.0.1").withoutMetrics().build()
+    val cluster = Cluster.builder()
+      .addContactPoint(config.cassandraServerConfig.host)
+      .withPort(config.cassandraServerConfig.port)
+      .withoutMetrics().build()
     val session = cluster.connect()
     CassandraSetup.setup(session)
     session.close()

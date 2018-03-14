@@ -113,7 +113,7 @@ class WeatherSettings(val config: Config) extends Serializable {
 
   val graphanaConfig = config.as[GrafanaConfig]("grafana")
 
-  lazy val cassandraServerConfig = {
+  val cassandraServerConfig = {
     val host = config.getString("spark.cassandra.connection.host")
     val port = config.getInt("spark.cassandra.connection.port")
     CassandraServerConfig(host, port)

@@ -19,6 +19,11 @@ class WeatherSettingsTest extends WordSpec with Matchers with TableDrivenPropert
       sparkConf.get("spark.master") should be("local[2]")
     }
 
+    "Load the default cassandra server configuration" in {
+      ws.cassandraServerConfig.host should be ("localhost")
+      ws.cassandraServerConfig.port should be (9042)
+    }
+
     "Load the default streaming configuration" in {
       ws.streamingConfig.checkpointDir should include("checkpoints")
       ws.streamingConfig.batchInterval.toSeconds should be > 1L
