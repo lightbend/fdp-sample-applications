@@ -9,6 +9,7 @@ import com.lightbend.killrweater.beam.coders.ScalaStringCoder
 import com.lightbend.killrweater.beam.data.{DailyWeatherData, DataObjects, MonthlyWeatherData, RawWeatherData}
 import com.lightbend.killrweater.beam.kafka.JobConfiguration
 import com.lightbend.killrweater.beam.processors._
+import com.lightbend.killrweather.settings.WeatherSettings
 import org.apache.beam.sdk.Pipeline
 import org.apache.beam.sdk.coders.{ByteArrayCoder, KvCoder, NullableCoder, SerializableCoder}
 //import org.apache.beam.sdk.io.cassandra.CassandraIO
@@ -22,8 +23,13 @@ object KillrWeatherBeam {
 
   def main(args: Array[String]): Unit = {
 
+    val config = WeatherSettings()
+
     // Initialize Cassandra
-    val cluster = Cluster.builder().addContactPoint("127.0.0.1").withoutMetrics().build()
+    val cluster = Cluster.builder()
+      .addContactPoint(config.cassandraServerConfig.host)
+      .withPort(config.cassandraServerConfig.port)
+      .withoutMetrics().build()
     val session = cluster.connect()
     CassandraSetup.setup(session)
     session.close()
