@@ -17,7 +17,6 @@ object Dependencies {
   val akkaHttpCore      = "com.typesafe.akka"       % "akka-http_2.11"                  % AkkaHTTP
   val akkaActor         = "com.typesafe.akka"       % "akka-actor_2.11"                 % Akka
   val akkaSlf4j         = "com.typesafe.akka"       % "akka-slf4j_2.11"                 % Akka
-  val akkaCluster       = "com.typesafe.akka"       % "akka-cluster_2.11"               % Akka
   val curator           = "org.apache.curator"      % "curator-test"                    % Curator                           // ApacheV2
   val jodaTime          = "joda-time"               % "joda-time"                       % JodaTime                          // ApacheV2
   val jodaConvert       = "org.joda"                % "joda-convert"                    % JodaConvert                       // ApacheV2
@@ -58,9 +57,6 @@ object Dependencies {
   val beamJava          = "org.apache.beam"   % "beam-runners-direct-java"              % beamVersion
   val beamKafka         = "org.apache.beam"   % "beam-sdks-java-io-kafka"               % beamVersion
   val beamJoin          = "org.apache.beam"   % "beam-sdks-java-extensions-join-library"% beamVersion
-//  val beamAPI           = "org.apache.beam"   % "beam-sdks-common-fn-api"               % beamVersion
-//  val beamSQL           = "org.apache.beam"   % "beam-sdks-java-extensions-sql"         % beamVersion
-//  val beamCassandra     = "org.apache.beam"   % "beam-sdks-java-io-cassandra"           % beamVersion
 
   val connector = Seq(
     sparkCassandra
@@ -82,7 +78,7 @@ object Dependencies {
     akkaSlf4j.
       exclude("org.slf4j", "slf4j-api").
       exclude("org.slf4j", "slf4j-log4j12"),
-    akkaHttpCore, akkaStream, akkaCluster, akkaStreamKafka)
+    akkaHttpCore, akkaStream, /*akkaCluster,*/ akkaStreamKafka)
   val json = Seq(json4sCore, json4sJackson, json4sNative)
   val grpc = Seq(scalaPBRuntime, scalaPBGRPC, grpcNetty, scalaPBJSON)
   val spark = Seq(sparkCore, sparkStreaming,
