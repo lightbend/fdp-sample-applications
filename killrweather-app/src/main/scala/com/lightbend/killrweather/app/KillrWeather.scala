@@ -11,6 +11,7 @@ import com.lightbend.killrweather.settings.WeatherSettings
 import com.lightbend.killrweather.WeatherClient.WeatherRecord
 import com.lightbend.killrweather.app.cassandra.CassandraSetup
 import com.lightbend.killrweather.app.influxdb.InfluxDBSink
+import com.lightbend.killrweather.grafana.GrafanaSetup
 import com.lightbend.killrweather.utils._
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.util.StatCounter
@@ -39,6 +40,14 @@ object KillrWeather {
     } catch {
       case t: Throwable => println("Cassandra not initialized")
     }
+
+    // Initialize Grafana
+    try
+      new GrafanaSetup().setGrafana()
+    catch {
+      case t: Throwable => println(s"Grafana not initialized ${t.getMessage}")
+    }
+
     val sc = sparkSession.sparkContext
     val ssc = new StreamingContext(sc, Duration(streamingConfig.batchInterval.toMillis))
 
