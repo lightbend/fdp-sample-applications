@@ -2,7 +2,7 @@ package com.lightbend.fdp.sample.flink.app
 
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.java.typeutils.TypeExtractor
-import org.apache.flink.streaming.util.serialization.{DeserializationSchema, SerializationSchema}
+import org.apache.flink.api.common.serialization.{DeserializationSchema, SerializationSchema}
 
 case class PredictedTime(rideId: Long, predictedTimeInMins: Int) {
   override def toString() = s"$rideId,$predictedTimeInMins"
