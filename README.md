@@ -134,6 +134,24 @@ fdp-reg.lightbend.com:443/model-server-publisher    1.1.0  a3040c809984  10 minu
 
 ## Component Configuration
 
+This application uses a file-based configuration with _environment variables_ overrides.
+A common practice is to use well known endpoint names for the target environment in the configuration file
+and allow for overrides from environment variables.
+
+This is an example of the configuration for `influxDB`, which indicates the default value in the cluster 
+as well as the environment variable override:
+
+```
+influxdb {
+  host = "http://influxdb.marathon.l4lb.thisdcos.directory"
+  host = ${?INFLUXDB_HOST}
+  port = "8086"
+  port = ${?INFLUXDB_PORT}
+}
+```
+
+There's an `application.conf` file on each executable project, under `src/main/resources/`
+
 ### `Publisher`
 
 The `publisher` component requires two configuration parameters:
@@ -141,31 +159,29 @@ The `publisher` component requires two configuration parameters:
 - `KAFKA_BROKERS_LIST`: a comma-separated list of the kafka brokers to contact in the form "<host1>:<port1>,<host2>:<port2>,..." 
 - `ZOOKEEPER_URL`: the URL to the zookeeper service
 
-These can be either set in the `application.conf` configuration file or provided through environment variables.
-The latter is preferred when running the components in containers.
-
 ### `akka`| `kafka` -`svc`
 
-The _model serving_ service requires configuration to communicate with  
- 
+The _model serving_ service, in both its _kafka streams_ and _akka streams_ implementations 
+requires the following configuration parameters:
 
+ - `KAFKA_BROKERS_LIST`: a comma-separated list of the kafka brokers to contact in the form "<host1>:<port1>,<host2>:<port2>,..."
+ - `ZOOKEEPER_URL`: the URL to the zookeeper service
+ - `GRAFANA_HOST`: the host where the _grafana_ service is running (DNS name or IP address)
+ - `GRAFANA_PORT`: the port of the grafana service
+ - `INFLUXDB_HOST`: the host where the _influxDB_ service is running (DNS name or IP address)
+ - `INFLUXDB_PORT`: the port of the _influxDB_ service
+ 
 ## Running Locally
 
-We can run the application from the source, from the _docker_ images or with a combination of the two, 
+We can run the complete application from source, from the _docker_ images or with a combination of the two, 
 depending of our goal.
 For example, to test the end-to-end execution, we can opt to run all processes in _docker_ containers
  while if we are in the middle of a _develop-run-test-develop_ cycle of the _model serving_ part, 
  we could run the `producer` in its container, while executing the server code from `sbt` or our IDE of choice.
  
+In any case, the required external services should be reachable from the host executing the application of any of its components. 
+Note that when running against services installed on DC/OS, their DNS names are not resolvable and we should use IP addresses instead.  
 
-
-
- 
-
-
-Running locally can be done either using SBT or Intellij (If you run locally, make sure to change 
-kafka configuration `(broker quorum and zookeeper)`), InfluxDB configuration `(host and port)` and 
-Grafana configuration `(host and port)`
 
 `dataprovider` application allow for changing of frequency of sending data, by
 specifying desired frequency (in ms) as an application parameter. If the parameter is not specified
