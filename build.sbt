@@ -17,14 +17,14 @@ lazy val protobufs = (project in file("./protobufs"))
       publish := { }
     )
 
-lazy val client = (project in file("./client"))
+lazy val producer = (project in file("./publisher"))
   .settings(
     name :="model-server-publisher",
     buildInfoPackage := "build",
     mainClass in Compile := Some("com.lightbend.kafka.DataProvider"),
     maintainer := "Boris Lublinsky <boris.lublinsky@lightbend.com>",
-    packageSummary := "Model Server Loaders",
-    packageDescription := "Model Server Loaders",
+    packageSummary := "Model Server Data Publisher",
+    packageDescription := "Model Server Data Publisher",
     deployResourceConfigFiles ++= Seq("deploy.conf"),
     deployArtifacts ++= Seq(
       ArtifactSSH((packageZipTarball in Universal).value, "/var/www/html/")
@@ -48,7 +48,7 @@ lazy val model = (project in file("./model"))
   .dependsOn(protobufs)
   .disablePlugins(DockerPlugin)
 
-lazy val server = (project in file("./server"))
+lazy val kafkaSvc = (project in file("./kafkastreamssvc"))
   .settings(
     buildInfoPackage := "build",
     name :="model-server-kstreams",
@@ -71,7 +71,7 @@ lazy val server = (project in file("./server"))
   .enablePlugins(JavaAppPackaging)
   .enablePlugins(DockerPlugin)
 
-lazy val akkaServer = (project in file("./akkaserver"))
+lazy val akkaSvc = (project in file("./akkastreamssvc"))
   .settings(
     buildInfoPackage := "build",
     name :="model-server-akkastreams",
@@ -100,5 +100,5 @@ lazy val configuration = (project in file("./configuration"))
 
 lazy val modelserver = (project in file("."))
   .settings(publish := { })
-  .aggregate(protobufs, client, model, configuration, server, akkaServer)
+  .aggregate(protobufs, producer, model, configuration, kafkaSvc, akkaSvc)
 

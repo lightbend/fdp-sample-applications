@@ -73,23 +73,25 @@ The application also ensures that the Grafana data source and dashboard definiti
 We recommend using [IntelliJ IDEA](https://www.jetbrains.com/idea/) for managing and building the code. 
 The project is organized as several modules:
 
-* `akkaServer` - Akka Streams implementation of model serving
+* `akkastreamssvc` - Akka Streams implementation of model serving
 * `client` - Data and model loader used to run either Akka or Kafka streams application
 * `configuration` - Shared configurations and InfluxDB support (see [prerequisites](#Prerequisites))
 * `model` - Implementation of both Tensorflow anf PMML models.
 * `protobufs` - Shared models in protobuf format.
-* `server` -  Kafka Streams implementation of model serving.
+* `kafkastreamssvc` -  Kafka Streams implementation of model serving.
 
 Additionally, the following folders are used:
 
 * `data` - some data files for running the applications
 * `images` - diagrams used for this document
 
-The build is done via SBT
+The build is done via `sbt`
 
     cd KafkaStreamsModelServer
-    sbt compile
+    sbt clean compile
     # For IntelliJ users, just import a project and use IntelliJ commands
+
+
 
 # Deploy and Run
 
@@ -100,7 +102,30 @@ This project contains 3 executables:
 
 Each application can run either locally (on user's machine) or on the server.
 
-## Running locally
+## Packaging
+
+For this section we assume you have a working _docker_ installation on your machine |
+------------------------------------------------------------------------------------|
+
+We use _docker_ to containerize the different parts of this application. 
+
+The creation of _docker_ images is done by the 
+[sbt-native-packager](https://www.scala-sbt.org/sbt-native-packager/formats/docker.html) 
+plugin, using the `docker` packaging format plugin.
+
+For local testing, the _docker_ images can be created and added to the local _docker repository_ 
+using the command:
+```
+sbt docker:publishLocal
+
+```
+ 
+ 
+ 
+   
+
+
+## Running Locally
 
 Running locally can be done either using SBT or Intellij (If you run locally, make sure to change 
 kafka configuration `(broker quarum and zookeeper)`), InfluxDB configuration `(host and port)` and 
