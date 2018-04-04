@@ -2,7 +2,7 @@
 
 # Overall Architecture
 
-A high level view of the overall model serving architecture (
+A high-level view of the overall model serving architecture (
 similar to [dynamically controlled stream](https://data-artisans.com/blog/bettercloud-dynamic-alerting-apache-flink)) 
 ![Overall architecture of model serving](images/overallModelServing.png)
 
@@ -24,7 +24,7 @@ With such component in place, the overall implementation is going to look as fol
 # Kafka Streams
 
 Kafka Streams implementation leverages custom store containing current execution state.
-With this store in place, implementation of the model serving using Kafka 
+With this store in place, the implementation of the model serving using Kafka 
 Streams becomes very simple, it’s basically two independent streams coordinated via a shared store. 
 
 
@@ -35,7 +35,7 @@ Streams becomes very simple, it’s basically two independent streams coordinate
 
 Kafka Streams  recently [introduced](https://docs.confluent.io/current/streams/developer-guide.html#id8) queryable state, which is 
 a nice approach to execution monitoring.
-This feature allows to treat the stream processing layer as a 
+This feature allows treating the stream processing layer as a 
 lightweight embedded database and, more concretely, to directly query the latest state of your stream processing application, without needing to materialize that state to external databases or external storage first.
 
 
@@ -46,39 +46,44 @@ Both Akka Streams and Kafka streams implementation support queryable state
 # Scaling
 
 Both Akka and Kafka Streams implementations are in JVM implementations.
-If the source of streams is Kafka, they both can be deployed as a cluster.
-Fig below shows Kafka Streams cluster. Akka Streams implementation can be scaled the same way
+Given that the source of streams is Kafka, they both can be deployed as a cluster.
+The Figure below shows Kafka Streams cluster. Akka Streams implementation can be scaled the same way
 
 ![scaling](images/Kafkastreamsclusters.png)
 
 
 # Prerequisites
 
-Overall implement relies on Kafka (current version is 11) and requires kafka to be installed.
-It uses 2 queues:
-* `models_data` - queue used for sending data
-* `models_models` - queue used for sending models
-Model provider and data provider applications check if their corresponding queues exist. Run them 
-first if not sure whether queues exist
+This application relies on Kafka (current version is 1.0) and requires a Kafka deployment available.
+It uses 2 topics:
+* `models_data` - topic used for sending data
+* `models_models` - topic used for sending models
+Model provider and data provider applications check if their corresponding topics exist. Run them 
+first if not sure whether the topics exist.
 
 It also relies on InfluxDB/Grafana for visualization. Both need to be installed before running applications
 
-For InfluxDB database `serving` with retentionPolicy `default` is used. Application checks on startup whether the database exists and create it, if necessary
-Application also ensures that Grafana data source and dashboard definitions exist and create them, in necessary
+For InfluxDB, the database `serving` with retentionPolicy `default` is used. 
+The application checks on startup whether the database exists and create it, if necessary.
+The application also ensures that the Grafana data source and dashboard definitions exist and create them, if necessary.
 
 
 # Build the code
 
-We recommend using [IntelliJ IDEA](https://www.jetbrains.com/idea/) for managing and building the code. The project is organized as several modules:
+We recommend using [IntelliJ IDEA](https://www.jetbrains.com/idea/) for managing and building the code. 
+The project is organized as several modules:
 
-* `data` - some data files for running the applications
-* `images` - diagrams used for this document
-* `akkaserver` - Akka Streams implementation of model serving
+* `akkaServer` - Akka Streams implementation of model serving
 * `client` - Data and model loader used to run either Akka or Kafka streams application
-* `configuration` - Shared configurations anf InfluxDB support (see prerequisites)
+* `configuration` - Shared configurations and InfluxDB support (see [prerequisites](#Prerequisites))
 * `model` - Implementation of both Tensorflow anf PMML models.
 * `protobufs` - Shared models in protobuf format.
 * `server` -  Kafka Streams implementation of model serving.
+
+Additionally, the following folders are used:
+
+* `data` - some data files for running the applications
+* `images` - diagrams used for this document
 
 The build is done via SBT
 
@@ -88,7 +93,7 @@ The build is done via SBT
 
 # Deploy and Run
 
-This project contains 4 executables:
+This project contains 3 executables:
 * `akkaserver`    - Akka Streams implementation of model serving
 * `kafkaserver`   - Kafka Streams implementation of model serving
 * `dataprovider`  - Data publisher
