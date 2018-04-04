@@ -21,8 +21,8 @@ import scala.concurrent.duration.Duration.{ Inf => InfiniteDuration }
  */
 object DataProvider {
 
-  val directory = "data"
-  val DataFile = s"$directory/winequality_red.csv"
+  val dataDirectory = "data"
+  val dataFile = s"$dataDirectory/winequality_red.csv"
 
   def main(args: Array[String]) {
 
@@ -32,6 +32,9 @@ object DataProvider {
     val publisherConfig = config.getConfig("publisher")
     val dataTimeInterval: Duration = publisherConfig.getDuration("data_publish_interval")
     val modelTimeInterval: Duration = publisherConfig.getDuration("model_publish_interval")
+    val dataDirectory = publisherConfig.getString("data_dir")
+    val dataFile = publisherConfig.getString("data_file")
+    val dataFileLocation = dataDirectory + "/" + dataFile
 
     println(s"Data Provider with kafka brokers at $kafkaBrokers with zookeeper $zookeeperHosts")
     println(s"Data Message delay $dataTimeInterval")
@@ -50,7 +53,7 @@ object DataProvider {
     val sender = KafkaMessageSender(kafkaBrokers, zookeeperHosts)
     sender.createTopic(DATA_TOPIC)
     val bos = new ByteArrayOutputStream()
-    val records = getListOfRecords(DataFile)
+    val records = getListOfRecords(dataFile)
     println(s"Records found in data: ${records.size}")
     var nrec = 0
     while (true) {
@@ -69,14 +72,14 @@ object DataProvider {
     println("Starting model publisher")
     val sender = KafkaMessageSender(kafkaBrokers, zookeeperHosts)
     sender.createTopic(MODELS_TOPIC)
-    val files = getListOfModelFiles(directory)
+    val files = getListOfModelFiles(dataDirectory)
     println(s"Models found: [${files.size}] => ${files.mkString(",")}")
     val bos = new ByteArrayOutputStream()
     while (true) {
       files.foreach(f => {
         // PMML
         println(s"Publishing model found on file: $f")
-        val pByteArray = Files.readAllBytes(Paths.get(directory, f))
+        val pByteArray = Files.readAllBytes(Paths.get(dataDirectory, f))
         val pRecord = ModelDescriptor(
           name = f.dropRight(5),
           description = "generated from SparkML", modeltype = ModelDescriptor.ModelType.PMML,
@@ -93,24 +96,26 @@ object DataProvider {
 
   private def pause(timeInterval: Duration): Unit = Thread.sleep(timeInterval.toMillis)
 
+  def toWineRecord(str: String): WineRecord = {
+    val cols = str.split(";").map(_.trim)
+    new WineRecord(
+      fixedAcidity = cols(0).toDouble,
+      volatileAcidity = cols(1).toDouble,
+      citricAcid = cols(2).toDouble,
+      residualSugar = cols(3).toDouble,
+      chlorides = cols(4).toDouble,
+      freeSulfurDioxide = cols(5).toDouble,
+      totalSulfurDioxide = cols(6).toDouble,
+      density = cols(7).toDouble,
+      pH = cols(8).toDouble,
+      sulphates = cols(9).toDouble,
+      alcohol = cols(10).toDouble,
+      dataType = "wine"
+    )
+  }
+
   def getListOfRecords(file: String): Seq[WineRecord] = {
-    Source.fromFile(file).getLines.map { line =>
-      val cols = line.split(";").map(_.trim)
-      new WineRecord(
-        fixedAcidity = cols(0).toDouble,
-        volatileAcidity = cols(1).toDouble,
-        citricAcid = cols(2).toDouble,
-        residualSugar = cols(3).toDouble,
-        chlorides = cols(4).toDouble,
-        freeSulfurDioxide = cols(5).toDouble,
-        totalSulfurDioxide = cols(6).toDouble,
-        density = cols(7).toDouble,
-        pH = cols(8).toDouble,
-        sulphates = cols(9).toDouble,
-        alcohol = cols(10).toDouble,
-        dataType = "wine"
-      )
-    }.toSeq
+    Source.fromFile(file).getLines.map(toWineRecord).toSeq
   }
 
   private def getListOfModelFiles(dir: String): Seq[String] = {
