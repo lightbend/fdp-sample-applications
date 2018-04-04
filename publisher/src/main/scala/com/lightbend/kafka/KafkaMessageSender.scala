@@ -1,7 +1,6 @@
 package com.lightbend.kafka
 
 /**
- * Created by boris on 5/10/17.
  * Byte array sender to Kafka
  */
 

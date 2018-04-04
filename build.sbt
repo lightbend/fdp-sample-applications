@@ -17,7 +17,7 @@ lazy val protobufs = (project in file("./protobufs"))
       publish := { }
     )
 
-lazy val producer = (project in file("./publisher"))
+lazy val publisher = (project in file("./publisher"))
   .settings(
     name :="model-server-publisher",
     buildInfoPackage := "build",
@@ -100,5 +100,5 @@ lazy val configuration = (project in file("./configuration"))
 
 lazy val modelserver = (project in file("."))
   .settings(publish := { })
-  .aggregate(protobufs, producer, model, configuration, kafkaSvc, akkaSvc)
+  .aggregate(protobufs, publisher, model, configuration, kafkaSvc, akkaSvc)
 

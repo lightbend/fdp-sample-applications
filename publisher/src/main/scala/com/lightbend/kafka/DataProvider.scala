@@ -12,7 +12,8 @@ import com.typesafe.config.ConfigFactory
 import scala.concurrent.{ Await, Future }
 import scala.io.Source
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration._
+import java.time.Duration
+import scala.concurrent.duration.Duration.{ Inf => InfiniteDuration }
 
 /**
  *
@@ -20,20 +21,19 @@ import scala.concurrent.duration._
  */
 object DataProvider {
 
-  val DataFile = "data/winequality_red.csv"
-  val DataTimeInterval = 1.second
-  val ModelTimeInterval = 5.minutes
-  val directory = "data/"
+  val directory = "data"
+  val DataFile = s"$directory/winequality_red.csv"
 
   def main(args: Array[String]) {
 
     val config = ConfigFactory.load()
     val kafkaBrokers = config.getString("kafka.brokers")
     val zookeeperHosts = config.getString("zookeeper.hosts")
+    val publisherConfig = config.getConfig("publisher")
+    val dataTimeInterval: Duration = publisherConfig.getDuration("data_publish_interval")
+    val modelTimeInterval: Duration = publisherConfig.getDuration("model_publish_interval")
 
     println(s"Data Provider with kafka brokers at $kafkaBrokers with zookeeper $zookeeperHosts")
-    val dataTimeInterval = if (args.length > 0) args(0).toInt.millis else DataTimeInterval
-    val modelTimeInterval = if (args.length > 1) args(1).toInt.millis else ModelTimeInterval
     println(s"Data Message delay $dataTimeInterval")
     println(s"Model Message delay $modelTimeInterval")
 
@@ -42,7 +42,7 @@ object DataProvider {
 
     val result = Future.firstCompletedOf(Seq(dataPublisher, modelPublisher))
 
-    Await.result(result, Duration.Inf)
+    Await.result(result, InfiniteDuration)
   }
 
   def publishData(timeInterval: Duration, kafkaBrokers: String, zookeeperHosts: String): Future[Unit] = Future {
@@ -59,7 +59,7 @@ object DataProvider {
         r.writeTo(bos)
         sender.writeValue(DATA_TOPIC, bos.toByteArray)
         nrec = nrec + 1
-        if (nrec % 10 == 0) println(s"printed $nrec records")
+        if (nrec % 10 == 0) println(s"produced $nrec data records")
         pause(timeInterval)
       })
     }
@@ -76,7 +76,7 @@ object DataProvider {
       files.foreach(f => {
         // PMML
         println(s"Publishing model found on file: $f")
-        val pByteArray = Files.readAllBytes(Paths.get(directory + f))
+        val pByteArray = Files.readAllBytes(Paths.get(directory, f))
         val pRecord = ModelDescriptor(
           name = f.dropRight(5),
           description = "generated from SparkML", modeltype = ModelDescriptor.ModelType.PMML,
