@@ -93,7 +93,7 @@ The build is done via `sbt`
 
 
 
-# Deploy and Run
+# Package, Configure, Deploy, and Run
 
 This project contains 3 executables:
 * `akkaserver`    - Akka Streams implementation of model serving
@@ -107,28 +107,64 @@ Each application can run either locally (on user's machine) or on the server.
 For this section we assume you have a working _docker_ installation on your machine |
 ------------------------------------------------------------------------------------|
 
-We use _docker_ to containerize the different parts of this application. 
+We use _docker_ to containerize the different runtime components of this application. 
 
 The creation of _docker_ images is done by the 
 [sbt-native-packager](https://www.scala-sbt.org/sbt-native-packager/formats/docker.html) 
 plugin, using the `docker` packaging format plugin.
 
 For local testing, the _docker_ images can be created and added to the local _docker repository_ 
-using the command:
+
+Use the command:
 ```
 sbt docker:publishLocal
 
 ```
- 
- 
- 
-   
+After a successful build, we can see the images in our local _docker registry_:
+```
+$docker images
 
+REPOSITORY                                          TAG    IMAGE ID      CREATED         SIZE
+fdp-reg.lightbend.com:443/model-server-akkastreams  1.1.0  aab5a948b8b8  10 minutes ago  727MB
+fdp-reg.lightbend.com:443/model-server-kstreams     1.1.0  2d4f047f8ddb  10 minutes ago  708MB
+fdp-reg.lightbend.com:443/model-server-publisher    1.1.0  a3040c809984  10 minutes ago  606MB
+...
+
+```
+
+## Component Configuration
+
+### `Publisher`
+
+The `publisher` component requires two configuration parameters:
+
+- `KAFKA_BROKERS_LIST`: a comma-separated list of the kafka brokers to contact in the form "<host1>:<port1>,<host2>:<port2>,..." 
+- `ZOOKEEPER_URL`: the URL to the zookeeper service
+
+These can be either set in the `application.conf` configuration file or provided through environment variables.
+The latter is preferred when running the components in containers.
+
+### `akka`| `kafka` -`svc`
+
+The _model serving_ service requires configuration to communicate with  
+ 
 
 ## Running Locally
 
+We can run the application from the source, from the _docker_ images or with a combination of the two, 
+depending of our goal.
+For example, to test the end-to-end execution, we can opt to run all processes in _docker_ containers
+ while if we are in the middle of a _develop-run-test-develop_ cycle of the _model serving_ part, 
+ we could run the `producer` in its container, while executing the server code from `sbt` or our IDE of choice.
+ 
+
+
+
+ 
+
+
 Running locally can be done either using SBT or Intellij (If you run locally, make sure to change 
-kafka configuration `(broker quarum and zookeeper)`), InfluxDB configuration `(host and port)` and 
+kafka configuration `(broker quorum and zookeeper)`), InfluxDB configuration `(host and port)` and 
 Grafana configuration `(host and port)`
 
 `dataprovider` application allow for changing of frequency of sending data, by
