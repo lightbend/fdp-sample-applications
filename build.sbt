@@ -8,6 +8,8 @@ allowSnapshot in ThisBuild := true
 
 scalaVersion in ThisBuild := Versions.Scala
 
+val dockerRepositoryUrl = "fdp-reg.lightbend.com:443"
+
 lazy val protobufs = (project in file("./protobufs"))
     .settings(
       PB.targets in Compile := Seq(
@@ -22,7 +24,7 @@ lazy val publisher = (project in file("./publisher"))
     name :="model-server-publisher",
     buildInfoPackage := "build",
     mainClass in Compile := Some("com.lightbend.kafka.DataProvider"),
-    maintainer := "Boris Lublinsky <boris.lublinsky@lightbend.com>",
+    maintainer := "Fast Data Team <fdp@lightbend.com>",
     packageSummary := "Model Server Data Publisher",
     packageDescription := "Model Server Data Publisher",
     deployResourceConfigFiles ++= Seq("deploy.conf"),
@@ -31,7 +33,7 @@ lazy val publisher = (project in file("./publisher"))
     ),
     // mappings in Universal ++= directory("data"),
     dockerBaseImage := "openjdk:8u151-jre",
-    dockerRepository := Some("fdp-reg.lightbend.com:443"),
+    dockerRepository := Some(dockerRepositoryUrl),
     //dockerCommands += Cmd("ADD", "data", "/opt/docker/data"),
     version in Docker := version.value.takeWhile(c => c != '+')
 
@@ -61,7 +63,7 @@ lazy val kafkaSvc = (project in file("./kafkastreamssvc"))
       ArtifactSSH((packageZipTarball in Universal).value, "/var/www/html/")
     ),
     dockerBaseImage := "openjdk:8u151-jre",
-    dockerRepository := Some("fdp-reg.lightbend.com:443"),
+    dockerRepository := Some(dockerRepositoryUrl),
     version in Docker := version.value.takeWhile(c => c != '+')
 
   )
@@ -76,7 +78,7 @@ lazy val akkaSvc = (project in file("./akkastreamssvc"))
     buildInfoPackage := "build",
     name :="model-server-akkastreams",
     mainClass in Compile := Some("com.lightbend.modelServer.modelServer.AkkaModelServer"),
-    maintainer := "Boris Lublinsky <boris.lublinsky@lightbend.com>",
+    maintainer := "Fast Data Team <fdp@lightbend.com>",
     packageSummary := "Model Server Akka Streams",
     packageDescription := "Model Server Akka Streams",
     deployResourceConfigFiles ++= Seq("deploy.conf"),
@@ -84,7 +86,7 @@ lazy val akkaSvc = (project in file("./akkastreamssvc"))
       ArtifactSSH((packageZipTarball in Universal).value, "/var/www/html/")
     ),
     dockerBaseImage := "openjdk:8u151-jre",
-    dockerRepository := Some("fdp-reg.lightbend.com:443"),
+    dockerRepository := Some(dockerRepositoryUrl),
     version in Docker := version.value.takeWhile(c => c != '+')
   )    .settings(libraryDependencies ++= kafkaDependencies ++ akkaServerDependencies
     ++ modelsDependencies ++ Seq(curator))

@@ -132,6 +132,15 @@ fdp-reg.lightbend.com:443/model-server-publisher    1.1.0  a3040c809984  10 minu
 
 ```
 
+### Publishing to an external Docker repository
+
+To publish the resulting _Docker_ images to an external public repository, we need to:
+- configure the address of the repository in the `build.sbt`
+
+```
+sbt docker:publishLocal
+
+```
 ## Component Configuration
 
 This application uses a file-based configuration with _environment variables_ overrides.
@@ -168,7 +177,7 @@ The `publisher` component support the following configuration:
 
 ### `akka`| `kafka` -`svc`
 
-The _model serving_ service, in both its _kafka streams_ and _akka streams_ implementations 
+The _model serving_ service, in both its _kafka streams_ and _akka streams_ implementations, 
 requires the following configuration parameters:
 
  - `KAFKA_BROKERS_LIST`: a comma-separated list of the kafka brokers to contact in the form "<host1>:<port1>,<host2>:<port2>,..."
@@ -188,6 +197,14 @@ For example, to test the end-to-end execution, we can opt to run all processes i
  
 In any case, the required external services should be reachable from the host executing the application of any of its components. 
 Note that when running against services installed on DC/OS, their DNS names are not resolvable and we should use IP addresses instead.  
+
+### Running the Publisher
+
+#### On Docker
+
+Build and publish a local image as described in []
+
+docker run -e KAFKA_BROKERS_LIST=10.0.7.196:1025 -e ZOOKEEPER_URL=10.0.5.33/dcos-service-kafka fdp-reg.lightbend.com:443/model-server-publisher:1.1.0
 
 
 `dataprovider` application allow for changing of frequency of sending data, by
