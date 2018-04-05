@@ -91,7 +91,6 @@ The build is done via `sbt`
     # For IntelliJ users, just import a project and use IntelliJ commands
 
 
-
 # Package, Configure, Deploy, and Run
 
 This project contains 3 executables:
@@ -133,11 +132,19 @@ fdp-reg.lightbend.com:443/model-server-publisher    1.1.0  a3040c809984  10 minu
 
 ### Publishing to an external Docker repository
 
-To publish the resulting _Docker_ images to an external public repository, we need to:
-- configure the address of the repository in the `build.sbt`
+To make the `docker` images available to the 
+
+To publish the resulting _Docker_ images to an external public repository, we need to configure 
+the address of this repository in the `build.sbt`.
+This is done directly in the `build.sbt` file, by replacing the default value for your own docker registry:
+```
+val dockerRepositoryUrl = "lightbend" // change to use your own (private) repo, e.g.:docker-registry.mycompany.com
+```
+Note that additional credentials might be required depending of the docker registry provider. 
+Please refer to your provider for credentials.
 
 ```
-sbt docker:publishLocal
+sbt docker:publish
 
 ```
 ## Component Configuration
@@ -160,7 +167,7 @@ influxdb {
 
 There's an `application.conf` file on each executable project, under `src/main/resources/`
 
-### `Publisher`
+### Publisher
 
 The `publisher` component support the following configuration:
 
@@ -174,7 +181,7 @@ The `publisher` component support the following configuration:
 - `DATA_DIRECTORY` (default: `./data`): The directory where to search for data files  
 - `DATA_FILENAME` (default: `winequality_red.csv`): The data file in the `DATA_DIRECTORY` to use as source for the published records.   
 
-### `akka`| `kafka` -`svc`
+### Model Serving
 
 The _model serving_ service, in both its _kafka streams_ and _akka streams_ implementations, 
 requires the following configuration parameters:
@@ -194,21 +201,52 @@ For example, to test the end-to-end execution, we can opt to run all processes i
  while if we are in the middle of a _develop-run-test-develop_ cycle of the _model serving_ part, 
  we could run the `producer` in its container, while executing the server code from `sbt` or our IDE of choice.
  
-In any case, the required external services should be reachable from the host executing the application of any of its components. 
+In any case, the required external services should be reachable from the host executing the any of the components of the application.
+ 
 Note that when running against services installed on DC/OS, their DNS names are not resolvable and we should use IP addresses instead.  
 
 ### Running the Publisher
 
-#### On Docker
+To run the _Publisher_ component, we need the first to have the IP addresses for the Kafka broker and Zookeeper.
+Those dependencies can run in an external cluster or can be installed and executed locally.
+See this guide for a local install: [Kafka Quick Start](https://kafka.apache.org/quickstart) 
 
-Build and publish a local image as described in []
+#### Running from `sbt` (or an IDE)
 
-docker run -e KAFKA_BROKERS_LIST=10.0.7.196:1025 -e ZOOKEEPER_URL=10.0.5.33/dcos-service-kafka fdp-reg.lightbend.com:443/model-server-publisher:1.1.0
+The easiest way to provide the necessary configuration when running locally is by editing the `application.conf` file 
+that corresponds to the _publisher_ component. It is located at: `publisher/src/main/resources/application.conf`. 
+
+Update the values provided there with the corresponding configuration for your local system:
+
+```
+kafka.brokers = "localhost:29092"
+zookeeper.hosts= "localhost:32181"
+``` 
+
+The use `sbt` to run the process:
+
+```
+sbt publisher/run
+
+```
+
+#### Running On Docker
+
+- Build and publish the local _Docker_ image as described in (Packaging)[#Packaging]
+- Start the docker container for the _Model and Data publisher_ with `docker run`
+   - Note the configuration provided as _environment variables_ through the _Docker_ `-e` option.
+
+In the following example, we pass the mandatory `KAFKA_BROKERS_LIST` and `ZOOKEEPER_URL` parameters. 
+See the [Publisher configuration](#Publisher) for all options. 
+
+```
+docker run -e KAFKA_BROKERS_LIST=<kafka-broker> -e ZOOKEEPER_URL=<zookeeper-url> fdp-reg.lightbend.com:443/model-server-publisher:1.1.0
+```
+
+### Running Model Serving
+As mentioned 
 
 
-`dataprovider` application allow for changing of frequency of sending data, by
-specifying desired frequency (in ms) as an application parameter. If the parameter is not specified
-data is send once a sec and model - once every 5 mins.
 
 Both `akkaserver` and `kafkaserver` implement queryable state. 
 

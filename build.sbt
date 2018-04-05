@@ -8,7 +8,7 @@ allowSnapshot in ThisBuild := true
 
 scalaVersion in ThisBuild := Versions.Scala
 
-val dockerRepositoryUrl = "fdp-reg.lightbend.com:443"
+val dockerRepositoryUrl = "lightbend"
 
 lazy val protobufs = (project in file("./protobufs"))
     .settings(
