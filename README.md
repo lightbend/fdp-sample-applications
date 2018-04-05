@@ -69,8 +69,7 @@ The application also ensures that the Grafana data source and dashboard definiti
 
 
 # Build the code
-
-We recommend using [IntelliJ IDEA](https://www.jetbrains.com/idea/) for managing and building the code. 
+ 
 The project is organized as several modules:
 
 * `akkastreamssvc` - Akka Streams implementation of model serving
