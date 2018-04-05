@@ -154,10 +154,17 @@ There's an `application.conf` file on each executable project, under `src/main/r
 
 ### `Publisher`
 
-The `publisher` component requires two configuration parameters:
+The `publisher` component support the following configuration:
 
+#### Mandatory Parameters
 - `KAFKA_BROKERS_LIST`: a comma-separated list of the kafka brokers to contact in the form "<host1>:<port1>,<host2>:<port2>,..." 
 - `ZOOKEEPER_URL`: the URL to the zookeeper service
+
+#### Optional Parameters
+- `DATA_PUBLISH_INTERVAL` (default: `1 second`): The time delay between publishing data records. 
+- `MODEL_PUBLISH_INTERVAL` (default: `5 minutes`): The time delay between publishing models.
+- `DATA_DIRECTORY` (default: `./data`): The directory where to search for data files  
+- `DATA_FILENAME` (default: `winequality_red.csv`): The data file in the `DATA_DIRECTORY` to use as source for the published records.   
 
 ### `akka`| `kafka` -`svc`
 
