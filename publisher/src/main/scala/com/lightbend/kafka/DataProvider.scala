@@ -21,9 +21,6 @@ import scala.concurrent.duration.Duration.{ Inf => InfiniteDuration }
  */
 object DataProvider {
 
-  val dataDirectory = "data"
-  val dataFile = s"$dataDirectory/winequality_red.csv"
-
   def main(args: Array[String]) {
 
     val config = ConfigFactory.load()
@@ -33,27 +30,27 @@ object DataProvider {
     val dataTimeInterval: Duration = publisherConfig.getDuration("data_publish_interval")
     val modelTimeInterval: Duration = publisherConfig.getDuration("model_publish_interval")
     val dataDirectory = publisherConfig.getString("data_dir")
-    val dataFile = publisherConfig.getString("data_file")
-    val dataFileLocation = dataDirectory + "/" + dataFile
+    val dataFilename = publisherConfig.getString("data_file")
+    val dataFile = dataDirectory + "/" + dataFilename
 
     println(s"Data Provider with kafka brokers at $kafkaBrokers with zookeeper $zookeeperHosts")
     println(s"Data Message delay $dataTimeInterval")
     println(s"Model Message delay $modelTimeInterval")
 
-    val dataPublisher = publishData(dataTimeInterval, kafkaBrokers, zookeeperHosts)
-    val modelPublisher = publishModels(modelTimeInterval, kafkaBrokers, zookeeperHosts)
+    val dataPublisher = publishData(dataFile, dataTimeInterval, kafkaBrokers, zookeeperHosts)
+    val modelPublisher = publishModels(dataDirectory, modelTimeInterval, kafkaBrokers, zookeeperHosts)
 
     val result = Future.firstCompletedOf(Seq(dataPublisher, modelPublisher))
 
     Await.result(result, InfiniteDuration)
   }
 
-  def publishData(timeInterval: Duration, kafkaBrokers: String, zookeeperHosts: String): Future[Unit] = Future {
+  def publishData(dataFileLocation: String, timeInterval: Duration, kafkaBrokers: String, zookeeperHosts: String): Future[Unit] = Future {
     println("Starting data publisher")
     val sender = KafkaMessageSender(kafkaBrokers, zookeeperHosts)
     sender.createTopic(DATA_TOPIC)
     val bos = new ByteArrayOutputStream()
-    val records = getListOfRecords(dataFile)
+    val records = getListOfRecords(dataFileLocation)
     println(s"Records found in data: ${records.size}")
     var nrec = 0
     while (true) {
@@ -68,11 +65,11 @@ object DataProvider {
     }
   }
 
-  def publishModels(timeInterval: Duration, kafkaBrokers: String, zookeeperHosts: String): Future[Unit] = Future {
+  def publishModels(dataDirectory: String, timeInterval: Duration, kafkaBrokers: String, zookeeperHosts: String): Future[Unit] = Future {
     println("Starting model publisher")
     val sender = KafkaMessageSender(kafkaBrokers, zookeeperHosts)
     sender.createTopic(MODELS_TOPIC)
-    val files = getListOfModelFiles(dataDirectory)
+    val files = listFilesWithExtension(dataDirectory, ".pmml")
     println(s"Models found: [${files.size}] => ${files.mkString(",")}")
     val bos = new ByteArrayOutputStream()
     while (true) {
@@ -96,34 +93,36 @@ object DataProvider {
 
   private def pause(timeInterval: Duration): Unit = Thread.sleep(timeInterval.toMillis)
 
-  def toWineRecord(str: String): WineRecord = {
-    val cols = str.split(";").map(_.trim)
-    new WineRecord(
-      fixedAcidity = cols(0).toDouble,
-      volatileAcidity = cols(1).toDouble,
-      citricAcid = cols(2).toDouble,
-      residualSugar = cols(3).toDouble,
-      chlorides = cols(4).toDouble,
-      freeSulfurDioxide = cols(5).toDouble,
-      totalSulfurDioxide = cols(6).toDouble,
-      density = cols(7).toDouble,
-      pH = cols(8).toDouble,
-      sulphates = cols(9).toDouble,
-      alcohol = cols(10).toDouble,
-      dataType = "wine"
-    )
-  }
-
   def getListOfRecords(file: String): Seq[WineRecord] = {
-    Source.fromFile(file).getLines.map(toWineRecord).toSeq
+    Source.fromFile(file).getLines.map(WineRecordOps.toWineRecord).toSeq
   }
 
-  private def getListOfModelFiles(dir: String): Seq[String] = {
+  private def listFilesWithExtension(dir: String, extension: String): Seq[String] = {
     val d = new File(dir)
     if (d.exists && d.isDirectory) {
-      d.listFiles.filter(f => (f.isFile) && (f.getName.endsWith(".pmml"))).map(_.getName)
+      d.listFiles.filter(f => (f.isFile) && (f.getName.endsWith(extension))).map(_.getName)
     } else {
       Seq.empty[String]
     }
+  }
+}
+
+object WineRecordOps {
+  def toWineRecord(str: String): WineRecord = {
+    val cols = str.split(";").map(col => col.trim.toDouble)
+    new WineRecord(
+      fixedAcidity = cols(0),
+      volatileAcidity = cols(1),
+      citricAcid = cols(2),
+      residualSugar = cols(3),
+      chlorides = cols(4),
+      freeSulfurDioxide = cols(5),
+      totalSulfurDioxide = cols(6),
+      density = cols(7),
+      pH = cols(8),
+      sulphates = cols(9),
+      alcohol = cols(10),
+      dataType = "wine"
+    )
   }
 }

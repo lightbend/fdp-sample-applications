@@ -36,14 +36,14 @@ lazy val publisher = (project in file("./publisher"))
     version in Docker := version.value.takeWhile(c => c != '+')
 
   )
-  .settings(libraryDependencies ++= Dependencies.kafkabaseDependencies)
+  .settings(libraryDependencies ++= kafkaBaseDependencies ++ testDependencies)
   .dependsOn(protobufs, configuration)
   .enablePlugins(DeploySSH)
   .enablePlugins(JavaAppPackaging)
   .enablePlugins(DockerPlugin)
 
 lazy val model = (project in file("./model"))
-  .settings(libraryDependencies ++= Dependencies.modelsDependencies,
+  .settings(libraryDependencies ++= modelsDependencies,
     publish := { })
   .dependsOn(protobufs)
   .disablePlugins(DockerPlugin)
@@ -65,7 +65,7 @@ lazy val kafkaSvc = (project in file("./kafkastreamssvc"))
     version in Docker := version.value.takeWhile(c => c != '+')
 
   )
-  .settings(libraryDependencies ++= Dependencies.kafkaDependencies ++ Dependencies.webDependencies)
+  .settings(libraryDependencies ++= kafkaDependencies ++ webDependencies)
   .dependsOn(model, configuration)
   .enablePlugins(DeploySSH)
   .enablePlugins(JavaAppPackaging)
@@ -86,8 +86,8 @@ lazy val akkaSvc = (project in file("./akkastreamssvc"))
     dockerBaseImage := "openjdk:8u151-jre",
     dockerRepository := Some("fdp-reg.lightbend.com:443"),
     version in Docker := version.value.takeWhile(c => c != '+')
-  )    .settings(libraryDependencies ++= Dependencies.kafkaDependencies ++ Dependencies.akkaServerDependencies
-    ++ Dependencies.modelsDependencies ++ Seq(Dependencies.curator))
+  )    .settings(libraryDependencies ++= kafkaDependencies ++ akkaServerDependencies
+    ++ modelsDependencies ++ Seq(curator))
   .dependsOn(protobufs, configuration)
   .enablePlugins(DeploySSH)
   .enablePlugins(JavaAppPackaging)
