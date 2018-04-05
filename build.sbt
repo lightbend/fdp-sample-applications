@@ -6,7 +6,7 @@ import NativePackagerHelper._
 
 allowSnapshot in ThisBuild := true
 
-scalaVersion in ThisBuild := "2.11.11"
+scalaVersion in ThisBuild := Versions.Scala
 
 lazy val protobufs = (project in file("./protobufs"))
     .settings(

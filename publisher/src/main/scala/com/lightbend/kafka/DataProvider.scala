@@ -9,11 +9,13 @@ import com.lightbend.model.modeldescriptor.ModelDescriptor
 import com.lightbend.model.winerecord.WineRecord
 import com.typesafe.config.ConfigFactory
 
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.{ Await, ExecutionContext, Future }
 import scala.io.Source
 import scala.concurrent.ExecutionContext.Implicits.global
 import java.time.Duration
+
 import scala.concurrent.duration.Duration.{ Inf => InfiniteDuration }
+import scala.util.Try
 
 /**
  *
@@ -37,74 +39,79 @@ object DataProvider {
     println(s"Data Message delay $dataTimeInterval")
     println(s"Model Message delay $modelTimeInterval")
 
-    val dataPublisher = publishData(dataFile, dataTimeInterval, kafkaBrokers, zookeeperHosts)
-    val modelPublisher = publishModels(dataDirectory, modelTimeInterval, kafkaBrokers, zookeeperHosts)
+    val sender = new KafkaMessageSender(kafkaBrokers, zookeeperHosts)
+
+    val dataPublisher = publishData(sender, dataFile, dataTimeInterval, kafkaBrokers, zookeeperHosts)
+    val modelPublisher = publishModels(sender, dataDirectory, modelTimeInterval, kafkaBrokers, zookeeperHosts)
 
     val result = Future.firstCompletedOf(Seq(dataPublisher, modelPublisher))
 
     Await.result(result, InfiniteDuration)
   }
 
-  def publishData(dataFileLocation: String, timeInterval: Duration, kafkaBrokers: String, zookeeperHosts: String): Future[Unit] = Future {
+  def publishData(sender: KafkaMessageSender, dataFileLocation: String,
+    timeInterval: Duration, kafkaBrokers: String, zookeeperHosts: String): Future[Unit] = {
     println("Starting data publisher")
-    val sender = KafkaMessageSender(kafkaBrokers, zookeeperHosts)
-    sender.createTopic(DATA_TOPIC)
-    val bos = new ByteArrayOutputStream()
-    val records = getListOfRecords(dataFileLocation)
-    println(s"Records found in data: ${records.size}")
-    var nrec = 0
-    while (true) {
-      records.foreach(r => {
-        bos.reset()
-        r.writeTo(bos)
-        sender.writeValue(DATA_TOPIC, bos.toByteArray)
-        nrec = nrec + 1
-        if (nrec % 10 == 0) println(s"produced $nrec data records")
-        pause(timeInterval)
-      })
+    Future(sender.createTopic(DATA_TOPIC)).map { _ =>
+      val bos = new ByteArrayOutputStream()
+      val records = parseRecords(dataFileLocation)
+      println(s"Records found in data: ${records.size}")
+      var nrec = 0
+      while (true) {
+        records.foreach(r => {
+          bos.reset()
+          r.writeTo(bos)
+          sender.writeValue(DATA_TOPIC, bos.toByteArray)
+          nrec = nrec + 1
+          if (nrec % 10 == 0) println(s"produced $nrec data records")
+          pause(timeInterval)
+        })
+      }
     }
   }
 
-  def publishModels(dataDirectory: String, timeInterval: Duration, kafkaBrokers: String, zookeeperHosts: String): Future[Unit] = Future {
+  def publishModels(sender: KafkaMessageSender, dataDirectory: String, timeInterval: Duration,
+    kafkaBrokers: String, zookeeperHosts: String): Future[Unit] = {
     println("Starting model publisher")
-    val sender = KafkaMessageSender(kafkaBrokers, zookeeperHosts)
-    sender.createTopic(MODELS_TOPIC)
-    val files = listFilesWithExtension(dataDirectory, ".pmml")
-    println(s"Models found: [${files.size}] => ${files.mkString(",")}")
-    val bos = new ByteArrayOutputStream()
-    while (true) {
-      files.foreach(f => {
-        // PMML
-        println(s"Publishing model found on file: $f")
-        val pByteArray = Files.readAllBytes(Paths.get(dataDirectory, f))
-        val pRecord = ModelDescriptor(
-          name = f.dropRight(5),
-          description = "generated from SparkML", modeltype = ModelDescriptor.ModelType.PMML,
-          dataType = "wine"
-        ).withData(ByteString.copyFrom(pByteArray))
-        bos.reset()
-        pRecord.writeTo(bos)
-        sender.writeValue(MODELS_TOPIC, bos.toByteArray)
-        pause(timeInterval)
-      })
+    Future(sender.createTopic(MODELS_TOPIC)).map { _ =>
+      val files = listFilesWithExtension(dataDirectory, ".pmml")
+      println(s"Models found: [${files.size}] => ${files.mkString(",")}")
+      val bos = new ByteArrayOutputStream()
+      while (true) {
+        files.foreach(f => {
+          // PMML
+          println(s"Publishing model found on file: $f")
+          val pByteArray = Files.readAllBytes(f.toPath)
+          val pRecord = ModelDescriptor(
+            name = dropExtension(f, "pmml"),
+            description = "generated from SparkML", modeltype = ModelDescriptor.ModelType.PMML,
+            dataType = "wine"
+          ).withData(ByteString.copyFrom(pByteArray))
+          bos.reset()
+          pRecord.writeTo(bos)
+          sender.writeValue(MODELS_TOPIC, bos.toByteArray)
+          pause(timeInterval)
+        })
+      }
     }
-
   }
 
   private def pause(timeInterval: Duration): Unit = Thread.sleep(timeInterval.toMillis)
 
-  def getListOfRecords(file: String): Seq[WineRecord] = {
+  def parseRecords(file: String): Seq[WineRecord] = {
     Source.fromFile(file).getLines.map(WineRecordOps.toWineRecord).toSeq
   }
 
-  private def listFilesWithExtension(dir: String, extension: String): Seq[String] = {
+  private def listFilesWithExtension(dir: String, extension: String): Seq[File] = {
     val d = new File(dir)
     if (d.exists && d.isDirectory) {
-      d.listFiles.filter(f => (f.isFile) && (f.getName.endsWith(extension))).map(_.getName)
+      d.listFiles.filter(f => (f.isFile) && (f.getName.endsWith(extension)))
     } else {
-      Seq.empty[String]
+      Seq.empty
     }
   }
+
+  def dropExtension(file: File, extension: String): String = file.getName.dropRight(extension.size)
 }
 
 object WineRecordOps {
