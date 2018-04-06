@@ -67,6 +67,11 @@ For InfluxDB, the database `serving` with retentionPolicy `default` is used.
 The application checks on startup whether the database exists and create it, if necessary.
 The application also ensures that the Grafana data source and dashboard definitions exist and create them, if necessary.
 
+# Quick Start
+
+TODO: Use existing public Docker images to run the application.
+// Idea: Automate the lookup of dependencies.
+
 
 # Build the code
  
@@ -167,7 +172,7 @@ influxdb {
 
 There's an `application.conf` file on each executable project, under `src/main/resources/`
 
-### Publisher
+### Publisher Configuration
 
 The `publisher` component support the following configuration:
 
@@ -181,7 +186,7 @@ The `publisher` component support the following configuration:
 - `DATA_DIRECTORY` (default: `./data`): The directory where to search for data files  
 - `DATA_FILENAME` (default: `winequality_red.csv`): The data file in the `DATA_DIRECTORY` to use as source for the published records.   
 
-### Model Serving
+### Model Serving Configuration
 
 The _model serving_ service, in both its _kafka streams_ and _akka streams_ implementations, 
 requires the following configuration parameters:
@@ -205,7 +210,7 @@ In any case, the required external services should be reachable from the host ex
  
 Note that when running against services installed on DC/OS, their DNS names are not resolvable and we should use IP addresses instead.  
 
-### Running the Publisher
+### Publisher: Running Local
 
 To run the _Publisher_ component, we need the first to have the IP addresses for the Kafka broker and Zookeeper.
 Those dependencies can run in an external cluster or can be installed and executed locally.
@@ -244,7 +249,39 @@ docker run -e KAFKA_BROKERS_LIST=<kafka-broker> -e ZOOKEEPER_URL=<zookeeper-url>
 ```
 
 ### Running Model Serving
-As mentioned 
+
+We require the configuration as specified in [Model Serving Configuration](#Model-Serving-Configuration)
+
+#### Running from `sbt` (or an IDE)
+
+The easiest way to provide the necessary configuration when running locally is by editing the `application.conf` file 
+that corresponds to the _akka_ or _kafka_ streams component. 
+It is located at: `<akka|kafka>streamsvc/src/main/resources/application.conf`. 
+
+Update the values provided there with the corresponding configuration for your local system:
+
+```
+kafka.brokers = "localhost:29092"
+zookeeper.hosts= "localhost:32181"
+``` 
+
+The use `sbt` to run the process:
+
+```
+# For the akka streams implementation
+sbt akkastreamssvc/run
+
+# For kafka streams implementation
+sbt kafkastreamssvc/run
+```
+
+#### Running on Docker
+
+The images for the _Model Serving_ implementation will contain the configuration provided in the `application.conf` file 
+at the moment the image was published.
+To override the configuration at runtime, we can use the _environment variable_ replacement as we did for the _publisher_ component.
+In the section [Model Serving Configuration](#model-serving-configuration) we can all supported configuration parameters.
+ 
 
 
 
