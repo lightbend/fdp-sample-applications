@@ -1,8 +1,8 @@
 {
   "labels": {
-    "application": "model-server-akkastreams"
+    "application": "model-server-kafkastreams"
   },
-  "id": "/apps/model-server-akkastreams",
+  "id": "/apps/model-server-kafkastreams",
   "backoffFactor": 1.15,
   "backoffSeconds": 1,
   "container": {
@@ -10,7 +10,7 @@
     "type": "DOCKER",
     "volumes": [],
     "docker": {
-      "image": "fdp-reg.lightbend.com:443/model-server-akkastreams:1.1.0",
+      "image": "lightbend/model-server-kafkastreams:1.1.0",
       "forcePullImage": true,
       "privileged": false,
       "parameters": []
@@ -19,16 +19,16 @@
   "cpus": 1,
   "disk": 100,
   "env": {
-    "KAFKA_BROKERS_LIST": "broker.kafka.l4lb.thisdcos.directory:9092",
-    "ZOOKEEPER_URL": "master.mesos:2181/dcos-service-kafka",
-    "GRAFANA_HOST": "grafana.marathon.l4lb.thisdcos.directory",
-    "GRAFANA_PORT": "3000",
-    "INFLUXDB_HOST": "influxdb.marathon.l4lb.thisdcos.directory",
-    "INFLUXDB_PORT": "8086"
+    "KAFKA_BROKERS_LIST": "KAFKA_BROKERS_PLACEHOLDER",
+    "ZOOKEEPER_URL": "ZOOKEEPER_URL_PLACEHOLDER",
+    "GRAFANA_HOST": "GRAFANA_HOST_PLACEHOLDER",
+    "GRAFANA_PORT": "GRAFANA_PORT_PLACEHOLDER",
+    "INFLUXDB_HOST": "INFLUXDB_HOST_PLACEHOLDER",
+    "INFLUXDB_PORT": "INFLUXDB_PORT_PLACEHOLDER"
   },
   "instances": 1,
   "maxLaunchDelaySeconds": 3600,
-  "mem": 256,
+  "mem": 2048,
   "gpus": 0,
   "networks": [
     {
