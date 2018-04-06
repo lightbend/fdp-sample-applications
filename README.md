@@ -108,7 +108,7 @@ To run the _Kafka Streams_ implementation:
 To modify and run a customized version of this application, you need to build, package and deploy the application
 following the instructions below.
 
-# Build the code
+# Building the code
  
 The project is organized as several modules:
 
@@ -162,23 +162,22 @@ After a successful build, we can see the images in our local _docker registry_:
 ```
 $docker images
 
-REPOSITORY                                          TAG    IMAGE ID      CREATED         SIZE
-fdp-reg.lightbend.com:443/model-server-akkastreams  1.1.0  aab5a948b8b8  10 minutes ago  727MB
-fdp-reg.lightbend.com:443/model-server-kstreams     1.1.0  2d4f047f8ddb  10 minutes ago  708MB
-fdp-reg.lightbend.com:443/model-server-publisher    1.1.0  a3040c809984  10 minutes ago  606MB
+REPOSITORY                          TAG    IMAGE ID      CREATED         SIZE
+lightbend/model-server-akkastreams  1.1.0  aab5a948b8b8  10 minutes ago  727MB
+lightbend/model-server-kstreams     1.1.0  2d4f047f8ddb  10 minutes ago  708MB
+lightbend/model-server-publisher    1.1.0  a3040c809984  10 minutes ago  606MB
 ...
 
 ```
 
 ### Publishing to an external Docker repository
 
-To make the `docker` images available to the 
-
 To publish the resulting _Docker_ images to an external public repository, we need to configure 
 the address of this repository in the `build.sbt`.
 This is done directly in the `build.sbt` file, by replacing the default value for your own docker registry:
 ```
-val dockerRepositoryUrl = "lightbend" // change to use your own (private) repo, e.g.:docker-registry.mycompany.com
+// change to use your own (private) repo, e.g.:docker-registry.mycompany.com
+val dockerRepositoryUrl = "lightbend" 
 ```
 Note that additional credentials might be required depending of the docker registry provider. 
 Please refer to your provider for credentials.
@@ -191,7 +190,7 @@ sbt docker:publish
 
 This application uses a file-based configuration with _environment variables_ overrides.
 A common practice is to use well known endpoint names for the target environment in the configuration file
-and allow for overrides from environment variables.
+and allow for overrides from _environment variables_ to run in different environments or in local mode.
 
 This is an example of the configuration for `influxDB`, which indicates the default value in the cluster 
 as well as the environment variable override:
@@ -212,7 +211,7 @@ There's an `application.conf` file on each executable project, under `src/main/r
 The `publisher` component support the following configuration:
 
 #### Mandatory Parameters
-- `KAFKA_BROKERS_LIST`: a comma-separated list of the kafka brokers to contact in the form "<host1>:<port1>,<host2>:<port2>,..." 
+- `KAFKA_BROKERS_LIST`: a comma-separated list of the kafka brokers to contact in the form `"<host1>:<port1>,<host2>:<port2>,..."` 
 - `ZOOKEEPER_URL`: the URL to the zookeeper service
 
 #### Optional Parameters
@@ -247,7 +246,7 @@ Note that when running against services installed on DC/OS, their DNS names are 
 
 ### Publisher: Running Local
 
-To run the _Publisher_ component, we need the first to have the IP addresses for the Kafka broker and Zookeeper.
+To run the _Publisher_ component, we need first to have the IP addresses for the Kafka broker and Zookeeper.
 Those dependencies can run in an external cluster or can be installed and executed locally.
 See this guide for a local install: [Kafka Quick Start](https://kafka.apache.org/quickstart) 
 
@@ -263,11 +262,10 @@ kafka.brokers = "localhost:29092"
 zookeeper.hosts= "localhost:32181"
 ``` 
 
-The use `sbt` to run the process:
+Then use `sbt` to run the process:
 
 ```
 sbt publisher/run
-
 ```
 
 #### Running On Docker
@@ -280,7 +278,9 @@ In the following example, we pass the mandatory `KAFKA_BROKERS_LIST` and `ZOOKEE
 See the [Publisher configuration](#publisher-configuration) for all options. 
 
 ```
-docker run -e KAFKA_BROKERS_LIST=<kafka-broker> -e ZOOKEEPER_URL=<zookeeper-url> fdp-reg.lightbend.com:443/model-server-publisher:1.1.0
+docker run -e KAFKA_BROKERS_LIST=<kafka-broker> \
+           -e ZOOKEEPER_URL=<zookeeper-url> \
+           lightbend/model-server-publisher:1.1.0
 ```
 
 ### Running Model Serving
@@ -299,7 +299,7 @@ Update the values provided there with the corresponding configuration for your l
 kafka.brokers = "localhost:29092"
 zookeeper.hosts= "localhost:32181"
 influxdb.host = "http://influxdb.marathon.l4lb.thisdcos.directory"
-# ...
+...
 ``` 
 
 The use `sbt` to run the process:
@@ -314,8 +314,8 @@ sbt kafkastreamssvc/run
 
 #### Running on Docker
 
-The images for the _Model Serving_ implementation will contain the configuration provided in the `application.conf` file 
-at the moment the image was published.
+The docker images for the _Model Serving_ implementation contain the configuration provided in the `application.conf` file 
+at the moment the image was built.
 
 To override the configuration **at runtime**, we can use the _environment variable_ replacement as we did for the _publisher_ component.
 In the section [Model Serving Configuration](#model-serving-configuration) we can see all supported configuration parameters.
@@ -333,6 +333,11 @@ docker run -e KAFKA_BROKERS_LIST=10.0.7.196:1025 \
         lightbend/model-server-akkastreams:1.1.0
 ```
 
-## Running on the server
-The applications are included in `fdp-package-sample-apps` docker image. See documentation there
-for running them on the server
+## Running a Custom Image on the Server
+
+To run a custom application on the target server:
+ - apply the desired modifications
+ - [publish the image to your docker repository](#publishing-to-an-external-docker-repository)
+ - update the `json` templates in the `/bin` directory to point to the new image location, and
+ - execute the `run` scripts as explained in the [Quick Start](#quick-start) section.
+    
