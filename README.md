@@ -80,9 +80,26 @@ The application also ensures that the Grafana data source and dashboard definiti
 
 # Quick Start
 
-TODO: Use existing public Docker images to run the application.
-// Idea: Automate the lookup of dependencies.
+You can use the prebuilt docker images for this application on docker hub to run the app.
 
+To run the _Data Publisher_
+```
+./bin/run-dcos-publisher.sh
+```
+
+Then choose between running the _Akka Streams_ or _Kafka Streams_ implementation of the _Model Serving_ 
+
+To run the _Akka Streams_ implementation: 
+```
+./bin/run-dcos-akkastreams-svc.sh
+
+```
+
+To run the _Kafka Streams_ implementation: 
+```
+./bin/run-dcos-kafkastreams-svc.sh
+
+```
 
 To modify and run a customized version of this application, you need to build, package and deploy the application
 following the instructions below.
