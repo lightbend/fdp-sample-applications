@@ -2,7 +2,7 @@ package com.lightbend.modelServer.modelServer
 
 import akka.stream._
 import akka.stream.stage.{ GraphStageLogicWithLogging, _ }
-import com.lightbend.influxdb.InfluxDBClient
+import com.lightbend.configuration.{ GrafanaClient, GrafanaConfig, InfluxDBClient, InfluxDBConfig }
 import com.lightbend.model.modeldescriptor.ModelDescriptor
 import com.lightbend.model.winerecord.WineRecord
 import com.lightbend.modelServer.model.Model
@@ -12,14 +12,15 @@ import com.lightbend.modelServer.{ ModelToServe, ModelToServeStats }
 
 import scala.collection.immutable
 
-class ModelStage extends GraphStageWithMaterializedValue[ModelStageShape, ReadableModelStateStore] {
+class ModelStage(influxDBConfig: InfluxDBConfig, grafanaConfig: GrafanaConfig) extends GraphStageWithMaterializedValue[ModelStageShape, ReadableModelStateStore] {
 
   private val factories = Map(
     ModelDescriptor.ModelType.PMML -> PMMLModel,
     ModelDescriptor.ModelType.TENSORFLOW -> TensorFlowModel
   )
 
-  private val influx = new InfluxDBClient
+  private val influx = new InfluxDBClient(influxDBConfig)
+  private val grafana = new GrafanaClient(grafanaConfig, influxDBConfig)
 
   override val shape: ModelStageShape = new ModelStageShape
 
@@ -43,10 +44,11 @@ class ModelStage extends GraphStageWithMaterializedValue[ModelStageShape, Readab
           val model = grab(shape.modelRecordIn)
           println(s"New model - $model")
           newState = Some(new ModelToServeStats(model))
-          newModel = factories.get(model.modelType) match {
-            case Some(factory) => factory.create(model)
-            case _ => None
-          }
+          newModel = for {
+            factory <- factories.get(model.modelType)
+            _model <- factory.create(model)
+          } yield _model
+
           pull(shape.modelRecordIn)
         }
       })

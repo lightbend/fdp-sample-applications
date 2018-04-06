@@ -70,7 +70,7 @@ lazy val akkaServer = (project in file("./akkaserver"))
   .enablePlugins(JavaAppPackaging)
 
 lazy val configuration = (project in file("./configuration"))
-  .settings(libraryDependencies ++= Seq(influxDBClient, codecBase64))
+  .settings(libraryDependencies ++= Seq(typesafeConfig, influxDBClient, codecBase64))
 
 lazy val modelserver = (project in file(".")).
   aggregate(protobufs, client, model, configuration, server, akkaServer)

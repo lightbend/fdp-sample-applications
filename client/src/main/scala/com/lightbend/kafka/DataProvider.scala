@@ -4,7 +4,7 @@ import java.io.{ ByteArrayOutputStream, File }
 import java.nio.file.{ Files, Paths }
 
 import com.google.protobuf.ByteString
-import com.lightbend.configuration.kafka.ApplicationKafkaParameters._
+import com.lightbend.configuration.AppParameters._
 import com.lightbend.model.modeldescriptor.ModelDescriptor
 import com.lightbend.model.winerecord.WineRecord
 import com.typesafe.config.ConfigFactory
