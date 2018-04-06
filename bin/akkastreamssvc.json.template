@@ -2,7 +2,7 @@
   "labels": {
     "application": "model-server-akkastreams"
   },
-  "id": "/apps/model-server-akkastreams",
+  "id": "/sample-apps/model-server/model-server-akkastreams",
   "backoffFactor": 1.15,
   "backoffSeconds": 1,
   "container": {

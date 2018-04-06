@@ -2,7 +2,7 @@
   "labels": {
     "application": "model-server-kafkastreams"
   },
-  "id": "/apps/model-server-kafkastreams",
+  "id": "/sample-apps/model-server/kafkastreams",
   "backoffFactor": 1.15,
   "backoffSeconds": 1,
   "container": {

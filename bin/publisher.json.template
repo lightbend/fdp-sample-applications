@@ -2,7 +2,7 @@
   "labels": {
     "application": "model-server"
   },
-  "id": "/sample-apps/model-server-publisher",
+  "id": "/sample-apps/model-server/publisher",
   "backoffFactor": 1.15,
   "backoffSeconds": 1,
   "container": {
