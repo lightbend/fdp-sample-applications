@@ -41,7 +41,18 @@ lightweight embedded database and, more concretely, to directly query the latest
 
 ![Queriable state](images/queryablestate.png)
 
-Both Akka Streams and Kafka streams implementation support queryable state
+Both `akkastreamssvc` and `kafkastreamssvc` implement queryable state. 
+
+To query `akkaserver` state connect your browser to `host:5500/stats` to get statistics of the current execution
+Currently `akkaserver` supports only statistics for a given server. If a cluster is used, each server needs to be
+queried (with the same port)
+
+
+To query `kafkaserver` state connect your browser to `host:8888`. This contains several URLs:
+* `/state/instances` returns the list of instances participating in the cluster
+* `/state/instances/{storeName}` returns the list of instances containing a store. Store name used 
+in our application is `modelStore`
+* `/state/{storeName}/value` returns current state of the model serving
 
 # Scaling
 
@@ -72,6 +83,9 @@ The application also ensures that the Grafana data source and dashboard definiti
 TODO: Use existing public Docker images to run the application.
 // Idea: Automate the lookup of dependencies.
 
+
+To modify and run a customized version of this application, you need to build, package and deploy the application
+following the instructions below.
 
 # Build the code
  
@@ -242,7 +256,7 @@ sbt publisher/run
    - Note the configuration provided as _environment variables_ through the _Docker_ `-e` option.
 
 In the following example, we pass the mandatory `KAFKA_BROKERS_LIST` and `ZOOKEEPER_URL` parameters. 
-See the [Publisher configuration](#Publisher) for all options. 
+See the [Publisher configuration](#publisher-configuration) for all options. 
 
 ```
 docker run -e KAFKA_BROKERS_LIST=<kafka-broker> -e ZOOKEEPER_URL=<zookeeper-url> fdp-reg.lightbend.com:443/model-server-publisher:1.1.0
@@ -250,7 +264,7 @@ docker run -e KAFKA_BROKERS_LIST=<kafka-broker> -e ZOOKEEPER_URL=<zookeeper-url>
 
 ### Running Model Serving
 
-We require the configuration as specified in [Model Serving Configuration](#Model-Serving-Configuration)
+We require the configuration as specified in [Model Serving Configuration](#model-serving-configuration)
 
 #### Running from `sbt` (or an IDE)
 
@@ -263,6 +277,8 @@ Update the values provided there with the corresponding configuration for your l
 ```
 kafka.brokers = "localhost:29092"
 zookeeper.hosts= "localhost:32181"
+influxdb.host = "http://influxdb.marathon.l4lb.thisdcos.directory"
+# ...
 ``` 
 
 The use `sbt` to run the process:
@@ -279,24 +295,24 @@ sbt kafkastreamssvc/run
 
 The images for the _Model Serving_ implementation will contain the configuration provided in the `application.conf` file 
 at the moment the image was published.
-To override the configuration at runtime, we can use the _environment variable_ replacement as we did for the _publisher_ component.
-In the section [Model Serving Configuration](#model-serving-configuration) we can all supported configuration parameters.
- 
+
+To override the configuration **at runtime**, we can use the _environment variable_ replacement as we did for the _publisher_ component.
+In the section [Model Serving Configuration](#model-serving-configuration) we can see all supported configuration parameters.
+
+When running locally, remember to ensure that you can resolve the target services or use their IP addresses instead of DNS names.
+
+Example: 
+```
+docker run -e KAFKA_BROKERS_LIST=10.0.7.196:1025 \
+        -e ZOOKEEPER_URL=<zk-url> \
+        -e GRAFANA_HOST=<grafana-host> \
+        -e GRAFANA_PORT=<grafana-port \ 
+        -e INFLUXDB_HOST=<influxdb-host> \
+        -e INFLUXDB_PORT=<influxdb-port> \
+        lightbend/model-server-akkastreams:1.1.0
+```
 
 
-
-Both `akkaserver` and `kafkaserver` implement queryable state. 
-
-To query `akkaserver` state connect your browser to `host:5500/stats` to get statistics of the current execution
-Currently `akkaserver` supports only statistics for a given server. If a cluster is used, each server needs to be
-queried (with the same port)
-
-
-To query `kafkaserver` state connect your browser to `host:8888`. This contains several URLs:
-* `/state/instances` returns the list of instances participating in the cluster
-* `/state/instances/{storeName}` returns the list of instances containing a store. Store name used 
-in our application is `modelStore`
-* `/state/{storeName}/value` returns current state of the model serving
 
 ## Running on the server
 The applications are included in `fdp-package-sample-apps` docker image. See documentation there
