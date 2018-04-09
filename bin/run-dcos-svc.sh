@@ -4,6 +4,8 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 source $DIR/functions.sh
 
+test_dcos_cli
+
 JSON_TEMPLATE=$1
 shift
 JSON=${JSON_TEMPLATE%.template}

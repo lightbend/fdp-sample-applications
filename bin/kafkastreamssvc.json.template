@@ -10,7 +10,7 @@
     "type": "DOCKER",
     "volumes": [],
     "docker": {
-      "image": "lightbend/model-server-kafkastreams:1.1.0",
+      "image": "lightbend/model-server-kstreams:1.1.0",
       "forcePullImage": true,
       "privileged": false,
       "parameters": []
