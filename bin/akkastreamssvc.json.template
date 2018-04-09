@@ -6,7 +6,14 @@
   "backoffFactor": 1.15,
   "backoffSeconds": 1,
   "container": {
-    "portMappings": [],
+    "portMappings": [
+      {
+        "containerPort": 5000,
+        "hostPort": 5000,
+        "protocol": "tcp",
+        "name": "stats"
+      }
+    ],
     "type": "DOCKER",
     "volumes": [],
     "docker": {
