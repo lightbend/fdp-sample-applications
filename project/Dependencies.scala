@@ -34,9 +34,12 @@ object Dependencies {
 
   val codecBase64   = "commons-codec"               % "commons-codec"                   % codecVersion
   val typesafeConfig    = "com.typesafe"            %  "config"                         % TypesafeConfigVersion
+  val scalaTest         = "org.scalatest"           %% "scalatest"                      % ScalatestVersion % "test"
 
+
+  val testDependencies = Seq(scalaTest)
   val modelsDependencies    = Seq(jpmml, jpmmlextras, tensorflow)
-  val kafkabaseDependencies = Seq(typesafeConfig, kafka, kafkaclients, reactiveKafka)
+  val kafkaBaseDependencies = Seq(typesafeConfig, kafka, kafkaclients, reactiveKafka)
   val kafkaDependencies     = Seq(reactiveKafka, kafka, kafkaclients, kafkastreams)
   val webDependencies       = Seq(gson, jersey, jerseymedia, jettyserver, jettyservlet, wsrs)
   val akkaServerDependencies = Seq(reactiveKafka, akkaStream, akkaHttp, akkaHttpJsonJackson, reactiveKafka)

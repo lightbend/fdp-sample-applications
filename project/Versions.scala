@@ -1,6 +1,3 @@
-/**
-  * Created by boris on 7/14/17.
-  */
 object Versions {
   val Scala             = "2.11.11"
   val JDK               = "1.8"
@@ -24,4 +21,5 @@ object Versions {
 
   val codecVersion = "1.10"
   val TypesafeConfigVersion = "1.3.2"
+  val ScalatestVersion  = "3.0.4"
 }
