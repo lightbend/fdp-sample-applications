@@ -129,6 +129,7 @@ The build is done via `sbt`
     cd KafkaStreamsModelServer
     sbt clean compile
     # For IntelliJ users, just import a project and use IntelliJ commands
+    make sure that you run sbt clean compile at least once to compile protobufs
 
 
 # Package, Configure, Deploy, and Run

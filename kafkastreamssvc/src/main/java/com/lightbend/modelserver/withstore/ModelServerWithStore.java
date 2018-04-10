@@ -1,7 +1,7 @@
 package com.lightbend.modelserver.withstore;
 
-import com.lightbend.configuration.AppParameters;
 import com.lightbend.configuration.AppConfig;
+import com.lightbend.configuration.AppParameters;
 import com.lightbend.modelserver.store.ModelStateSerde;
 import com.lightbend.modelserver.store.ModelStateStoreSupplier;
 import com.lightbend.modelserver.store.StoreState;

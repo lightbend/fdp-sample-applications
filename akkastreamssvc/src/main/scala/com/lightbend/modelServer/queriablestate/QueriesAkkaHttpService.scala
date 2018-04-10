@@ -22,10 +22,6 @@ class QueriesAkkaHttpService(
     this(predictions.asScala.map(p => p.first -> (if (p.second.isPresent) Some(p.second.getAsDouble) else None)))
   }
 
-  def startServer(host: String, port: Int, system: ActorSystem): Unit = {
-    super.startServer(host, port, ServerSettings(system.settings.config), system)
-  }
-
   private var readableModelStateStore: ReadableModelStateStore = _
 
   override def postHttpBinding(binding: Http.ServerBinding): Unit = {
@@ -42,16 +38,6 @@ class QueriesAkkaHttpService(
       //      instancesRoutes ~
       storeRoutes
     }
-  /*
-  def instancesRoutes: Route =
-    pathPrefix("instances") {
-      path(StoreName) { storeName =>
-        complete(???) // FIXME not sure what to do here... seems that service only makes sense if using kafka streams?
-      } ~
-        pathEnd {
-          complete(???) // FIXME not sure what to do here... seems that service only makes sense if using kafka streams?
-        }
-    } */
 
   def storeRoutes: Route =
     path(StoreName / "value") { storeName =>
