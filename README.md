@@ -113,7 +113,7 @@ following the instructions below.
 The project is organized as several modules:
 
 * `akkastreamssvc` - Akka Streams implementation of model serving
-* `client` - Data and model loader used to run either Akka or Kafka streams application
+* `publisher` - Data and model loader used to run either Akka or Kafka streams application
 * `configuration` - Shared configurations and InfluxDB support (see [prerequisites](#Prerequisites))
 * `model` - Implementation of both Tensorflow anf PMML models.
 * `protobufs` - Shared models in protobuf format.
@@ -133,10 +133,10 @@ The build is done via `sbt`
 
 # Package, Configure, Deploy, and Run
 
-This project contains 3 executables:
-* `akkaserver`    - Akka Streams implementation of model serving
-* `kafkaserver`   - Kafka Streams implementation of model serving
-* `dataprovider`  - Data publisher
+This project contains 3 executable modules:
+* `akkastreamssvc`  - Akka Streams implementation of model serving
+* `kafkastreamssvc` - Kafka Streams implementation of model serving
+* `publisher`       - Data publisher
 
 Each application can run either locally (on user's machine) or on the server.
 
@@ -158,6 +158,8 @@ Use the command:
 sbt docker:publishLocal
 
 ```
+`Note:` Running of this command requires you to be logged into the docker repo to be able to get the base image
+
 After a successful build, we can see the images in our local _docker registry_:
 ```
 $docker images
