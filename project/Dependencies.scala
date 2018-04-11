@@ -60,16 +60,16 @@ object Dependencies {
 
   val connector = Seq(
     sparkCassandra
-//      .exclude("joda-time", "joda-time")
-//      .exclude("org.joda", "joda-convert")
-//      .exclude("org.slf4j", "slf4j-api")
-//      .exclude("io.netty", "netty-all")
-//      .exclude("org.apache.spark", "spark-core_2.11")
-//      .exclude("org.apache.spark", "spark-unsafe_2.11")
-//      .exclude("org.apache.spark", "spark-hive_2.11")
-//      .exclude("org.apache.spark", "spark-sql_2.11")
-//      .exclude("org.apache.spark", "spark-catalyst_2.11")
-//      .exclude("org.apache.spark", "spark-streaming_2.11")
+      .exclude("joda-time", "joda-time")
+      .exclude("org.joda", "joda-convert")
+      .exclude("org.slf4j", "slf4j-api")
+      .exclude("io.netty", "netty-all")
+      .exclude("org.apache.spark", "spark-core_2.11")
+      .exclude("org.apache.spark", "spark-unsafe_2.11")
+      .exclude("org.apache.spark", "spark-hive_2.11")
+      .exclude("org.apache.spark", "spark-sql_2.11")
+      .exclude("org.apache.spark", "spark-catalyst_2.11")
+      .exclude("org.apache.spark", "spark-streaming_2.11")
   )
   val logging = Seq(logback.exclude("org.slf4j", "slf4j-api"), slf4jApi)
   val time = Seq(jodaConvert, jodaTime)
@@ -82,13 +82,13 @@ object Dependencies {
   val json = Seq(json4sCore, json4sJackson, json4sNative)
   val grpc = Seq(scalaPBRuntime, scalaPBGRPC, grpcNetty, scalaPBJSON)
   val spark = Seq(sparkCore, sparkStreaming,
-    sparkKafkaStreaming,
-//      .exclude("org.apache.spark", "spark-tags_2.11")
-//      .exclude("org.apache.spark", "spark-streaming_2.11")
-//      .exclude("org.apache.kafka", "kafka_2.11")
-//      .exclude("org.spark-project.spark", "unused")
-//      .exclude("org.apache.spark", "spark-core_2.11"),
-    /*sparkCatalyst,*/ sparkSQL)
+    sparkKafkaStreaming
+      .exclude("org.apache.spark", "spark-tags_2.11")
+      .exclude("org.apache.spark", "spark-streaming_2.11")
+      .exclude("org.apache.kafka", "kafka_2.11")
+      .exclude("org.spark-project.spark", "unused")
+      .exclude("org.apache.spark", "spark-core_2.11"),
+    sparkSQL)
 
   val sparkStructured = Seq(sparkCore, sparkSQL, sparkKafkaSQL
     .exclude("org.apache.spark", "spark-tags_2.11")
@@ -114,6 +114,4 @@ object Dependencies {
   val appStructured = common ++ connector  ++ sparkStructured ++ Seq(influxDBClient)
 
   val beamDependencies = Seq(beamJoin, beamJava, sparkCassandra , beamKafka, influxDBClient)
-
-
 }
