@@ -59,7 +59,7 @@ class InfluxDBSink(createWriter: () => InfluxDB) extends Serializable {
   private def write(point: Point): Unit = {
     try {
       if (InfluxDBSink.useInfluxDB) influxDB.write(point)
-      // println(s"written to influx $point")  // TODO replace with a debug log statement.
+//      println(s"written to influx $point")  // TODO replace with a debug log statement.
     } catch { case t: Throwable => println(s"Exception writing to Influx $t") }
   }
 }
@@ -74,7 +74,12 @@ object InfluxDBSink {
 
   // TODO the implementation is a bit messy.
   def apply(): InfluxDBSink =
-    if (influxConfig.enabled) make() else makeNull()
+    if (influxConfig.enabled) {
+      println("!!!!!!! Enabling Influx !!!!")
+      println(s"useInfluxDB $useInfluxDB")
+      make()
+    }
+    else makeNull()
 
   def make(): InfluxDBSink = {
     val f = () => {
