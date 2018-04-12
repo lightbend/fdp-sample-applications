@@ -2,18 +2,15 @@ package com.lightbend.modelserver.withstore;
 
 import com.lightbend.configuration.AppConfig;
 import com.lightbend.configuration.AppParameters;
-import com.lightbend.modelserver.store.ModelStateSerde;
-import com.lightbend.modelserver.store.ModelStateStoreSupplier;
-import com.lightbend.modelserver.store.StoreState;
+import com.lightbend.modelserver.store.ModelStateStoreBuilder;
 import com.lightbend.queriablestate.QueriesRestService;
-import org.apache.kafka.common.serialization.ByteArrayDeserializer;
-import org.apache.kafka.common.serialization.Serde;
+import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsConfig;
-import org.apache.kafka.streams.kstream.KStreamBuilder;
+import org.apache.kafka.streams.Topology;
 
-import java.io.File;
-import java.nio.file.Files;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 
@@ -27,15 +24,17 @@ public class ModelServerWithStore {
         Properties streamsConfiguration = new Properties();
         // Give the Streams application a unique name.  The name must be unique in the Kafka cluster
         // against which the application is run.
-        streamsConfiguration.put(StreamsConfig.APPLICATION_ID_CONFIG, "interactive-queries-example");
-        streamsConfiguration.put(StreamsConfig.CLIENT_ID_CONFIG, "interactive-queries-example-client");
+        streamsConfiguration.put(StreamsConfig.APPLICATION_ID_CONFIG, "kafka-model-server-example");
+        streamsConfiguration.put(StreamsConfig.CLIENT_ID_CONFIG, "kafka-model-server-client");
         // Where to find Kafka broker(s).
         streamsConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, AppConfig.KAFKA_BROKER);
         // Provide the details of our embedded http service that we'll use to connect to this streams
         // instance and discover locations of stores.
         streamsConfiguration.put(StreamsConfig.APPLICATION_SERVER_CONFIG, "localhost:" + AppConfig.QUERIABLE_STATE_PORT);
-        final File example = Files.createTempDirectory(new File("/tmp").toPath(), "example").toFile();
-        streamsConfiguration.put(StreamsConfig.STATE_DIR_CONFIG, example.getPath());
+        // Default serdes
+        streamsConfiguration.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.ByteArray().getClass());
+        streamsConfiguration.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.ByteArray().getClass());
+
         // Create topology
         final KafkaStreams streams = createStreams(streamsConfiguration);
         streams.cleanUp();
@@ -55,22 +54,21 @@ public class ModelServerWithStore {
 
     static KafkaStreams createStreams(final Properties streamsConfiguration) {
 
-        Serde<StoreState> stateSerde = new ModelStateSerde();
-        ByteArrayDeserializer deserializer = new ByteArrayDeserializer();
-        ModelStateStoreSupplier storeSupplier = new ModelStateStoreSupplier("modelStore", stateSerde);
+        // Create model store
+        Map<String, String> logConfig = new HashMap<>();
+        ModelStateStoreBuilder storeBuilder = new ModelStateStoreBuilder("modelStore").withLoggingEnabled(logConfig);
 
+        // Create topology
+        Topology topology = new Topology();
 
-        KStreamBuilder builder = new KStreamBuilder();
         // Data input streams
+        topology.addSource("data", AppParameters.DATA_TOPIC)
+                .addProcessor("ProcessData", DataProcessorWithStore::new, "data");
+        topology.addSource("models",AppParameters.MODELS_TOPIC)
+                .addProcessor("ProcessModels", ModelProcessorWithStore::new, "models");
+        topology.addStateStore(storeBuilder,"ProcessData", "ProcessModels");
 
-        builder.addSource("data-source", deserializer, deserializer, AppParameters.DATA_TOPIC)
-                .addProcessor("ProcessData", DataProcessorWithStore::new, "data-source");
-        builder.addSource("model-source", deserializer, deserializer, AppParameters.MODELS_TOPIC)
-                .addProcessor("ProcessModels", ModelProcessorWithStore::new, "model-source");
-        builder.addStateStore(storeSupplier, "ProcessData", "ProcessModels");
-
-
-        return new KafkaStreams(builder, streamsConfiguration);
+        return new KafkaStreams(topology, streamsConfiguration);
     }
 
     static QueriesRestService startRestProxy(final KafkaStreams streams, final int port) throws Exception {

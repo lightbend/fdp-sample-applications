@@ -56,7 +56,6 @@ public class ModelProcessorWithStore extends AbstractProcessor<byte[], byte[]> {
     @Override
     public void init(ProcessorContext context) {
         this.context = context;
-        this.context.schedule(10000);
         modelStore = (ModelStateStore) this.context.getStateStore("modelStore");
         Objects.requireNonNull(modelStore, "State store can't be null");
     }
