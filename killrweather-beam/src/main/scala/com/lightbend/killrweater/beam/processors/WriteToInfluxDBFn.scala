@@ -7,7 +7,9 @@ import org.apache.beam.sdk.transforms.DoFn
 import org.apache.beam.sdk.transforms.DoFn.{ProcessElement, Setup, Teardown}
 import org.apache.beam.sdk.values.KV
 import org.influxdb.{InfluxDB, InfluxDBFactory}
-import org.influxdb.dto.Point
+import org.influxdb.dto.{Point, Query}
+
+import collection.JavaConverters._
 
 // Pardo is well described at http://www.waitingforcode.com/apache-beam/pardo-transformation-apache-beam/read
 
@@ -26,10 +28,20 @@ class WriteToInfluxDBFn[InputT](convertData : KV[String, InputT] => Point) exten
     while(!connected && (attempts < MAXATTEMPTS)) {
       try {
         influxDB = InfluxDBFactory.connect(s"${influxConfig.server}:${influxConfig.port}", influxConfig.user, influxConfig.password)
-        if (!influxDB.databaseExists(influxTableConfig.database)) {
-          influxDB.createDatabase(influxTableConfig.database)
-          influxDB.dropRetentionPolicy("autogen", influxTableConfig.database)
-          influxDB.createRetentionPolicy(influxTableConfig.retentionPolicy, influxTableConfig.database, "1d", "30m", 1, true)
+        val databasesQuery = new Query("SHOW DATABASES","")
+        val database_exists = influxDB.query(databasesQuery).getResults.get(0).getSeries.get(0).getValues match {
+          case databases if databases == null => false
+          case databases =>
+            val names = databases.asScala.map(_.get(0).toString())
+            if(names.contains(influxTableConfig.database)) true else false
+        }
+        if(!database_exists){
+          val databaseCreateQuery = new Query(s"""CREATE DATABASE "${influxTableConfig.database}"""","")
+          influxDB.query(databaseCreateQuery)
+          val dropRetentionQuery = new Query("""DROP RETENTION POLICY "autogen"""",influxTableConfig.database)
+          influxDB.query(dropRetentionQuery)
+          val createRetentionQuery = new Query(s"""CREATE RETENTION POLICY "${influxTableConfig.retentionPolicy}" DURATION 1d SHARD DURATION 30m REPLICATION 1  DEFAULT""",influxTableConfig.database)
+          influxDB.query(createRetentionQuery)
         }
 
         influxDB.setDatabase(influxTableConfig.database)

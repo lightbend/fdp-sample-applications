@@ -1,0 +1,26 @@
+apiVersion: sparkoperator.k8s.io/v1alpha1
+kind: SparkApplication
+metadata:
+  name: killrweather
+  namespace: default
+spec:
+  type: Scala
+  mode: cluster
+  image: lightbend/killrweather:2.3.0
+  mainClass: com.lightbend.killrweather.app.KillrWeather
+  mainApplicationFile: local:///opt/spark/jars/killrWeatherApp-assembly-1.1.0.jar
+  sparkConf:
+      "spark.kubernetes.mountDependencies.filesDownloadDir": /etc/hadoop/conf
+      "spark.driver.extraJavaOptions": -Dconfig.resource=cluster.conf
+  deps:
+      files:
+        - http://api.hdfs.marathon.l4lb.thisdcos.directory/v1/endpoints/hdfs-site.xml
+        - http://api.hdfs.marathon.l4lb.thisdcos.directory/v1/endpoints/core-site.xml
+  executor:
+      cores: 1
+      instances: 3
+      memory: 1024m
+  driver:
+      cores: 1
+      memory: 1024m
+      serveraccount: spark
