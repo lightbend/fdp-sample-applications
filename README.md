@@ -126,7 +126,7 @@ sets HADOOP_CONF_DIR to this directory. Hadoop integration is required here for 
 3. Leverage `spark-submit` for running an application
 ````
     bin/spark-submit \
-        --master k8s://http://10.0.4.52:9000 \
+        --master k8s://http://10.0.6.184:9000 \
         --deploy-mode cluster \
         --files http://api.hdfs.marathon.l4lb.thisdcos.directory/v1/endpoints/hdfs-site.xml,http://api.hdfs.marathon.l4lb.thisdcos.directory/v1/endpoints/core-site.xml \
         --name killrweather \
@@ -134,7 +134,9 @@ sets HADOOP_CONF_DIR to this directory. Hadoop integration is required here for 
         --conf spark.executor.instances=3 \
         --conf spark.kubernetes.mountDependencies.filesDownloadDir=/etc/hadoop/conf \
         --conf 'spark.driver.extraJavaOptions=-Dconfig.resource=cluster.conf' \
-        --conf spark.kubernetes.container.image=lightbend/killrweather:2.3.1 \
+        --conf 'spark.executor.extraJavaOptions=-Dconfig.resource=cluster.conf' \
+        --conf spark.kubernetes.container.image=lightbend/killrweather:2.3.0 \
+        --conf spark.kubernetes.container.image.pullPolicy=Always \
         local:///opt/spark/jars/killrWeatherApp-assembly-1.1.0.jar
 
 ````
