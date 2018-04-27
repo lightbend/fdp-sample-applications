@@ -1,18 +1,17 @@
 package com.lightbend.modelServer.modelServer
 
-import akka.stream._
-import akka.stream.stage.{ GraphStageLogicWithLogging, _ }
-import com.lightbend.configuration.{ GrafanaClient, GrafanaConfig, InfluxDBClient, InfluxDBConfig }
+import akka.stream.{FanInShape2, _}
+import akka.stream.stage.{GraphStageLogicWithLogging, _}
+import com.lightbend.configuration.{GrafanaClient, GrafanaConfig, InfluxDBClient, InfluxDBConfig}
 import com.lightbend.model.modeldescriptor.ModelDescriptor
 import com.lightbend.model.winerecord.WineRecord
 import com.lightbend.modelServer.model.Model
 import com.lightbend.modelServer.model.PMML.PMMLModel
 import com.lightbend.modelServer.model.tensorflow.TensorFlowModel
-import com.lightbend.modelServer.{ ModelToServe, ModelToServeStats }
+import com.lightbend.modelServer.{ModelToServe, ModelToServeStats}
 
-import scala.collection.immutable
-
-class ModelStage(influxDBConfig: InfluxDBConfig, grafanaConfig: GrafanaConfig) extends GraphStageWithMaterializedValue[ModelStageShape, ReadableModelStateStore] {
+class ModelStage(influxDBConfig: InfluxDBConfig, grafanaConfig: GrafanaConfig)
+      extends GraphStageWithMaterializedValue[FanInShape2[WineRecord, ModelToServe, Option[Double]], ReadableModelStateStore] {
 
   private val factories = Map(
     ModelDescriptor.ModelType.PMML -> PMMLModel,
@@ -22,7 +21,11 @@ class ModelStage(influxDBConfig: InfluxDBConfig, grafanaConfig: GrafanaConfig) e
   private val influx = new InfluxDBClient(influxDBConfig)
   private val grafana = new GrafanaClient(grafanaConfig, influxDBConfig)
 
-  override val shape: ModelStageShape = new ModelStageShape
+  val dataRecordIn = Inlet[WineRecord]("dataRecordIn")
+  val modelRecordIn = Inlet[ModelToServe]("modelRecordIn")
+  val scoringResultOut = Outlet[Option[Double]]("scoringOut")
+
+  override val shape: FanInShape2[WineRecord, ModelToServe, Option[Double]] = new FanInShape2(dataRecordIn, modelRecordIn, scoringResultOut)
 
   override def createLogicAndMaterializedValue(inheritedAttributes: Attributes): (GraphStageLogic, ReadableModelStateStore) = {
 
@@ -35,13 +38,13 @@ class ModelStage(influxDBConfig: InfluxDBConfig, grafanaConfig: GrafanaConfig) e
 
       // TODO the pulls needed to get the stage actually pulling from the input streams
       override def preStart(): Unit = {
-        tryPull(shape.modelRecordIn)
-        tryPull(shape.dataRecordIn)
+        tryPull(modelRecordIn)
+        tryPull(dataRecordIn)
       }
 
-      setHandler(shape.modelRecordIn, new InHandler {
+      setHandler(modelRecordIn, new InHandler {
         override def onPush(): Unit = {
-          val model = grab(shape.modelRecordIn)
+          val model = grab(modelRecordIn)
           println(s"New model - $model")
           newState = Some(new ModelToServeStats(model))
           newModel = for {
@@ -49,13 +52,13 @@ class ModelStage(influxDBConfig: InfluxDBConfig, grafanaConfig: GrafanaConfig) e
             _model <- factory.create(model)
           } yield _model
 
-          pull(shape.modelRecordIn)
+          pull(modelRecordIn)
         }
       })
 
-      setHandler(shape.dataRecordIn, new InHandler {
+      setHandler(dataRecordIn, new InHandler {
         override def onPush(): Unit = {
-          val record = grab(shape.dataRecordIn)
+          val record = grab(dataRecordIn)
           newModel match {
             case Some(model) => {
               // close current model first
@@ -78,18 +81,18 @@ class ModelStage(influxDBConfig: InfluxDBConfig, grafanaConfig: GrafanaConfig) e
               println(s"Calculated quality - $quality calculated in $duration ms")
               influx.writePoint("Akka", currentState.get.name, quality, duration)
               currentState.get.incrementUsage(duration)
-              push(shape.scoringResultOut, Some(quality))
+              push(scoringResultOut, Some(quality))
             }
             case _ => {
               println("No model available - skipping")
-              push(shape.scoringResultOut, None)
+              push(scoringResultOut, None)
             }
           }
-          pull(shape.dataRecordIn)
+          pull(dataRecordIn)
         }
       })
 
-      setHandler(shape.scoringResultOut, new OutHandler {
+      setHandler(scoringResultOut, new OutHandler {
         override def onPull(): Unit = {
         }
       })
@@ -100,21 +103,4 @@ class ModelStage(influxDBConfig: InfluxDBConfig, grafanaConfig: GrafanaConfig) e
     }
     new Tuple2[GraphStageLogic, ReadableModelStateStore](logic, readableModelStateStore)
   }
-}
-
-class ModelStageShape() extends Shape {
-  var dataRecordIn = Inlet[WineRecord]("dataRecordIn")
-  var modelRecordIn = Inlet[ModelToServe]("modelRecordIn")
-  var scoringResultOut = Outlet[Option[Double]]("scoringOut")
-
-  def this(dataRecordIn: Inlet[WineRecord], modelRecordIn: Inlet[ModelToServe], scoringResultOut: Outlet[Option[Double]]) {
-    this()
-    this.dataRecordIn = dataRecordIn
-    this.modelRecordIn = modelRecordIn
-    this.scoringResultOut = scoringResultOut
-  }
-
-  override def deepCopy(): Shape = new ModelStageShape(dataRecordIn.carbonCopy(), modelRecordIn.carbonCopy(), scoringResultOut)
-  override val inlets = List(dataRecordIn, modelRecordIn)
-  override val outlets = List(scoringResultOut)
 }

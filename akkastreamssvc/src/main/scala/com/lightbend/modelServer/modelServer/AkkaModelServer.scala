@@ -57,7 +57,7 @@ object AkkaModelServer {
     def keepModelMaterializedValue[M1, M2, M3](m1: M1, m2: M2, m3: M3): M3 = m3
 
     val modelPredictions: Source[Option[Double], ReadableModelStateStore] = Source.fromGraph(
-      GraphDSL.create(dataStream, modelStream, model)(keepModelMaterializedValue) { implicit builder => (d, m, w) =>
+      GraphDSL.create(dataStream, modelStream, model)(keepModelMaterializedValue) { implicit builder => (d, m, stage) =>
         import GraphDSL.Implicits._
 
         // wire together the input streams with the model stage (2 in, 1 out)
@@ -67,9 +67,9 @@ object AkkaModelServer {
                             modelStream -> |       |
           */
 
-        d ~> w.dataRecordIn
-        m ~> w.modelRecordIn
-        SourceShape(w.scoringResultOut)
+        d ~> stage.in0
+        m ~> stage.in1
+        SourceShape(stage.out)
       }
     )
 

@@ -14,7 +14,7 @@ import org.apache.kafka.common.serialization.ByteArraySerializer
 import scala.concurrent.duration._
 import scala.util.{ Success, Try }
 
-class KafkaMessageSender(brokers: String, zookeeper: String) {
+class KafkaMessageSender(brokers: String/*, zookeeper: String*/) {
 
   private val ACKCONFIGURATION = "all" // Blocking on the full commit of the record
   private val RETRYCOUNT = "1" // Number of retries on put
@@ -41,7 +41,7 @@ class KafkaMessageSender(brokers: String, zookeeper: String) {
 
   // Create producer
   val producer = new KafkaProducer[Array[Byte], Array[Byte]](props)
-  val zkUtils = ZkUtils.apply(zookeeper, sessionTimeout, connectionTimeout, isZkSecurityEnabled = false)
+//  val zkUtils = ZkUtils.apply(zookeeper, sessionTimeout, connectionTimeout, isZkSecurityEnabled = false)
 
   // Write value to the topic
   def writeValue(topic: String, value: Array[Byte]): RecordMetadata = {
@@ -54,7 +54,7 @@ class KafkaMessageSender(brokers: String, zookeeper: String) {
   def close(): Unit = {
     producer.close
   }
-
+/*
   def createTopic(topic: String, numPartitions: Int = 1, replicationFactor: Int = 1): Try[Unit] = {
     if (!AdminUtils.topicExists(zkUtils, topic)) {
       Try {
@@ -65,7 +65,6 @@ class KafkaMessageSender(brokers: String, zookeeper: String) {
       println(s"Topic $topic already exists")
       Success(())
     }
-
   }
-
+*/
 }
