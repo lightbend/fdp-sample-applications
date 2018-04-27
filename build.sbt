@@ -62,7 +62,7 @@ lazy val kafkaSvc = (project in file("./kafkastreamssvc"))
     deployArtifacts ++= Seq(
       ArtifactSSH((packageZipTarball in Universal).value, "/var/www/html/")
     ),
-    dockerBaseImage := "openjdk:8u151-jre",
+    dockerBaseImage := "tensorflow/tensorflow:1.7.0",
     dockerRepository := Some(dockerRepositoryUrl),
     version in Docker := version.value.takeWhile(c => c != '+')
 
@@ -85,7 +85,7 @@ lazy val akkaSvc = (project in file("./akkastreamssvc"))
     deployArtifacts ++= Seq(
       ArtifactSSH((packageZipTarball in Universal).value, "/var/www/html/")
     ),
-    dockerBaseImage := "openjdk:8u151-jre",
+    dockerBaseImage := "tensorflow/tensorflow:1.7.0",
     dockerRepository := Some(dockerRepositoryUrl),
     version in Docker := version.value.takeWhile(c => c != '+')
   )    .settings(libraryDependencies ++= kafkaDependencies ++ akkaServerDependencies

@@ -22,7 +22,7 @@ object Versions {
 
   val slf4jVersion = "1.7.25"
 
-  val influxDBClientVersion   = "2.8"
+  val influxDBClientVersion   = "2.9"
 
   val codecVersion = "1.10"
   val TypesafeConfigVersion = "1.3.2"

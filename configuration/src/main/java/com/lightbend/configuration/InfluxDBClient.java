@@ -3,6 +3,9 @@ package com.lightbend.configuration;
 import org.influxdb.InfluxDB;
 import org.influxdb.InfluxDBFactory;
 import org.influxdb.dto.Point;
+import org.influxdb.dto.Query;
+
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class InfluxDBClient {
@@ -11,11 +14,25 @@ public class InfluxDBClient {
 
     public InfluxDBClient(InfluxDBConfig config) {
         influxDB = InfluxDBFactory.connect(config.url(),config.user, config.pass);
-        if(!influxDB.databaseExists(config.database)){
-            influxDB.createDatabase(config.database);
-            influxDB.dropRetentionPolicy("autogen", config.database);
-            influxDB.createRetentionPolicy(config.retentionPolicy, config.database,
-                    "1d", "30m", 1, true);
+        Query databasesQuery = new Query("SHOW DATABASES","");
+        Boolean database_exists = false;
+        List<List<Object>> databases = influxDB.query(databasesQuery).getResults().get(0).getSeries().get(0).getValues();
+        if(databases != null){
+            for(List<Object> nl : databases){
+                if(config.database.equals(nl.get(0).toString())){
+                    database_exists = true;
+                    break;
+                }
+            }
+        }
+
+        if(!database_exists){
+            Query databaseCreateQuery = new Query("CREATE DATABASE \"" + config.database + "\"","");
+            influxDB.query(databaseCreateQuery);
+            Query dropRetentionQuery = new Query("DROP RETENTION POLICY \"autogen\"",config.database);
+            influxDB.query(dropRetentionQuery);
+            Query createRetentionQuery = new Query("CREATE RETENTION POLICY \"" + config.retentionPolicy + "\" DURATION 1d SHARD DURATION 30m REPLICATION 1  DEFAULT",config.database);
+            influxDB.query(createRetentionQuery);
         }
 
         influxDB.setDatabase(config.database);
