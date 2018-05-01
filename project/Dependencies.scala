@@ -107,11 +107,11 @@ object Dependencies {
     kafka.
       exclude("org.slf4j", "slf4j-log4j12").
       exclude("io.netty", "netty"),
-    scalaHTTPClean
+    scalaHTTPClean, influxDBClient
   )
-  val app = common ++ connector  ++ spark ++ Seq(influxDBClient, scalaHTTPClean)
+  val app = common ++ connector  ++ spark ++ Seq(scalaHTTPClean)
 
-  val appStructured = common ++ connector  ++ sparkStructured ++ Seq(influxDBClient)
+  val appStructured = common ++ connector  ++ sparkStructured
 
-  val beamDependencies = Seq(beamJoin, beamJava, sparkCassandra , beamKafka, influxDBClient)
+  val beamDependencies = Seq(beamJoin, beamJava, sparkCassandra , beamKafka)
 }

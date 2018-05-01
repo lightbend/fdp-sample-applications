@@ -4,11 +4,11 @@ import java.util.concurrent.TimeUnit
 
 import com.lightbend.killrweather.WeatherClient.WeatherRecord
 import com.lightbend.killrweather.grafana.GrafanaSetup
+import com.lightbend.killrweather.influxdb.InfluxSetup
 import com.lightbend.killrweather.settings.WeatherSettings
 import com.lightbend.killrweather.utils.{DailyTemperature, MonthlyTemperature}
-import org.influxdb.dto.{Point, Query}
-import org.influxdb.{InfluxDB, InfluxDBFactory}
-import collection.JavaConverters._
+import org.influxdb.dto.Point
+import org.influxdb.InfluxDB
 
 class InfluxDBSink(createWriter: () => InfluxDB) extends Serializable {
 
@@ -87,29 +87,7 @@ object InfluxDBSink {
 
   def make(): InfluxDBSink = {
     val f = () => {
-      val influxDB = InfluxDBFactory.connect(influxConfig.url, influxConfig.user, influxConfig.password)
-      val databasesQuery = new Query("SHOW DATABASES","")
-      val database_exists = influxDB.query(databasesQuery).getResults.get(0).getSeries.get(0).getValues match {
-        case databases if databases == null => false
-        case databases =>
-          val names = databases.asScala.map(_.get(0).toString())
-          if(names.contains(influxTableConfig.database)) true else false
-      }
-      if(!database_exists){
-        val databaseCreateQuery = new Query(s"""CREATE DATABASE "${influxTableConfig.database}"""","")
-        influxDB.query(databaseCreateQuery)
-        val dropRetentionQuery = new Query("""DROP RETENTION POLICY "autogen"""",influxTableConfig.database)
-        influxDB.query(dropRetentionQuery)
-        val createRetentionQuery = new Query(s"""CREATE RETENTION POLICY "${influxTableConfig.retentionPolicy}" DURATION 1d SHARD DURATION 30m REPLICATION 1  DEFAULT""",influxTableConfig.database)
-        influxDB.query(createRetentionQuery)
-      }
-
-      influxDB.setDatabase(influxTableConfig.database)
-      // Flush every 2000 Points, at least every 100ms
-      influxDB.enableBatch(2000, 100, TimeUnit.MILLISECONDS)
-      // set retention policy
-      influxDB.setRetentionPolicy(influxTableConfig.retentionPolicy)
-
+      val influxDB = InfluxSetup.setup()
       sys.addShutdownHook {
         influxDB.flush()
         influxDB.close()

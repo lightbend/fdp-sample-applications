@@ -157,9 +157,9 @@ class InfluxDBSinkForEachKillrweatherMonthly extends ForeachWriter[MonthlyWeathe
     if(!database_exists){
       val databaseCreateQuery = new Query(s"""CREATE DATABASE "${influxTableConfig.database}"""","")
       influxDB.query(databaseCreateQuery)
-      val dropRetentionQuery = new Query("""DROP RETENTION POLICY "autogen"""",influxTableConfig.database)
+      val dropRetentionQuery = new Query(s"""DROP RETENTION POLICY "autogen" ON "${influxTableConfig.database}" """,influxTableConfig.database)
       influxDB.query(dropRetentionQuery)
-      val createRetentionQuery = new Query(s"""CREATE RETENTION POLICY "${influxTableConfig.retentionPolicy}" DURATION 1d SHARD DURATION 30m REPLICATION 1  DEFAULT""",influxTableConfig.database)
+      val createRetentionQuery = new Query(s"""CREATE RETENTION POLICY "${influxTableConfig.retentionPolicy}" ON "${influxTableConfig.database}" DURATION 1d SHARD DURATION 30m REPLICATION 1  DEFAULT""",influxTableConfig.database)
       influxDB.query(createRetentionQuery)
     }
 
