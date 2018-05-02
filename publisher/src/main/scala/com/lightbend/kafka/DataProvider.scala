@@ -27,7 +27,7 @@ object DataProvider {
 
     val config = ConfigFactory.load()
     val kafkaBrokers = config.getString("kafka.brokers")
-//    val zookeeperHosts = config.getString("zookeeper.hosts")
+    //    val zookeeperHosts = config.getString("zookeeper.hosts")
     val publisherConfig = config.getConfig("publisher")
     val dataTimeInterval: Duration = publisherConfig.getDuration("data_publish_interval")
     val modelTimeInterval: Duration = publisherConfig.getDuration("model_publish_interval")
@@ -36,13 +36,13 @@ object DataProvider {
     val dataFile = dataDirectory + "/" + dataFilename
 
     println(s"Data Provider with kafka brokers at $kafkaBrokers")
-    println(s"Data Message delay $dataTimeInterval")
-    println(s"Model Message delay $modelTimeInterval")
+    println(s"Data Message delay $dataTimeInterval.  Model Message delay $modelTimeInterval")
+    println(s"Data directory $dataDirectory. Data file name $dataFilename")
 
-    val sender = new KafkaMessageSender(kafkaBrokers/*, zookeeperHosts*/)
+    val sender = new KafkaMessageSender(kafkaBrokers /*, zookeeperHosts*/ )
 
-    val dataPublisher = publishData(sender, dataFile, dataTimeInterval, kafkaBrokers/*, zookeeperHosts*/)
-    val modelPublisher = publishModels(sender, dataDirectory, modelTimeInterval, kafkaBrokers/*, zookeeperHosts*/)
+    val dataPublisher = publishData(sender, dataFile, dataTimeInterval, kafkaBrokers /*, zookeeperHosts*/ )
+    val modelPublisher = publishModels(sender, dataDirectory, modelTimeInterval, kafkaBrokers /*, zookeeperHosts*/ )
 
     val result = Future.firstCompletedOf(Seq(dataPublisher, modelPublisher))
 
@@ -50,9 +50,9 @@ object DataProvider {
   }
 
   def publishData(sender: KafkaMessageSender, dataFileLocation: String,
-    timeInterval: Duration, kafkaBrokers: String/*, zookeeperHosts: String*/): Future[Unit] = {
+    timeInterval: Duration, kafkaBrokers: String /*, zookeeperHosts: String*/ ): Future[Unit] = {
     println("Starting data publisher")
-    Future{
+    Future {
       val bos = new ByteArrayOutputStream()
       val records = parseRecords(dataFileLocation)
       println(s"Records found in data: ${records.size}")
@@ -71,10 +71,10 @@ object DataProvider {
   }
 
   def publishModels(sender: KafkaMessageSender, dataDirectory: String, timeInterval: Duration,
-    kafkaBrokers: String/*, zookeeperHosts: String*/): Future[Unit] = {
+    kafkaBrokers: String /*, zookeeperHosts: String*/ ): Future[Unit] = {
     println("Starting model publisher")
     val tensorfile = s"${dataDirectory}/optimized_WineQuality.pb"
-    Future{
+    Future {
       val files = listFilesWithExtension(dataDirectory, ".pmml")
       println(s"Models found: [${files.size}] => ${files.mkString(",")}")
       val bos = new ByteArrayOutputStream()
@@ -95,9 +95,11 @@ object DataProvider {
         })
         // TF
         val tByteArray = Files.readAllBytes(Paths.get(tensorfile))
-        val tRecord = ModelDescriptor(name = tensorfile.dropRight(3),
+        val tRecord = ModelDescriptor(
+          name = tensorfile.dropRight(3),
           description = "generated from TensorFlow", modeltype = ModelDescriptor.ModelType.TENSORFLOW,
-          dataType = "wine").withData(ByteString.copyFrom(tByteArray))
+          dataType = "wine"
+        ).withData(ByteString.copyFrom(tByteArray))
         bos.reset()
         tRecord.writeTo(bos)
         sender.writeValue(MODELS_TOPIC, bos.toByteArray)

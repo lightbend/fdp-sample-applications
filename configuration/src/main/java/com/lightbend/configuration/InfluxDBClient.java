@@ -15,6 +15,7 @@ public class InfluxDBClient {
     public InfluxDBClient(InfluxDBConfig config) {
         influxDB = InfluxDBFactory.connect(config.url(),config.user, config.pass);
         Query databasesQuery = new Query("SHOW DATABASES","");
+
         Boolean database_exists = false;
         List<List<Object>> databases = influxDB.query(databasesQuery).getResults().get(0).getSeries().get(0).getValues();
         if(databases != null){
@@ -29,9 +30,9 @@ public class InfluxDBClient {
         if(!database_exists){
             Query databaseCreateQuery = new Query("CREATE DATABASE \"" + config.database + "\"","");
             influxDB.query(databaseCreateQuery);
-            Query dropRetentionQuery = new Query("DROP RETENTION POLICY \"autogen\"",config.database);
+            Query dropRetentionQuery = new Query("DROP RETENTION POLICY \"autogen\" ON \"" + config.database + "\"","");
             influxDB.query(dropRetentionQuery);
-            Query createRetentionQuery = new Query("CREATE RETENTION POLICY \"" + config.retentionPolicy + "\" DURATION 1d SHARD DURATION 30m REPLICATION 1  DEFAULT",config.database);
+            Query createRetentionQuery = new Query("CREATE RETENTION POLICY \"" + config.retentionPolicy + "\" ON \"" + config.database + "\" DURATION 1d REPLICATION 1 SHARD DURATION 30m  DEFAULT","");
             influxDB.query(createRetentionQuery);
         }
 

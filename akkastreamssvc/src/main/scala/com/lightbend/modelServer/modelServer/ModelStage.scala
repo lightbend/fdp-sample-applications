@@ -1,17 +1,17 @@
 package com.lightbend.modelServer.modelServer
 
-import akka.stream.{FanInShape2, _}
-import akka.stream.stage.{GraphStageLogicWithLogging, _}
-import com.lightbend.configuration.{GrafanaClient, GrafanaConfig, InfluxDBClient, InfluxDBConfig}
+import akka.stream.{ FanInShape2, _ }
+import akka.stream.stage.{ GraphStageLogicWithLogging, _ }
+import com.lightbend.configuration.{ GrafanaClient, GrafanaConfig, InfluxDBClient, InfluxDBConfig }
 import com.lightbend.model.modeldescriptor.ModelDescriptor
 import com.lightbend.model.winerecord.WineRecord
 import com.lightbend.modelServer.model.Model
 import com.lightbend.modelServer.model.PMML.PMMLModel
 import com.lightbend.modelServer.model.tensorflow.TensorFlowModel
-import com.lightbend.modelServer.{ModelToServe, ModelToServeStats}
+import com.lightbend.modelServer.{ ModelToServe, ModelToServeStats }
 
 class ModelStage(influxDBConfig: InfluxDBConfig, grafanaConfig: GrafanaConfig)
-      extends GraphStageWithMaterializedValue[FanInShape2[WineRecord, ModelToServe, Option[Double]], ReadableModelStateStore] {
+    extends GraphStageWithMaterializedValue[FanInShape2[WineRecord, ModelToServe, Option[Double]], ReadableModelStateStore] {
 
   private val factories = Map(
     ModelDescriptor.ModelType.PMML -> PMMLModel,

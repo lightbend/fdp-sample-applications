@@ -1,14 +1,60 @@
 
 import Dependencies._
-import deployssh.DeploySSH._
-import com.typesafe.sbt.packager.docker._
-import NativePackagerHelper._
-
-allowSnapshot in ThisBuild := true
 
 scalaVersion in ThisBuild := Versions.Scala
+version in ThisBuild := "1.2.0"
+organization in ThisBuild := "lightbend"
 
-val dockerRepositoryUrl = "lightbend"
+
+// settings for a native-packager based docker scala project based on sbt-docker plugin
+def sbtdockerScalaAppBase(id: String)(base: String = id) = Project(id, base = file(base))
+  .enablePlugins(sbtdocker.DockerPlugin, JavaAppPackaging)
+  .settings(
+    dockerfile in docker := {
+      val appDir = stage.value
+      val targetDir = s"/$base"
+
+      new Dockerfile {
+        from("openjdk:8u151-jre")
+        entryPoint(s"$targetDir/bin/${executableScriptName.value}")
+        copy(appDir, targetDir)
+      }
+    },
+
+    // Set name for the image
+    imageNames in docker := Seq(
+      ImageName(namespace = Some(organization.value),
+        repository = name.value.toLowerCase,
+        tag = Some("v" + version.value))
+    ),
+
+    buildOptions in docker := BuildOptions(cache = false)
+  )
+
+// settings for a native-packager based docker tensorflow project based on sbt-docker plugin
+def sbtdockerTensorflowAppBase(id: String)(base: String = id) = Project(id, base = file(base))
+  .enablePlugins(sbtdocker.DockerPlugin, JavaAppPackaging)
+  .settings(
+    dockerfile in docker := {
+      val appDir = stage.value
+      val targetDir = s"/$base"
+
+      new Dockerfile {
+        from("tensorflow/tensorflow:latest-devel")
+        entryPoint(s"$targetDir/bin/${executableScriptName.value}")
+        copy(appDir, targetDir)
+      }
+    },
+
+    // Set name for the image
+    imageNames in docker := Seq(
+      ImageName(namespace = Some(organization.value),
+        repository = name.value.toLowerCase,
+        tag = Some("v" + version.value))
+    ),
+
+    buildOptions in docker := BuildOptions(cache = false)
+  )
 
 lazy val protobufs = (project in file("./protobufs"))
     .settings(
@@ -19,86 +65,39 @@ lazy val protobufs = (project in file("./protobufs"))
       publish := { }
     )
 
-lazy val publisher = (project in file("./publisher"))
-  .settings(
-    name :="model-server-publisher",
-    buildInfoPackage := "build",
-    mainClass in Compile := Some("com.lightbend.kafka.DataProvider"),
-    maintainer := "Fast Data Team <fdp@lightbend.com>",
-    packageSummary := "Model Server Data Publisher",
-    packageDescription := "Model Server Data Publisher",
-    deployResourceConfigFiles ++= Seq("deploy.conf"),
-    deployArtifacts ++= Seq(
-      ArtifactSSH((packageZipTarball in Universal).value, "/var/www/html/")
-    ),
-    // mappings in Universal ++= directory("data"),
-    dockerBaseImage := "openjdk:8u151-jre",
-    dockerRepository := Some(dockerRepositoryUrl),
-    //dockerCommands += Cmd("ADD", "data", "/opt/docker/data"),
-    version in Docker := version.value.takeWhile(c => c != '+')
-
-  )
-  .settings(libraryDependencies ++= kafkaBaseDependencies ++ testDependencies)
-  .dependsOn(protobufs, configuration)
-  .enablePlugins(DeploySSH)
-  .enablePlugins(JavaAppPackaging)
-  .enablePlugins(DockerPlugin)
+// Supporting projects used as dependencies
+lazy val configuration = (project in file("./configuration"))
+  .settings(libraryDependencies ++= Seq(typesafeConfig, influxDBClient, codecBase64))
 
 lazy val model = (project in file("./model"))
-  .settings(libraryDependencies ++= modelsDependencies,
-    publish := { })
+  .settings(libraryDependencies ++= modelsDependencies)
   .dependsOn(protobufs)
-  .disablePlugins(DockerPlugin)
 
-lazy val kafkaSvc = (project in file("./kafkastreamssvc"))
-  .settings(
-    buildInfoPackage := "build",
-    name :="model-server-kstreams",
-    mainClass in Compile := Some("com.lightbend.modelserver.withstore.ModelServerWithStore"),
-    maintainer := "Boris Lublinsky <boris.lublinsky@lightbend.com",
-    packageSummary := "Model Server Kafka Streams",
-    packageDescription := "Model Server Kafka Streams",
-    deployResourceConfigFiles ++= Seq("deploy.conf"),
-    deployArtifacts ++= Seq(
-      ArtifactSSH((packageZipTarball in Universal).value, "/var/www/html/")
-    ),
-    dockerBaseImage := "tensorflow/tensorflow:1.7.0",
-    dockerRepository := Some(dockerRepositoryUrl),
-    version in Docker := version.value.takeWhile(c => c != '+')
-
+// Publisher project - pure scala
+lazy val publisher = sbtdockerScalaAppBase("publisher")("./publisher")
+  .settings (
+    mainClass in Compile := Some("com.lightbend.kafka.DataProvider"),
+    libraryDependencies ++= kafkaBaseDependencies ++ testDependencies,
+    bashScriptExtraDefines += """addJava "-Dconfig.resource=cluster.conf""""
   )
-  .settings(libraryDependencies ++= kafkaDependencies ++ webDependencies)
-  .dependsOn(model, configuration)
-  .enablePlugins(DeploySSH)
-  .enablePlugins(JavaAppPackaging)
-  .enablePlugins(DockerPlugin)
-
-lazy val akkaSvc = (project in file("./akkastreamssvc"))
-  .settings(
-    buildInfoPackage := "build",
-    name :="model-server-akkastreams",
-    mainClass in Compile := Some("com.lightbend.modelServer.modelServer.AkkaModelServer"),
-    maintainer := "Fast Data Team <fdp@lightbend.com>",
-    packageSummary := "Model Server Akka Streams",
-    packageDescription := "Model Server Akka Streams",
-    deployResourceConfigFiles ++= Seq("deploy.conf"),
-    deployArtifacts ++= Seq(
-      ArtifactSSH((packageZipTarball in Universal).value, "/var/www/html/")
-    ),
-    dockerBaseImage := "tensorflow/tensorflow:1.7.0",
-    dockerRepository := Some(dockerRepositoryUrl),
-    version in Docker := version.value.takeWhile(c => c != '+')
-  )    .settings(libraryDependencies ++= kafkaDependencies ++ akkaServerDependencies
-    ++ modelsDependencies ++ Seq(curator))
   .dependsOn(protobufs, configuration)
-  .enablePlugins(DeploySSH)
-  .enablePlugins(JavaAppPackaging)
-  .enablePlugins(DockerPlugin)
 
-lazy val configuration = (project in file("./configuration"))
-  .settings(libraryDependencies ++= Seq(typesafeConfig, influxDBClient, codecBase64),
-    publish := { })
-  .disablePlugins(DockerPlugin)
+// Both Kafka and Akka services are using Tensorflow
+lazy val kafkaSvc = sbtdockerTensorflowAppBase("kafkaSvc")("./kafkastreamssvc")
+  .settings (
+    mainClass in Compile := Some("com.lightbend.modelserver.withstore.ModelServerWithStore"),
+    libraryDependencies ++= kafkaDependencies ++ webDependencies,
+    bashScriptExtraDefines += """addJava "-Dconfig.resource=cluster.conf""""
+  )
+  .dependsOn(model, configuration)
+
+lazy val akkaSvc = sbtdockerTensorflowAppBase("akkaSvc")("./akkastreamssvc")
+  .settings (
+    mainClass in Compile := Some("com.lightbend.modelServer.modelServer.AkkaModelServer"),
+    libraryDependencies ++= kafkaDependencies ++ akkaServerDependencies ++ Seq(curator),
+    bashScriptExtraDefines += """addJava "-Dconfig.resource=cluster.conf""""
+  )
+  .dependsOn(model, configuration)
 
 lazy val modelserver = (project in file("."))
   .settings(publish := { })
