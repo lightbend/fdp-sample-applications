@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: akkasvc
+spec:
+  containers:
+  - name: akkasvc
+    image: lightbend/akkasvc:1.2.0
