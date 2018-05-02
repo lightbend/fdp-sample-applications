@@ -17,7 +17,7 @@ spec:
     - sh
     - -c
     # put the right url here
-    - wget -O /data-dir/data.zip http://kubernetes.io unzip /data-dir/data.zip -d /data-dir/
+    - wget -O /data-dir/data.zip http://kubernetes.io; unzip /data-dir/data.zip -d /data-dir/
     volumeMounts:
     - name: datadir
       mountPath: "/data-dir"
