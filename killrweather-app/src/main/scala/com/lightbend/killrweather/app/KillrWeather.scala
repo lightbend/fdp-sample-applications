@@ -40,14 +40,6 @@ object KillrWeather {
       case t: Throwable => println("Cassandra not initialized")
     }
 
-    // Initialize Grafana - Initialized by Influx
-    /*
-    try
-      new GrafanaSetup().setGrafana()
-    catch {
-      case t: Throwable => println(s"Grafana not initialized ${t.getMessage}")
-    }
-    */
     val sc = sparkSession.sparkContext
     val ssc = new StreamingContext(sc, Duration(streamingConfig.batchInterval.toMillis))
 

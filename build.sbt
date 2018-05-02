@@ -1,7 +1,60 @@
 import Dependencies._
-import deployssh.DeploySSH._
 
-allowSnapshot in ThisBuild := true
+scalaVersion in ThisBuild := Versions.Scala
+version in ThisBuild := "1.2.0"
+organization in ThisBuild := "lightbend"
+
+
+// settings for a native-packager based docker scala project based on sbt-docker plugin
+def sbtdockerScalaAppBase(id: String)(base: String = id) = Project(id, base = file(base))
+  .enablePlugins(sbtdocker.DockerPlugin, JavaAppPackaging)
+  .settings(
+    dockerfile in docker := {
+      val appDir = stage.value
+      val targetDir = s"/$base"
+
+      new Dockerfile {
+        from("openjdk:8u151-jre")
+        entryPoint(s"$targetDir/bin/${executableScriptName.value}")
+        copy(appDir, targetDir)
+      }
+    },
+
+    // Set name for the image
+    imageNames in docker := Seq(
+      ImageName(namespace = Some(organization.value),
+        repository = name.value.toLowerCase,
+        tag = Some("v" + version.value))
+    ),
+
+    buildOptions in docker := BuildOptions(cache = false)
+  )
+
+def sbtdockerSparkAppBase(id: String)(base: String = id) = Project(id, base = file(base))
+  .enablePlugins(sbtdocker.DockerPlugin, JavaAppPackaging)
+  .settings(
+    dockerfile in docker := {
+      val artifact: File = assembly.value
+      val artifactTargetPath = s"/opt/spark/jars/${artifact.name}"
+
+      new Dockerfile {
+        from ("gcr.io/ynli-k8s/spark:v2.3.0")
+        add(artifact, artifactTargetPath)
+        runRaw("mkdir -p /etc/hadoop/conf")
+        runRaw("export HADOOP_CONF_DIR=/etc/hadoop/conf")
+      }
+    },
+
+    // Set name for the image
+    imageNames in docker := Seq(
+      ImageName(namespace = Some(organization.value),
+        repository = name.value.toLowerCase,
+        tag = Some("v" + version.value))
+    ),
+
+    buildOptions in docker := BuildOptions(cache = false)
+  )
+
 
 lazy val protobufs = (project in file("./protobufs"))
   .settings(
@@ -12,27 +65,19 @@ lazy val protobufs = (project in file("./protobufs"))
   .settings(dependencyOverrides += "io.netty" % "netty-codec-http2" % "4.1.11.Final")
   .settings(dependencyOverrides += "io.netty" % "netty-handler-proxy" % "4.1.11.Final")
 
+// Supporting project - used as an internal library
 lazy val killrWeatherCore = (project in file("./killrweather-core"))
   .settings(defaultSettings:_*)
   .settings(libraryDependencies ++= core)
 
-
-lazy val killrWeatherApp = (project in file("./killrweather-app"))
+// Spark streaming project
+lazy val killrWeatherApp = sbtdockerSparkAppBase("killrWeatherApp")("./killrweather-app")
   .settings(defaultSettings:_*)
+  .settings(libraryDependencies ++= app)
+  .settings (mainClass in Compile := Some("com.lightbend.killrweather.app.KillrWeather"))
+  .settings(dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core"  % "2.6.7",
+            dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.7")
   .settings(
-    mainClass in Compile := Some("com.lightbend.killrweather.app.KillrWeather"),
-    maintainer := "Boris Lublinsky <boris.lublinsky@lightbend.com",
-    packageSummary := "KillrWeather Spark Runner",
-    packageDescription := "KillrWeather Spark Runner",
-    libraryDependencies ++= app)
-  .settings(dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core"  % "2.6.7")
-  .settings(dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.7")
-  .settings(dependencyDotFile := file("dependencies.dot"))
-  .settings(
-    maintainer := "Boris Lublinsky <boris.lublinsky@lightbend.com",
-    packageSummary := "KillrWeather Spark uber jar",
-    packageDescription := "KillrWeather Spark uber jar",
-    mainClass in assembly := Some("com.lightbend.killrweather.app.KillrWeather"),
     assemblyOption in assembly := (assemblyOption in assembly).value.copy(includeScala = false),
     assemblyMergeStrategy in assembly := {
       case PathList("META-INF", "MANIFEST.MF") => MergeStrategy.discard
@@ -41,96 +86,42 @@ lazy val killrWeatherApp = (project in file("./killrweather-app"))
       case x =>
         val oldStrategy = (assemblyMergeStrategy in assembly).value
         oldStrategy(x)
-    },
-    deployResourceConfigFiles ++= Seq("deploy.conf"),
-    deployArtifacts ++= Seq(
-        ArtifactSSH(assembly.value, "/var/www/html/")
-    )
+    }
   )
   .dependsOn(killrWeatherCore, protobufs)
-  .enablePlugins(DeploySSH)
 
+// Spark structured streaming project
+lazy val killrWeatherApp_structured = sbtdockerSparkAppBase("killrWeatherApp_structured")("./killrweather-app_structured")
+  .settings(defaultSettings:_*)
+  .settings(libraryDependencies ++= appStructured)
+  .settings (mainClass in Compile := Some("com.lightbend.killrweather.app.structured.KillrWeatherStructured"))
+  .settings(dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core"  % "2.6.7",
+            dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.7",
+            dependencyOverrides += "org.json4s" % "json4s-ast_2.11" % "3.2.11",
+            dependencyOverrides += "org.json4s" % "json4s-core_2.11" % "3.2.11",
+            dependencyOverrides += "org.json4s" % "json4s-jackson_2.11" % "3.2.11"
+  )
+  .settings(
+    assemblyOption in assembly := (assemblyOption in assembly).value.copy(includeScala = false),
+    assemblyMergeStrategy in assembly := {
+      case PathList("META-INF", "MANIFEST.MF") => MergeStrategy.discard
+      case PathList("META-INF", xs @ _*) => MergeStrategy.last
+      case PathList("META-INF", "io.netty.versions.properties") => MergeStrategy.last
+      case x =>
+        val oldStrategy = (assemblyMergeStrategy in assembly).value
+        oldStrategy(x)
+    }
+  )
+  .dependsOn(killrWeatherCore, protobufs)
+
+// Supporting projects to enable running spark projects locally
 lazy val appLocalRunner = (project in file("./killrweather-app-local"))
-    .settings(
-      libraryDependencies ++= spark.map(_.copy(configurations = Option("compile"))) ++ Seq(influxDBClient)
-    )
-    .settings(dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core"  % "2.6.7",
-              dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.7")
-    .dependsOn(killrWeatherApp)
-
-lazy val killrWeatherApp_structured = (project in file("./killrweather-app_structured"))
-  .settings(defaultSettings:_*)
   .settings(
-    mainClass in Compile := Some("com.lightbend.killrweather.app.structured.KillrWeatherStructured"),
-    maintainer := "Boris Lublinsky <boris.lublinsky@lightbend.com",
-    packageSummary := "KillrWeather Spark structured Streaming Runner",
-    packageDescription := "KillrWeather Spark Structured streaming Runner",
-    libraryDependencies ++= appStructured)
+    libraryDependencies ++= spark.map(_.copy(configurations = Option("compile"))) ++ Seq(influxDBClient)
+  )
   .settings(dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core"  % "2.6.7",
-    dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.7",
-    dependencyOverrides += "org.json4s" % "json4s-ast_2.11" % "3.2.11",
-    dependencyOverrides += "org.json4s" % "json4s-core_2.11" % "3.2.11",
-    dependencyOverrides += "org.json4s" % "json4s-jackson_2.11" % "3.2.11"
-  )
-  .settings(dependencyDotFile := file("dependencies.dot"))
-  .settings(
-    maintainer := "Boris Lublinsky <boris.lublinsky@lightbend.com",
-    packageSummary := "KillrWeather Spark structured streaming uber jar",
-    packageDescription := "KillrWeather Spark uber jar",
-    mainClass in assembly := Some("com.lightbend.killrweather.app.KillrWeather"),
-    assemblyOption in assembly := (assemblyOption in assembly).value.copy(includeScala = false),
-    assemblyMergeStrategy in assembly := {
-      case PathList("META-INF", "MANIFEST.MF") => MergeStrategy.discard
-      case PathList("META-INF", xs @ _*) => MergeStrategy.last
-      case PathList("META-INF", "io.netty.versions.properties") => MergeStrategy.last
-      case x =>
-        val oldStrategy = (assemblyMergeStrategy in assembly).value
-        oldStrategy(x)
-    },
-    deployResourceConfigFiles ++= Seq("deploy.conf"),
-    deployArtifacts ++= Seq(
-      ArtifactSSH(assembly.value, "/var/www/html/")
-    )
-  )
-  .dependsOn(killrWeatherCore, protobufs)
-  .enablePlugins(DeploySSH)
-
-lazy val killrWeatherApp_beam = (project in file("./killrweather-beam"))
-  .settings(defaultSettings:_*)
-  .settings(
-    mainClass in Compile := Some("com.lightbend.killrweather.beam.KillrWeatherBeam"),
-    maintainer := "Boris Lublinsky <boris.lublinsky@lightbend.com",
-    packageSummary := "KillrWeather Beam implementation",
-    packageDescription := "KillrWeather Beam",
-    libraryDependencies ++= beamDependencies)
-  .settings(dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core"  % "2.6.7",
-    dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.7",
-    dependencyOverrides += "org.json4s" % "json4s-ast_2.11" % "3.2.11",
-    dependencyOverrides += "org.json4s" % "json4s-core_2.11" % "3.2.11",
-    dependencyOverrides += "org.json4s" % "json4s-jackson_2.11" % "3.2.11"
-  )
-  .settings(dependencyDotFile := file("dependencies.dot"))
-  .settings(
-    maintainer := "Boris Lublinsky <boris.lublinsky@lightbend.com",
-    packageSummary := "KillrWeather Beam uber jar",
-    packageDescription := "KillrWeather Beam uber jar",
-    mainClass in assembly := Some("com.lightbend.killrweather.app.KillrWeather"),
-    assemblyOption in assembly := (assemblyOption in assembly).value.copy(includeScala = false),
-    assemblyMergeStrategy in assembly := {
-      case PathList("META-INF", "MANIFEST.MF") => MergeStrategy.discard
-      case PathList("META-INF", xs @ _*) => MergeStrategy.last
-      case PathList("META-INF", "io.netty.versions.properties") => MergeStrategy.last
-      case x =>
-        val oldStrategy = (assemblyMergeStrategy in assembly).value
-        oldStrategy(x)
-    },
-    deployResourceConfigFiles ++= Seq("deploy.conf"),
-    deployArtifacts ++= Seq(
-      ArtifactSSH(assembly.value, "/var/www/html/")
-    )
-  )
-  .dependsOn(killrWeatherCore, protobufs)
-  .enablePlugins(DeploySSH)
+    dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.7")
+  .dependsOn(killrWeatherApp)
 
 lazy val appLocalRunnerstructured = (project in file("./killrweather-structured-app-local"))
   .settings(
@@ -140,56 +131,47 @@ lazy val appLocalRunnerstructured = (project in file("./killrweather-structured-
   .settings(dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.7")
   .dependsOn(killrWeatherApp_structured)
 
-lazy val httpclient = (project in file("./killrweather-httpclient"))
+// Killrweather Beam - for now only build locally
+lazy val killrWeatherApp_beam = (project in file("./killrweather-beam"))
   .settings(defaultSettings:_*)
-  .settings(
-    buildInfoPackage := "build",
-    mainClass in Compile := Some("com.lightbend.killrweather.client.http.RestAPIs"),
-    maintainer := "Boris Lublinsky <boris.lublinsky@lightbend.com",
-    packageSummary := "KillrWeather HTTP client",
-    packageDescription := "KillrWeather HTTP client",
-    deployResourceConfigFiles ++= Seq("deploy.conf"),
-    deployArtifacts ++= Seq(
-      ArtifactSSH((packageZipTarball in Universal).value, "/var/www/html/")
-    ),
-    libraryDependencies ++= clientHTTP)
+  .settings(mainClass in Compile := Some("com.lightbend.killrweather.beam.KillrWeatherBeam"))
+  .settings(libraryDependencies ++= beamDependencies)
+  .settings(dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core"  % "2.6.7",
+            dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.7",
+            dependencyOverrides += "org.json4s" % "json4s-ast_2.11" % "3.2.11",
+            dependencyOverrides += "org.json4s" % "json4s-core_2.11" % "3.2.11",
+            dependencyOverrides += "org.json4s" % "json4s-jackson_2.11" % "3.2.11"
+  )
   .dependsOn(killrWeatherCore, protobufs)
-  .enablePlugins(DeploySSH)
-  .enablePlugins(JavaAppPackaging)
 
-lazy val grpcclient = (project in file("./killrweather-grpclient"))
+// Loader - loading weather data to Kafka - pure scala
+lazy val loader = sbtdockerScalaAppBase("loader")("./killrweather-loader")
   .settings(defaultSettings:_*)
   .settings(
-    buildInfoPackage := "build",
-    mainClass in Compile := Some("com.lightbend.killrweather.client.grpc.WeatherGRPCClient"),
-    maintainer := "Boris Lublinsky <boris.lublinsky@lightbend.com",
-    packageSummary := "KillrWeather GRPC client",
-    packageDescription := "KillrWeather GRPC client",
-    deployResourceConfigFiles ++= Seq("deploy.conf"),
-    deployArtifacts ++= Seq(
-      ArtifactSSH((packageZipTarball in Universal).value, "/var/www/html/")
-    ),
-    libraryDependencies ++= clientGRPC)
-  .dependsOn(killrWeatherCore, protobufs)
-  .enablePlugins(DeploySSH)
-  .enablePlugins(JavaAppPackaging)
-
-lazy val loader = (project in file("./killrweather-loader"))
-  .settings(defaultSettings:_*)
-  .settings(
-    buildInfoPackage := "build",
     mainClass in Compile := Some("com.lightbend.killrweather.loader.kafka.KafkaDataIngester"),
-    maintainer := "Boris Lublinsky <boris.lublinsky@lightbend.com",
-    packageSummary := "KillrWeather loaders",
-    packageDescription := "KillrWeather loaders",
-    deployResourceConfigFiles ++= Seq("deploy.conf"),
-    deployArtifacts ++= Seq(
-      ArtifactSSH((packageZipTarball in Universal).value, "/var/www/html/")
-    ),
-    libraryDependencies ++= loaders)
+    libraryDependencies ++= loaders,
+    bashScriptExtraDefines += """addJava "-Dconfig.resource=cluster.conf""""
+  )
   .dependsOn(killrWeatherCore, protobufs)
-  .enablePlugins(DeploySSH)
-  .enablePlugins(JavaAppPackaging)
+
+// httpClient - exposing HTTP listener for weather data - pure scala
+lazy val httpclient = sbtdockerScalaAppBase("httpclient")("./killrweather-httpclient")
+  .settings(defaultSettings:_*)
+  .settings(
+    mainClass in Compile := Some("com.lightbend.killrweather.client.http.RestAPIs"),
+    libraryDependencies ++= clientHTTP,
+    bashScriptExtraDefines += """addJava "-Dconfig.resource=cluster.conf""""
+  )
+  .dependsOn(killrWeatherCore, protobufs)
+
+// GRPC - exposing GRPC listener for weather data - pure scala
+lazy val grpcclient = sbtdockerScalaAppBase("grpcclient")("./killrweather-grpclient")
+  .settings(
+    mainClass in Compile := Some("com.lightbend.killrweather.client.grpc.WeatherGRPCClient"),
+    libraryDependencies ++= clientGRPC,
+    bashScriptExtraDefines += """addJava "-Dconfig.resource=cluster.conf""""
+  )
+  .dependsOn(killrWeatherCore, protobufs)
 
 lazy val killrweather = (project in file("."))
   .aggregate(killrWeatherCore, killrWeatherApp, killrWeatherApp_structured, httpclient, grpcclient, loader, protobufs)

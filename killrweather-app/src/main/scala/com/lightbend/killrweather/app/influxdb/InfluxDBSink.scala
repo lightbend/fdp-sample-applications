@@ -96,7 +96,7 @@ object InfluxDBSink {
     }
     try {
       val graphanaConfig = settings.graphanaConfig
-      new GrafanaSetup(graphanaConfig.port.toString, graphanaConfig.server).setGrafana()
+      new GrafanaSetup().setGrafana()
     } catch {
       case t: Throwable => println("Grafana not initialized")
     }

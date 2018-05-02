@@ -10,9 +10,11 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-git" % "0.6.4")
 addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.13.0")
 addSbtPlugin("com.eed3si9n" %% "sbt-buildinfo" % "0.6.1")
 addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.2.0-M8")
-addSbtPlugin("com.github.shmishleniy" %% "sbt-deploy-ssh" % "0.1.3")
+//addSbtPlugin("com.github.shmishleniy" %% "sbt-deploy-ssh" % "0.1.3")
 addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.8.2")
 
 addSbtPlugin("com.dwijnand" % "sbt-dynver" % "2.0.0")
+addSbtPlugin("se.marcuslonnberg" % "sbt-docker" % "1.5.0")
 
-dependsOn(RootProject(file("./build-plugin/").toURI))
+
+//dependsOn(RootProject(file("./build-plugin/").toURI))

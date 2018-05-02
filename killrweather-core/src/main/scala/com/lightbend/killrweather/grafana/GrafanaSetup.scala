@@ -13,10 +13,10 @@ class GrafanaSetup(user: String = "admin", password: String = "admin") {
 
     // Set data source
     val dt = getData(dsfile, true)
-    Http(datasource).auth(user, password).postData(dt).header("content-type", "application/json").asString
+    var responce = Http(datasource).auth(user, password).postData(dt).header("content-type", "application/json").asString
     // set dashboard
     val dash = getData(dashfile, false)
-    val _ = Http(dashboard).auth(user, password).postData(dash).header("content-type", "application/json").asString
+    responce = Http(dashboard).auth(user, password).postData(dash).header("content-type", "application/json").asString
   }
 }
 
