@@ -82,6 +82,8 @@ case class GrafanaConfig(server: String, port: Int)
 case class InfluxTableConfig(database: String, retentionPolicy: String)
 case class GRPCConfig(host: String, port: Int)
 
+case class LoaderConfig(publish_interval : String, data_dir : String, batch_size : Int)
+
 
 class WeatherSettings(val config: Config) extends Serializable {
 
@@ -112,6 +114,8 @@ class WeatherSettings(val config: Config) extends Serializable {
   val grpcConfig = config.as[GRPCConfig]("grpc.ingester.client")
 
   val graphanaConfig = config.as[GrafanaConfig]("grafana")
+
+  val loaderConfig = config.as[LoaderConfig]("loader")
 
   val cassandraServerConfig = {
     val host = config.getString("spark.cassandra.connection.host")

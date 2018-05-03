@@ -2,7 +2,7 @@ package com.lightbend.killrweather.loader.kafka
 
 import java.io.File
 
-import com.lightbend.killrweather.loader.utils.{ DataConvertor, FilesIterator }
+import com.lightbend.killrweather.loader.utils.{DataConvertor, FilesIterator}
 import com.lightbend.killrweather.kafka.MessageSender
 import com.lightbend.killrweather.settings.WeatherSettings
 import org.apache.kafka.common.serialization.ByteArraySerializer
@@ -11,23 +11,34 @@ import scala.concurrent.duration._
 import scala.collection.mutable.ListBuffer
 
 object KafkaDataIngester {
-  val file = "data/load/"
+/*  val file = "data/load/"
   val timeInterval = 1.second
   val batchSize = 10
+*/
 
   def main(args: Array[String]) {
-    val kafkaConfig = WeatherSettings("DataIngester", args).kafkaConfig
-    val ingester = KafkaDataIngester(kafkaConfig.brokers)
-    println(s"Running Kafka Loader. Kafka: $kafkaConfig")
-    ingester.execute(file, kafkaConfig.topic)
+
+    val killrSettings = WeatherSettings("KillrWeather", args)
+    import killrSettings._
+
+    val brokers = kafkaConfig.brokers
+    val dataDir = loaderConfig.data_dir
+    val timeInterval = Duration(loaderConfig.publish_interval)
+    val batchSize = loaderConfig.batch_size
+    println(s"Starting data ingester \n Brokers : $brokers, topic : ${kafkaConfig.topic}, directory : $dataDir, timeinterval $timeInterval, batch size $batchSize")
+
+    val ingester = KafkaDataIngester(brokers, batchSize, timeInterval)
+
+    println(s"Running Kafka Loader. Kafka: $brokers")
+    ingester.execute(dataDir, kafkaConfig.topic)
   }
 
-  def pause(): Unit = Thread.sleep(timeInterval.toMillis)
+  def pause(timeInterval : Duration): Unit = Thread.sleep(timeInterval.toMillis)
 
-  def apply(brokers: String): KafkaDataIngester = new KafkaDataIngester(brokers)
+  def apply(brokers: String, batchSize: Int, timeInterval : Duration): KafkaDataIngester = new KafkaDataIngester(brokers, batchSize, timeInterval)
 }
 
-class KafkaDataIngester(brokers: String) {
+class KafkaDataIngester(brokers: String, batchSize: Int, timeInterval : Duration) {
 
   var sender = MessageSender[Array[Byte], Array[Byte]](brokers, classOf[ByteArraySerializer].getName, classOf[ByteArraySerializer].getName)
 
@@ -55,7 +66,7 @@ class KafkaDataIngester(brokers: String) {
                 sender.close()
               sender = null
           }
-          pause()
+          pause(timeInterval)
         }
         if (numrec % 100 == 0)
           println(s"Submitted $numrec records")
