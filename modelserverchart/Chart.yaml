@@ -1,0 +1,6 @@
+apiVersion: v1
+description: A Helm chart for Kubernetes deployment of the akka/kafka streams model server. It installs publisher and either akka or kafka streams implementation, depending on the values
+maintainers:
+- name: Boris Lublinsky
+name: modelserverchart
+version: 0.1.0

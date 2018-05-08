@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ if eq .Values.server.type "akka" }} akkamodelserver {{ else }} kafkamodelserver  {{ end }}
+spec:
+  containers:
+  - name: {{ if eq .Values.server.type "akka" }} akkamodelserver {{ else }} kafkamodelserver  {{ end }}
+    image: {{ if eq .Values.server.type "akka" }} {{ .Values.image.akka }}:{{.Values.image.version }} {{ else }} {{ .Values.image.kafka}}:{{.Values.image.version }} {{ end }}

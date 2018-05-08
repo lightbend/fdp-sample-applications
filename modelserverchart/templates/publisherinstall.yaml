@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: modelpublisher
+  name: modelserverpublisher
 spec:
   containers:
-  - name: publisher
-    image: lightbend/publisher:v1.2.0
+  - name: modelserverpublisher
+    image: {{ .Values.image.publisher}}:{{.Values.image.version }}
     volumeMounts:
     - name: datadir
       mountPath: /usr/share
@@ -16,7 +16,7 @@ spec:
     command:
     - sh
     - -c
-    - wget http://s3-eu-west-1.amazonaws.com/fdp-killrweather-data/data/data.zip -O /data-dir/data.zip; unzip /data-dir/data.zip -d /data-dir/
+    - wget {{ .Values.data.datadirectory }} -O /data-dir/data.zip; unzip /data-dir/data.zip -d /data-dir/
     volumeMounts:
     - name: datadir
       mountPath: "/data-dir"
