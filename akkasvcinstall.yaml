@@ -5,4 +5,4 @@ metadata:
 spec:
   containers:
   - name: akkasvc
-    image: lightbend/akkasvc:1.2.0
+    image: lightbend/akkasvc:v1.2.0

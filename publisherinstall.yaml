@@ -5,19 +5,18 @@ metadata:
 spec:
   containers:
   - name: publisher
-    image: lightbend/publisher:1.2.0
+    image: lightbend/publisher:v1.2.0
     volumeMounts:
     - name: datadir
       mountPath: /usr/share
-  # These containers are run during pod initialization
+  # These container runs during pod initialization
   initContainers:
   - name: install
     image: busybox
     command:
     - sh
     - -c
-    # put the right url here
-    - wget -O /data-dir/data.zip http://kubernetes.io; unzip /data-dir/data.zip -d /data-dir/
+    - wget http://s3-eu-west-1.amazonaws.com/fdp-killrweather-data/data/data.zip -O /data-dir/data.zip; unzip /data-dir/data.zip -d /data-dir/
     volumeMounts:
     - name: datadir
       mountPath: "/data-dir"

@@ -25,7 +25,7 @@ def sbtdockerScalaAppBase(id: String)(base: String = id) = Project(id, base = fi
     imageNames in docker := Seq(
       ImageName(namespace = Some(organization.value),
         repository = name.value.toLowerCase,
-        tag = Some("v" + version.value))
+        tag = Some(version.value))
     ),
 
     buildOptions in docker := BuildOptions(cache = false)
@@ -50,7 +50,7 @@ def sbtdockerTensorflowAppBase(id: String)(base: String = id) = Project(id, base
     imageNames in docker := Seq(
       ImageName(namespace = Some(organization.value),
         repository = name.value.toLowerCase,
-        tag = Some("v" + version.value))
+        tag = Some(version.value))
     ),
 
     buildOptions in docker := BuildOptions(cache = false)
