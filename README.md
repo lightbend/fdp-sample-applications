@@ -343,4 +343,13 @@ To run a custom application on the target server:
  - [publish the image to your docker repository](#publishing-to-an-external-docker-repository)
  - update the `json` templates in the `/bin` directory to point to the new image location, and
  - execute the `run` scripts as explained in the [Quick Start](#quick-start) section.
-    
+ 
+## Deploying to Kubernetes
+
+For Kubernetes the project provides `modelserverchart` chart. See [this](https://docs.bitnami.com/kubernetes/how-to/create-your-first-helm-chart/#values) for Helm intro
+This chart has `chart.yaml` and `values.yaml` defining the content and values used in the chart.
+It also has 2 deployment yaml files:
+1. `publisherinstall.yaml` installs publisher pod. This pod runs model data publisher. It also contains
+init-pod (implemented using `busybox` image) and responsible for loading data files and mounting them for access
+by the publisher.
+2. `modelserviceinstall.yaml` installs either akka or kafka server (depending on the values configuration). 

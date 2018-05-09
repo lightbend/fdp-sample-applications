@@ -129,3 +129,6 @@ hs_err_pid*
 
 #Ignore generated JSON files
 bin/*.json
+.DS_Store
+modelserverchart/.DS_Store
+
