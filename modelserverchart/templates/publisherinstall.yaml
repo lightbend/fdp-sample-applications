@@ -6,6 +6,7 @@ spec:
   containers:
   - name: modelserverpublisher
     image: {{ .Values.image.publisher}}:{{.Values.image.version }}
+    imagePullPolicy: {{ .Values.image.pullPolicy }}
     volumeMounts:
     - name: datadir
       mountPath: /usr/share
@@ -13,7 +14,6 @@ spec:
   initContainers:
   - name: install
     image: busybox
-    imagePullPolicy: {{ .Values.image.pullPolicy }}
     command:
     - sh
     - -c
