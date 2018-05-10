@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: killrweathergrpcclient
+spec:
+  containers:
+  - name: killrweathergrpcclient
+    image: {{ .Values.image.grpc }}:{{.Values.image.version }}

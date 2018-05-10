@@ -1,3 +1,5 @@
+# Experiment for Spark operator
+
 apiVersion: sparkoperator.k8s.io/v1alpha1
 kind: SparkApplication
 metadata:
@@ -12,6 +14,7 @@ spec:
   sparkConf:
       "spark.kubernetes.mountDependencies.filesDownloadDir": /etc/hadoop/conf
       "spark.driver.extraJavaOptions": -Dconfig.resource=cluster.conf
+      "spark.executor.extraJavaOptions": -Dconfig.resource=cluster.conf' 
   deps:
       files:
         - http://api.hdfs.marathon.l4lb.thisdcos.directory/v1/endpoints/hdfs-site.xml

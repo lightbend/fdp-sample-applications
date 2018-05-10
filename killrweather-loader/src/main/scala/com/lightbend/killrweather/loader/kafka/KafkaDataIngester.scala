@@ -11,10 +11,6 @@ import scala.concurrent.duration._
 import scala.collection.mutable.ListBuffer
 
 object KafkaDataIngester {
-/*  val file = "data/load/"
-  val timeInterval = 1.second
-  val batchSize = 10
-*/
 
   def main(args: Array[String]) {
 
@@ -30,6 +26,8 @@ object KafkaDataIngester {
     val ingester = KafkaDataIngester(brokers, batchSize, timeInterval)
 
     println(s"Running Kafka Loader. Kafka: $brokers")
+
+
     ingester.execute(dataDir, kafkaConfig.topic)
   }
 

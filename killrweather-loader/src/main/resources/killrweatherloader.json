@@ -1,0 +1,29 @@
+{
+  "id": "/killrweatherdataloader_pod",
+  "containers":[
+    {
+      "name": "loaderexecutor",
+      "resources": {
+        "cpus": 0.2,
+        "mem": 2048,
+        "disk": 512,
+        "gpus": 0,
+      },
+      "image": {
+        "kind": "DOCKER",
+        "id": "lightbend/loader:1.2.0",
+        "forcePull": true,
+      }
+    },
+    {
+      "id": "initializer",
+      "container": {
+        "docker": {
+          "image": "busybox"
+        }
+      },
+      "cmd": "wget http://s3-eu-west-1.amazonaws.com/fdp-killrweather-data/killrweather/data.zip -O /usr/share/data.zip; unzip /usr/share/data.zip -d /usr/share/",
+      "cpus": 0.1,
+      "mem": 1048,
+    }
+  ]}

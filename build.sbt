@@ -3,6 +3,7 @@ import Dependencies._
 scalaVersion in ThisBuild := Versions.Scala
 version in ThisBuild := "1.2.0"
 organization in ThisBuild := "lightbend"
+val K8S_OR_DCOS = ""//"K8S"
 
 
 // settings for a native-packager based docker scala project based on sbt-docker plugin
@@ -24,7 +25,7 @@ def sbtdockerScalaAppBase(id: String)(base: String = id) = Project(id, base = fi
     imageNames in docker := Seq(
       ImageName(namespace = Some(organization.value),
         repository = name.value.toLowerCase,
-        tag = Some("v" + version.value))
+        tag = Some(version.value))
     ),
 
     buildOptions in docker := BuildOptions(cache = false)
@@ -37,19 +38,30 @@ def sbtdockerSparkAppBase(id: String)(base: String = id) = Project(id, base = fi
       val artifact: File = assembly.value
       val artifactTargetPath = s"/opt/spark/jars/${artifact.name}"
 
-      new Dockerfile {
-        from ("gcr.io/ynli-k8s/spark:v2.3.0")
-        add(artifact, artifactTargetPath)
-        runRaw("mkdir -p /etc/hadoop/conf")
-        runRaw("export HADOOP_CONF_DIR=/etc/hadoop/conf")
+      K8S_OR_DCOS match {
+        case "K8S" =>
+          new Dockerfile {
+            from ("gcr.io/ynli-k8s/spark:v2.3.0")           // K8
+            add(artifact, artifactTargetPath)
+            runRaw("mkdir -p /etc/hadoop/conf")
+            runRaw("export HADOOP_CONF_DIR=/etc/hadoop/conf")
+          }
+
+        case _ =>
+          new Dockerfile {
+            from ("mesosphere/spark:2.3.0-2.2.1-2-hadoop-2.6")    // DC/OS
+            add(artifact, artifactTargetPath)
+            runRaw("mkdir -p /etc/hadoop/conf")
+            runRaw("export HADOOP_CONF_DIR=/etc/hadoop/conf")
+          }
       }
     },
 
     // Set name for the image
     imageNames in docker := Seq(
       ImageName(namespace = Some(organization.value),
-        repository = name.value.toLowerCase,
-        tag = Some("v" + version.value))
+        repository = if (K8S_OR_DCOS =="K8S") s"${name.value.toLowerCase}-k8s" else name.value.toLowerCase,
+        tag = Some(version.value))
     ),
 
     buildOptions in docker := BuildOptions(cache = false)
