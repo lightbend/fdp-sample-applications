@@ -126,7 +126,7 @@ sets HADOOP_CONF_DIR to this directory. Hadoop integration is required here for 
 3. Leverage `spark-submit` for running an application
 ````
     bin/spark-submit \
-        --master k8s://http://10.0.6.184:9000 \
+        --master k8s://http://kube-apiserver-0-instance.kubernetes.mesos:9000 \
         --deploy-mode cluster \
         --files http://api.hdfs.marathon.l4lb.thisdcos.directory/v1/endpoints/hdfs-site.xml,http://api.hdfs.marathon.l4lb.thisdcos.directory/v1/endpoints/core-site.xml \
         --name killrweather \
