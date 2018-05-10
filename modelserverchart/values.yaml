@@ -10,8 +10,8 @@ image:
   akka: lightbend/akkasvc
   kafka: lightbend/kafkasvc
   publisher: lightbend/publisher
-  pullPolicy: IfNotPresent
-  version: v1.2.0
+  pullPolicy: Always
+  version: 1.2.0
 # Server type. If akka - install akka implementation, otherwise - kafka implementation
 server:
   type: akka

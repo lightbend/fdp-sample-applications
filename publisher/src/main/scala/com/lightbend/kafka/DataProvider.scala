@@ -9,13 +9,12 @@ import com.lightbend.model.modeldescriptor.ModelDescriptor
 import com.lightbend.model.winerecord.WineRecord
 import com.typesafe.config.ConfigFactory
 
-import scala.concurrent.{ Await, ExecutionContext, Future }
+import scala.concurrent.{ Await, Future }
 import scala.io.Source
 import scala.concurrent.ExecutionContext.Implicits.global
 import java.time.Duration
 
 import scala.concurrent.duration.Duration.{ Inf => InfiniteDuration }
-import scala.util.Try
 
 /**
  *
@@ -38,6 +37,9 @@ object DataProvider {
     println(s"Data Provider with kafka brokers at $kafkaBrokers")
     println(s"Data Message delay $dataTimeInterval.  Model Message delay $modelTimeInterval")
     println(s"Data directory $dataDirectory. Data file name $dataFilename")
+
+    // Synchronize with dataloader
+    pause(Duration.ofSeconds(30))
 
     val sender = new KafkaMessageSender(kafkaBrokers /*, zookeeperHosts*/ )
 

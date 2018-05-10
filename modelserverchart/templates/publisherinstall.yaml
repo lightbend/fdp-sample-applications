@@ -13,6 +13,7 @@ spec:
   initContainers:
   - name: install
     image: busybox
+    imagePullPolicy: {{ .Values.image.pullPolicy }}
     command:
     - sh
     - -c
