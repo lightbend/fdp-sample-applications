@@ -3,7 +3,7 @@
   "container": {
     "docker": {
       "image": "lightbend/kafkasvc:1.2.0",
-      "forcePull": true,
+      "forcePull": true
     }
   },
   "instances": 1,
