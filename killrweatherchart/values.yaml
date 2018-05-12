@@ -11,13 +11,19 @@ image:
   http: lightbend/httpclient
   loader: lightbend/loader
   app: lightbend/killrweatherapp-k8s
+  appstructured: lightbend/killrweatherapp_structured-k8s
   pullPolicy: Always
   version: 1.2.0
 # assembly jars and main classes
 app:
   jar: killrWeatherApp-assembly
   main: com.lightbend.killrweather.app.KillrWeather
+structured:
+  jar: killrWeatherApp_structured-assembly-1.2.0.jar
+  main: com.lightbend.killrweather.app.structured.KillrWeatherStructured
+
 # components to install
 components:
   http: "no"
   grpc: "no"
+  app: "killrweather"
