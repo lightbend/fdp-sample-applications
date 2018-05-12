@@ -135,10 +135,9 @@ sets HADOOP_CONF_DIR to this directory. Hadoop integration is required here for 
         --conf spark.kubernetes.mountDependencies.filesDownloadDir=/etc/hadoop/conf \
         --conf 'spark.driver.extraJavaOptions=-Dconfig.resource=cluster.conf' \
         --conf 'spark.executor.extraJavaOptions=-Dconfig.resource=cluster.conf' \
-        --conf spark.kubernetes.container.image=lightbend/killrweather:2.3.0 \
+        --conf spark.kubernetes.container.image=lightbend/killrweatherapp-k8s:1.2.0 \
         --conf spark.kubernetes.container.image.pullPolicy=Always \
-        local:///opt/spark/jars/killrWeatherApp-assembly-1.1.0.jar
-
+        local:///opt/spark/jars/killrWeatherApp-assembly-1.2.0.jar
 ````
 There are several important lines in this submit command:
 1. Master has to point to the k8 API server (I am using API server 0)
@@ -146,3 +145,8 @@ There are several important lines in this submit command:
 3. Files allows to load HDFS definition from Marathon
 4. `spark.kubernetes.mountDependencies.filesDownloadDir` sets the location where files are loaded
 5. Reference to the assembly has to be `local` meaning that the data is picked up from the docker image and location is the location in the docker image. 
+
+## Deploying with chart
+
+`killrweatherchart` chart is created for k8 deployment. It can be installed using the following command `helm install ./killrweatherchart`
+

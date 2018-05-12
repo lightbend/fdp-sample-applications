@@ -10,5 +10,14 @@ image:
   grpc: lightbend/grpcclient
   http: lightbend/httpclient
   loader: lightbend/loader
+  app: lightbend/killrweatherapp-k8s
   pullPolicy: Always
   version: 1.2.0
+# assembly jars and main classes
+app:
+  jar: killrWeatherApp-assembly
+  main: com.lightbend.killrweather.app.KillrWeather
+# components to install
+components:
+  http: "no"
+  grpc: "no"

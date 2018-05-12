@@ -1,29 +1,60 @@
 {
-  "id": "/killrweatherdataloader_pod",
-  "containers":[
+  "id": "/killrweatherdataloader",
+  "containers": [
     {
       "name": "loaderexecutor",
       "resources": {
         "cpus": 0.2,
-        "mem": 2048,
-        "disk": 512,
-        "gpus": 0,
+        "mem": 1024
       },
       "image": {
         "kind": "DOCKER",
         "id": "lightbend/loader:1.2.0",
-        "forcePull": true,
-      }
+        "forcePull": true
+      },
+      "volumeMounts": [
+        {
+          "name": "data",
+          "mountPath": "/usr/share"
+        }
+      ]
     },
     {
-      "id": "initializer",
-      "container": {
-        "docker": {
-          "image": "busybox"
-        }
+      "name": "initializer",
+      "resources": {
+        "cpus": 0.1,
+        "mem": 1048,
+        "disk": 0
       },
-      "cmd": "wget http://s3-eu-west-1.amazonaws.com/fdp-killrweather-data/killrweather/data.zip -O /usr/share/data.zip; unzip /usr/share/data.zip -d /usr/share/",
-      "cpus": 0.1,
-      "mem": 1048,
+      "image": {
+        "kind": "DOCKER",
+        "id": "busybox"
+      },
+      "volumeMounts": [
+        {
+          "name": "data",
+          "mountPath": "/usr/share"
+        }
+      ],
+      "exec": {
+        "command": {
+          "shell": "wget http://s3-eu-west-1.amazonaws.com/fdp-killrweather-data/killrweather/data.zip -O /usr/share/data.zip; unzip /usr/share/data.zip -d /usr/share/"
+        }
+      }
     }
-  ]}
+  ],
+  "volumes": [
+    {
+      "name": "data"
+    }
+  ],
+  "networks": [
+    {
+      "mode": "host"
+    }
+  ],
+  "scaling": {
+    "instances": 1,
+    "kind": "fixed"
+  }
+}

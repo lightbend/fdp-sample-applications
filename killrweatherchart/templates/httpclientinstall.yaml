@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: Pod
-metadata:
-  name: killrweatherhttpclient
-spec:
-  containers:
-  - name: killrweatherhttpclient
-    image: {{ .Values.image.http }}:{{.Values.image.version }}

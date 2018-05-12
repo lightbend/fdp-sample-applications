@@ -25,3 +25,27 @@ spec:
   volumes:
   - name: datadir
     emptyDir: {}
+
+{{ if eq .Values.components.http "yes" }}
+-----
+apiVersion: v1
+kind: Pod
+metadata:
+  name: killrweatherhttpclient
+spec:
+  containers:
+  - name: killrweatherhttpclient
+    image: {{ .Values.image.http }}:{{.Values.image.version }}
+{{ end }}
+
+{{ if eq .Values.components.grpc "yes" }}
+---------
+apiVersion: v1
+kind: Pod
+metadata:
+  name: killrweathergrpcclient
+spec:
+  containers:
+  - name: killrweathergrpcclient
+    image: {{ .Values.image.grpc }}:{{.Values.image.version }}
+{{ end }}
