@@ -1,1 +1,1 @@
-Killrweather supporting applications (loader, httpclient, grpcclient) are installed
+Killrweather and supporting applications (loader{{ if eq .Values.components.http "yes" }}, httpclient{{ end }}{{ if eq .Values.components.grpc "yes" }}, grpcclient{{ end }}) are installed
