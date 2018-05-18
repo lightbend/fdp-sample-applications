@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ template "transformchart.fullname" . }}
+spec:
+  containers:
+  - name: nwdatatransformer
+    image: {{ .Values.image.repository}}/{{ .Values.image.name}}:{{.Values.image.tag }}
+    imagePullPolicy: {{ .Values.image.pullPolicy }}
+    volumeMounts:
+    - name: datadir
+      mountPath: /usr/share
+    env:          
+    - name: "DIRECTORY_TO_WATCH"
+      value: "/usr/share"
+  # These container runs during pod initialization
+  initContainers:
+  - name: install
+    image: busybox
+    command:
+    - sh
+    - -c
+    - wget {{ .Values.data.datadirectory }} -O /data-dir/kdd_cup_data.csv.tgz; tar xvfz /data-dir/kdd_cup_data.csv.tgz -C /data-dir
+    volumeMounts:
+    - name: datadir
+      mountPath: "/data-dir"
+  dnsPolicy: Default
+  volumes:
+  - name: datadir
+    emptyDir: {}
