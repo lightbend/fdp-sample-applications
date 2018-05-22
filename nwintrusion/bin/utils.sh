@@ -93,7 +93,7 @@ function run_batch_kmeans_spark_job {
 
   echo dcos spark run --submit-args="$SPARK_CONF --class $SPARK_APP_CLASS local:///opt/spark/dist/jars/$BATCH_KMEANS_JAR-$VERSION.jar $ARGS"
 
-  local SUBMIT="$($NOEXEC dcos spark run --submit-args="$SPARK_CONF --class $SPARK_APP_CLASS local:///opt/spark/dist/jars/$BATCH_K_MEANS_JAR-$VERSION.jar $ARGS")"
+  local SUBMIT="$($NOEXEC dcos spark run --submit-args="$SPARK_CONF --class $SPARK_APP_CLASS local:///opt/spark/dist/jars/$BATCH_KMEANS_JAR-$VERSION.jar $ARGS")"
 
   if [ -z "$NOEXEC" ]
   then
