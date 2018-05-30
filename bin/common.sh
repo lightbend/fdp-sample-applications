@@ -1,5 +1,6 @@
 # Utilities and definitions shared by several scripts.
 
+VERSION=1.2.0
 AWS_ENV_FILE=$HOME/.ssh/aws.sh
 
 APP_METADATA_FILE="$DIR/app.metadata.json"

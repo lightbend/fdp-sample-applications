@@ -13,13 +13,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 ## project root directory
 PROJ_ROOT_DIR="$( cd "$DIR/../source/core" && pwd -P )"
 
-## deploy.conf full path
-DEPLOY_CONF_FILE="$PROJ_ROOT_DIR/deploy.conf"
-
 ZOOKEEPER_PORT=2181
-
-VERSIONED_PROJECT_NAME=
-VERSIONED_NATIVE_PACKAGE_NAME=
 
 # Used by show_help
 HELP_MESSAGE="Installs the network intrusion app. Assumes DC/OS authentication was successful
@@ -37,16 +31,12 @@ HELP_OPTIONS=$(cat <<EOF
                                 anomaly-detection   Find anomalies in the data.
                               Repeat the option to run more than one.
                               Default: runs all of them. See also --start-none.
-  --use-zeppelin              If specified, only data loader and transformer will be deployed.
-                              Parameters that need to be set in Zeppelin notebooks are printed
-                              to the console.
 EOF
 )
 
 export run_transform_data=
 export run_batch_k_means=
 export run_anomaly_detection=
-export zeppelin_flag_set=no
 apps_selected=
 
 config_file="$DIR/app-install.properties"
@@ -94,7 +84,6 @@ function modify_transform_data_template {
     "KAFKA_TO_TOPIC"
     "KAFKA_ERROR_TOPIC"
     "KAFKA_ZOOKEEPER_URL"
-    "NATIVE_PACKAGE_ON_MESOS"
     )
 
   for elem in "${arr[@]}"
@@ -102,14 +91,6 @@ function modify_transform_data_template {
     eval value="\$$elem"
     $NOEXEC sed -i -- "s~{$elem}~\"$value\"~g" $TRANSFORM_DATA_TEMPLATE
   done
-
-  ## without quotes substitution
-  $NOEXEC sed -i -- "s~{VERSIONED_PROJECT_NAME}~$VERSIONED_PROJECT_NAME~g" $TRANSFORM_DATA_TEMPLATE
-}
-
-function load_transform_data_job {
-  $NOEXEC dcos marathon app add $TRANSFORM_DATA_TEMPLATE
-  $NOEXEC update_json_field TRANSFORM_DATA_APP_ID "$TRANSFORM_DATA_APP_ID" "$APP_METADATA_FILE"
 }
 
 function parse_arguments {
@@ -135,12 +116,6 @@ function parse_arguments {
         anomaly-detection)  run_anomaly_detection=yes  ;;
         *) error "Unrecognized value for --start-only: $1" ;;
       esac
-      ;;
-      --use-zeppelin)
-      zeppelin_flag_set=yes
-      run_transform_data=yes
-      run_batch_k_means=yes
-      run_anomaly_detection=yes
       ;;
       -h|--help)   # Call a "show_help" function to display a synopsis, then exit.
       show_help
@@ -217,36 +192,6 @@ keyval() {
         SKIP_CREATE_TOPICS=$value
       fi
 
-      if [ "$key" == "publish-user" ]
-      then
-        PUBLISH_USER=$value
-      fi
-
-      if [ "$key" == "publish-host" ]
-      then
-        PUBLISH_HOST=$value
-      fi
-
-      if [ "$key" == "ssh-port" ]
-      then
-        SSH_PORT=$value
-      fi
-
-      if [ "$key" == "passphrase" ]
-      then
-        SSH_PASSPHRASE=$value
-      fi
-
-      if [ "$key" == "ssh-keyfile" ]
-      then
-        SSH_KEYFILE=$value
-      fi
-
-      if [ "$key" == "laboratory-mesos-path" ]
-      then
-        LABORATORY_MESOS_PATH=$value
-      fi
-
     done < "$filename"
 
     if [ -z "${DCOS_KAFKA_PACKAGE// }" ]
@@ -269,15 +214,6 @@ keyval() {
     then
       SKIP_CREATE_TOPICS=false
     fi
-    if [ -z "${PUBLISH_USER// }" ]
-    then
-      PUBLISH_USER="publisher"
-    fi
-
-    exit_if_not_defined_or_empty "$PUBLISH_HOST" "publish-host"
-    exit_if_not_defined_or_empty "$SSH_PORT" "ssh-port"
-    exit_if_not_defined_or_empty "$SSH_KEYFILE" "ssh-keyfile"
-    exit_if_not_defined_or_empty "$LABORATORY_MESOS_PATH" "laboratory-mesos-path"
 
   else
     echo "$filename not found."
@@ -292,52 +228,6 @@ function exit_if_not_defined_or_empty() {
   if [ -z "${value// }"  ]
   then
     error "$name not defined .. exiting"
-  fi
-}
-
-function generate_deploy_conf {
-declare DEPLOY_CONF_DATA=$(cat <<EOF
-{
-  servers = [
-   {
-    name = "fdp-nwintrusion"
-    user = $PUBLISH_USER
-    host = $PUBLISH_HOST
-    port = $SSH_PORT
-    sshKeyFile = $SSH_KEYFILE
-   }
-  ]
-}
-EOF
-)
-  if [[ -z $NOEXEC ]]
-  then
-    echo "$DEPLOY_CONF_DATA" > "$DEPLOY_CONF_FILE"
-  else
-    $NOEXEC "$DEPLOY_CONF_DATA > $DEPLOY_CONF_FILE"
-  fi
-}
-
-function build_app {
-  $NOEXEC cd "$PROJ_ROOT_DIR"
-
-  $NOEXEC sbt clean clean-files assembly
-}
-
-function deploy_app {
-  $NOEXEC cd "$PROJ_ROOT_DIR"
-  $NOEXEC sbt "deploySsh fdp-nwintrusion"
-
-  if [[ -z $NOEXEC ]]
-  then
-    TGZ_NAME=$( ls "$PROJ_ROOT_DIR"/target/universal/*.tgz )
-    VERSIONED_NATIVE_PACKAGE_NAME=$( basename "$TGZ_NAME" )
-
-    VERSION=$(echo ${VERSIONED_NATIVE_PACKAGE_NAME%.*} | cut -d- -f4-)
-
-    NATIVE_PACKAGE_ON_MESOS="$LABORATORY_MESOS_PATH"/"$VERSIONED_NATIVE_PACKAGE_NAME"
-    VERSIONED_PROJECT_NAME="fdp-nw-intrusion-$VERSION"
-    SPARK_APP_JAR="fdp-nw-intrusion-assembly-$VERSION.jar"
   fi
 }
 
@@ -407,17 +297,8 @@ function main {
     done
   fi
 
-  header Generating remote deployment information ..
-  generate_deploy_conf
-
-  header Building packages to be deployed ..
-  build_app
-
   header "Gathering Kafka connection information...\n"
   gather_kafka_connection_info
-
-  header Doing remote deployment ..
-  deploy_app
 
   if [ -n "$run_transform_data" ]
   then
@@ -435,8 +316,7 @@ function main {
     echo
     run_anomaly_detection_spark_job \
       $DEFAULT_NO_OF_CLUSTERS \
-      $DEFAULT_CLUSTERING_MICRO_BATCH_DURATION \
-      $zeppelin_flag_set \
+      $DEFAULT_CLUSTERING_MICRO_BATCH_DURATION
   else
     echo "Skipped running the Spark application for anomaly detection."
   fi
@@ -449,8 +329,7 @@ function main {
       $DEFAULT_OPTIMAL_K_FROM_CLUSTER_COUNT \
       $DEFAULT_OPTIMAL_K_TO_CLUSTER_COUNT \
       $DEFAULT_OPTIMAL_K_INCREMENT \
-      $DEFAULT_OPTIMAL_K_CLUSTERING_MICRO_BATCH_DURATION \
-      $zeppelin_flag_set \
+      $DEFAULT_OPTIMAL_K_CLUSTERING_MICRO_BATCH_DURATION
   else
     echo "Skipped running the Spark application for optimizing K for K-Means."
   fi

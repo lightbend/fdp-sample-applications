@@ -1,0 +1,17 @@
+# Default values for transformchart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+# data.zip location
+data:
+  datadirectory: http://fdp-sample-apps-artifacts.s3.amazonaws.com/kdd_cup_data.csv.tgz
+
+# docker images
+image:
+  repository: lightbend
+  name: ingestpackage
+  tag: 1.2.0
+  pullPolicy: Always
+  version: 1.2.0

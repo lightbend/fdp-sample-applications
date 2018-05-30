@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: batchkmeans
+spec:
+  containers:
+  - name: batchkmeans
+    image: {{ .Values.image.kmeans}}:{{.Values.image.version }}
+    command:
+    - sh
+    - -c
+    - "/opt/spark/dist/bin/spark-submit 
+        --master k8s://http://kube-apiserver-0-instance.kubernetes.mesos:9000 
+        --deploy-mode cluster 
+        --files http://api.hdfs.marathon.l4lb.thisdcos.directory/v1/endpoints/hdfs-site.xml,http://api.hdfs.marathon.l4lb.thisdcos.directory/v1/endpoints/core-site.xml
+        --name kmeans --class {{ .Values.kmeans.main }}
+        --conf spark.executor.instances=3 
+        --conf spark.kubernetes.mountDependencies.filesDownloadDir=/etc/hadoop/conf
+        --conf 'spark.driver.extraJavaOptions=-Dconfig.resource=application.conf'
+        --conf spark.kubernetes.container.image={{ .Values.image.kmeans}}:{{.Values.image.version }}
+        --conf spark.kubernetes.container.image.pullPolicy=Always
+        local:///opt/spark/jars/{{ .Values.kmeans.jar}}:{{.Values.image.version }}.jar
+        -t nwout -b kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1025 -m 60 -k 150"
+  restartPolicy: Never

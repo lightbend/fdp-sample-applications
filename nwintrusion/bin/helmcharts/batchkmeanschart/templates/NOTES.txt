@@ -1,0 +1,1 @@
+Batch KMeans component for .Values.image.kmeans is installed

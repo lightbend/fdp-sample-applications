@@ -8,4 +8,7 @@ cd ${HERE}
 bats test/bin/*.bats
 
 cd ${HERE}/source/core
-sbt clean test package
+for i in ingestPackage anomalyDetection batchKMeans
+do
+  sbt $i/clean $i/docker
+done

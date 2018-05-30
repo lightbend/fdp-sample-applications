@@ -1,0 +1,16 @@
+object Versions {
+  val scalaLoggingVersion = "3.5.0"
+  val alpakkaFileVersion = "0.18"
+  val reactiveKafkaVersion = "0.20"
+  val kafkaVersion = "1.0.0"
+  val configVersion = "1.3.1"
+  val catsVersion = "0.9.0"
+  val sparkVersion = "2.3.0"
+  val logbackVersion = "1.2.3"
+  val slf4jVersion = "1.8.0-beta2"
+  val influxDBClientVersion = "2.8"
+  val kafkaStreamsScalaVersion = "0.2.1"
+  val scalaHttpVersion = "2.3.0"
+  val scalaVersion = "2.11.12"
+  val scoptVersion = "3.7.0"
+}

@@ -1,8 +1,25 @@
 {
   "id": {TRANSFORM_DATA_APP_ID},
-  "cmd": "export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && mkdir $MESOS_SANDBOX/data && mv kdd_cup_data.csv data && export DIRECTORY_TO_WATCH=$MESOS_SANDBOX/data && ./{VERSIONED_PROJECT_NAME}/bin/transform-intrusion-data",
+  "cmd": "mkdir $MESOS_SANDBOX/data && mv $MESOS_SANDBOX/kdd_cup_data.csv $MESOS_SANDBOX/data && export DIRECTORY_TO_WATCH=$MESOS_SANDBOX/data && ./build/ingestion/bin/ingestpackage",
   "cpus":1,
   "mem":2048,
+  "container": {
+    "portMappings": [],
+    "type": "DOCKER",
+    "docker": {
+      "image": "lightbend/ingestpackage:1.2.0",
+      "forcePullImage": true,
+      "privileged": false,
+      "parameters": []
+    },
+    "volumes": [
+      {
+        "containerPath": "/mnt/data",
+        "hostPath": "/mnt/sandbox/data",
+        "mode": "RW"
+      }
+    ]
+  },
   "env":{
     "KAFKA_BROKERS":{KAFKA_BROKERS},
     "KAFKA_FROM_TOPIC":{KAFKA_FROM_TOPIC},
@@ -12,7 +29,6 @@
   },
   "fetch": [
     { "uri": "https://downloads.mesosphere.com/java/jre-8u112-linux-x64.tar.gz" },
-    { "uri": {NATIVE_PACKAGE_ON_MESOS} },
     { "uri": "http://fdp-sample-apps-artifacts.s3.amazonaws.com/kdd_cup_data.csv.tgz" }
   ]
 }
