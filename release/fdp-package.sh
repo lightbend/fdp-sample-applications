@@ -45,6 +45,8 @@ then
   exit 1
 fi
 
+echo "$0: Building the zip file of sources:"
+
 OUTPUT_FILE_ROOT=fdp-sample-apps-${VERSION}
 OUTPUT_FILE=${OUTPUT_FILE_ROOT}.zip
 
@@ -67,3 +69,7 @@ echo running: zip -r ${OUTPUT_FILE} ${OUTPUT_FILE_ROOT}
 zip -r ${OUTPUT_FILE} ${OUTPUT_FILE_ROOT}
 
 rm -rf ${OUTPUT_FILE_ROOT}
+
+echo "$0: Building the docker images and publishing them:"
+
+#$ROOT_DIR/build.sh
