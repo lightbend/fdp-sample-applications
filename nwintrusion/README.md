@@ -2,7 +2,7 @@
 
 > **Disclaimer:** This sample application is provided as-is, without warranty. It is intended to illustrate techniques for implementing various scenarios using Fast Data Platform, but it has not gone through a robust validation process, nor does it use all the techniques commonly employed for highly-resilient, production applications. Please use it with appropriate caution.
 
-> **NOTE:** For a more complete version of these instructions, see the [online instructions](https://developer.lightbend.com/docs/fast-data-platform/1.2.0/user-guide/developing-apps/index.html#streaming-k-means).
+> **NOTE:** For a more complete version of these instructions, see the [online instructions](https://developer.lightbend.com/docs/fast-data-platform/latest/user-guide/developing-apps/index.html#streaming-k-means).
 >
 This application runs under DC/OS and has the following components that form stages of a pipeline:
 
@@ -20,7 +20,9 @@ The application uses the dataset from [KDD Cup 1999](https://kdd.ics.uci.edu/dat
 
 ## Running the applications Locally
 
-All the applications can be run locally or on the DC/OS cluster using Marathon or Kubernetes. Kubernetes support is currently experimental and the approach can change in the future versions.
+All the applications can be run locally or on the DC/OS cluster using Marathon or Kubernetes.
+
+> **Note:** Kubernetes support is currently experimental and the approach can change in the future versions.
 
 `sbt` will be used to run applications on your local machine. The following examples demonstrate how to run the individual components from the `sbt` console.
 
@@ -29,12 +31,12 @@ All the applications can be run locally or on the DC/OS cluster using Marathon o
 ```
 $ sbt
 > projects
-[info] In file:/Users/debasishghosh/lightbend/fdp-sample-apps/nwintrusion/source/core/
+[info] In file:/Users/bucktrends/lightbend/fdp-sample-apps/nwintrusion/source/core/
 [info] 	   anomalyDetection
 [info] 	   batchKMeans
 [info] 	   ingestPackage
 [info] 	   ingestRun
-[info] 	 * root 
+[info] 	 * root
 > project ingestRun
 > ingest
 ```
@@ -70,7 +72,7 @@ dcos {
 
       directorytowatch = "/Users/ingest-data"
       directorytowatch = ${?DIRECTORY_TO_WATCH}
-      
+
       pollinterval = 1 second
     }
   }
@@ -84,12 +86,12 @@ All values can be set through environment variables as well. This is done when w
 ```
 $ sbt
 > projects
-[info] In file:/Users/debasishghosh/lightbend/fdp-sample-apps/nwintrusion/source/core/
+[info] In file:/Users/bucktrends/lightbend/fdp-sample-apps/nwintrusion/source/core/
 [info] 	   anomalyDetection
 [info] 	   batchKMeans
 [info] 	   ingestPackage
 [info] 	   ingestRun
-[info] 	 * root 
+[info] 	 * root
 > project anomalyDetection
 > run --master local[*] --read-topic nwout --kafka-broker localhost:9092 --micro-batch-secs 60 --cluster-count 100
 ```
@@ -101,34 +103,34 @@ visualize {
     server = "http://influxdb.marathon.l4lb.thisdcos.directory"
     # server = "http://localhost"
     server = ${?INFLUXDB_SERVER}
-  
+
     port = 8086
     port = ${?INFLUXDB_PORT}
-  
+
     user = "root"
     user = ${?INFLUXDB_USER}
-  
+
     password = "root"
     password = ${?INFLUXDB_PASSWORD}
-  
+
     database = "anomaly"
     database = ${?INFLUXDB_DATABASE}
-  
+
     retentionPolicy = "default"
     retentionPolicy = ${?INFLUXDB_RETENTION_POLICY}
   }
-  
+
   grafana {
     server="grafana.marathon.l4lb.thisdcos.directory"
     # server="localhost"
     server=${?GRAFANA_SERVER}
-  
+
     port=3000
     host=${?GRAFANA_PORT}
-  
+
     user = "admin"
     user = ${?GRAFANA_USER}
-  
+
     password = "admin"
     password = ${?GRAFANA_PASSWORD}
   }
@@ -140,16 +142,16 @@ visualize {
 ```
 $ sbt
 > projects
-[info] In file:/Users/debasishghosh/lightbend/fdp-sample-apps/nwintrusion/source/core/
+[info] In file:/Users/bucktrends/lightbend/fdp-sample-apps/nwintrusion/source/core/
 [info] 	   anomalyDetection
 [info] 	   batchKMeans
 [info] 	   ingestPackage
 [info] 	   ingestRun
-[info] 	 * root 
+[info] 	 * root
 > project batchKMeans
 > run --master local[*] --read-topic nwout --kafka-broker localhost:9092 --micro-batch-secs 60 --from-cluster-count 40 --to-cluster-count 100 --increment 10
 ```
-The `--master` argument is optional and will default to `local[*]`. 
+The `--master` argument is optional and will default to `local[*]`.
 
 ## Deploying and running on DC/OS cluster
 
@@ -157,38 +159,39 @@ The first step in deploying the applications on DC/OS cluster is to prepare dock
 
 ### Prepare docker images
 
+In the `nwintrusion/source/core/` directory:
+
 ```
 $ sbt
 > projects
-[info] In file:/Users/debasishghosh/lightbend/fdp-sample-apps/nwintrusion/source/core/
 [info] 	   anomalyDetection
 [info] 	   batchKMeans
 [info] 	   ingestPackage
 [info] 	   ingestRun
-[info] 	 * root 
+[info] 	 * root
 > project ingestPackage
 > universal:packageZipTarball
 > ...
 > docker
 ```
 
-This will create a docker image named `lightbend/ingestpackage:1.2.0` with the default settings. In order to change the repository name or the version, you need to change `$DOCKER_REPOSITORY` in `nwintrusion/bin/utils.sh` and `$VERSION` in `<PROJECT_HOME>/bin/common.sh`.
+This will create a docker image named `lightbend/ingestpackage:X.Y.Z` (for the current version `X.Y.Z`) with the default settings. In order to change the repository name or the version, you need to change `$DOCKER_REPOSITORY` in `nwintrusion/bin/utils.sh` and `$VERSION` in `<PROJECT_HOME>/version.sh`.
 
 Once the docker image is created, you can push it to the repository at DockerHub.
 
-Similarly we can prepare the docker images for the Spark applications. For Spark applications we need to build separate docker images for DC/OS as well as Kubernetes. The images for the 2 will be different. 
+Similarly we can prepare the docker images for the Spark applications. For Spark applications we need to build separate docker images for DC/OS as well as Kubernetes. The images for the 2 will be different.
 
 **In order to build docker images for Kubernetes you need to set the system property named `K8S_OR_DCOS` to `K8S` or else the image will be built for DC/OS.**
 
 ```
 $ sbt
 > projects
-[info] In file:/Users/debasishghosh/lightbend/fdp-sample-apps/nwintrusion/source/core/
+[info] In file:/Users/bucktrends/lightbend/fdp-sample-apps/nwintrusion/source/core/
 [info] 	   anomalyDetection
 [info] 	   batchKMeans
 [info] 	   ingestPackage
 [info] 	   ingestRun
-[info] 	 * root 
+[info] 	 * root
 > project anomalyDetection
 > docker ## build docker image for DC/OS
 > ...
@@ -199,12 +202,12 @@ $ sbt
 ```
 $ sbt -DK8S_OR_DCOS=K8S
 > projects
-[info] In file:/Users/debasishghosh/lightbend/fdp-sample-apps/nwintrusion/source/core/
+[info] In file:/Users/bucktrends/lightbend/fdp-sample-apps/nwintrusion/source/core/
 [info] 	   anomalyDetection
 [info] 	   batchKMeans
 [info] 	   ingestPackage
 [info] 	   ingestRun
-[info] 	 * root 
+[info] 	 * root
 > project anomalyDetection
 > docker ## build docker image for K8S
 > ...
@@ -212,13 +215,13 @@ $ sbt -DK8S_OR_DCOS=K8S
 > docker ## build docker image for K8S
 ```
 
-The image built for Kubernetes will be named with a suffix `-k8s`, e.g. for anomaly detection, the image will be named `lightbend/anomalydetection-k8s:1.2.0`, while the one for DC/OS will not have the suffix. Here's an example:
+The image built for Kubernetes will be named with a suffix `-k8s`, e.g. for anomaly detection, the image will be named `lightbend/anomalydetection-k8s:X.Y.Z`, while the one for DC/OS will not have the suffix. Here's an example:
 
 ```
 $ docker images
 REPOSITORY                           TAG                        IMAGE ID            CREATED             SIZE
-lightbend/anomalydetection-k8s       1.2.0                      982adc4c3ae9        42 minutes ago      401MB
-lightbend/anomalydetection           1.2.0                      5b43990ebfe6        7 hours ago         1.48GB
+lightbend/anomalydetection-k8s       X.Y.Z                      982adc4c3ae9        42 minutes ago      401MB
+lightbend/anomalydetection           X.Y.Z                      5b43990ebfe6        7 hours ago         1.48GB
 
 ```
 
@@ -233,9 +236,9 @@ $ ./app-install.sh --help
   Installs the network intrusion app. Assumes DC/OS authentication was successful
   using the DC/OS CLI.
 
-  Usage: app-install.sh   [options] 
+  Usage: app-install.sh   [options]
 
-  eg: ./app-install.sh 
+  eg: ./app-install.sh
 
   Options:
   --config-file               Configuration file used to lauch applications
@@ -252,7 +255,7 @@ $ ./app-install.sh --help
 $ ./app-install.sh --start-only transform-data --start-only anomaly-detection --start-only batch-k-means
 ```
 
-This will start all 3 applications at once. In case you feel like, you can start them separately, especially if you are low on the cluster resource. 
+This will start all 3 applications at once. In case you feel like, you can start them separately, especially if you are low on the cluster resource.
 
 **Here are a few points that you need to keep in mind before starting the applications on your cluster:**
 
@@ -263,7 +266,7 @@ This will start all 3 applications at once. In case you feel like, you can start
 Here's the default version of the configuration file that the installer uses:
 
 ```
-## dcos kafka package 
+## dcos kafka package
 kafka-dcos-package=kafka
 
 ## dcos service name
@@ -302,7 +305,7 @@ We can deploy the Spark applications on Kubernetes and have the others on DC/OS 
 
 The most popular way of deploying Spark applications on Kubernetes is to use `spark-submit`. But we need Spark 2.3.0 for this as Kubernetes support on Spark starts with this version only.
 
-Here's how you can deploy anomaly detection application on Kubernetes:
+Here's how you can deploy anomaly detection application on Kubernetes, where you should replace the `X.Y.Z` with the current FDP version, e.g., `1.2.3`:
 
 ```
 $ bin/spark-submit --master k8s://http://10.0.7.216:9000 \
@@ -312,8 +315,8 @@ $ bin/spark-submit --master k8s://http://10.0.7.216:9000 \
                    --conf spark.executor.instances=3 \
                    --conf spark.kubernetes.mountDependencies.filesDownloadDir=/etc/hadoop/conf \
                    --conf 'spark.driver.extraJavaOptions=-Dconfig.resource=application.conf' \
-                   --conf spark.kubernetes.container.image=lightbend/anomalydetection-k8s:1.2.0 \
-                   local:///opt/spark/jars/anomalyDetection-assembly-1.2.0.jar \
+                   --conf spark.kubernetes.container.image=lightbend/anomalydetection-k8s:X.Y.Z \
+                   local:///opt/spark/jars/anomalyDetection-assembly-X.Y.Z.jar \
                    -t nwout -b kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1025 -m 60 -k 150
 ```
 
@@ -344,7 +347,7 @@ spec:
     volumeMounts:
     - name: datadir
       mountPath: /usr/share
-    env:          
+    env:
     - name: "DIRECTORY_TO_WATCH"
       value: "/usr/share"
   # These container runs during pod initialization
@@ -376,13 +379,13 @@ Here'show to deploy the helm chart on to your running Kebernetes cluster:
 
 ```
 $ cd bin
-$ helm install --dry-run --debug ./transformchart 
+$ helm install --dry-run --debug ./transformchart
 ```
 
 **Step 2:** Actual deployment of the helm chart
 
 ```
-$ helm install --name nwtransform ./transformchart  
+$ helm install --name nwtransform ./transformchart
 ```
 
 **Step 3:** Check logs
