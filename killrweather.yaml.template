@@ -8,9 +8,9 @@ metadata:
 spec:
   type: Scala
   mode: cluster
-  image: lightbend/killrweather:2.3.0
+  image: lightbend/killrweather:VERSION
   mainClass: com.lightbend.killrweather.app.KillrWeather
-  mainApplicationFile: local:///opt/spark/jars/killrWeatherApp-assembly-1.1.0.jar
+  mainApplicationFile: local:///opt/spark/jars/killrWeatherApp-assembly-VERSION.jar
   sparkConf:
       "spark.kubernetes.mountDependencies.filesDownloadDir": /etc/hadoop/conf
       "spark.driver.extraJavaOptions": -Dconfig.resource=cluster.conf

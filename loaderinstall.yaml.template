@@ -5,7 +5,7 @@ metadata:
 spec:
   containers:
   - name: publisher
-    image: lightbend/loader:v1.2.0
+    image: lightbend/loader:VERSION
     volumeMounts:
     - name: datadir
       mountPath: /usr/share
