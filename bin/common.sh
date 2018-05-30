@@ -1,6 +1,5 @@
 # Utilities and definitions shared by several scripts.
 
-VERSION=1.2.0
 AWS_ENV_FILE=$HOME/.ssh/aws.sh
 
 APP_METADATA_FILE="$DIR/app.metadata.json"
@@ -63,6 +62,8 @@ function env_error {
   show_help
   exit 1
 }
+
+[[ -n $VERSION ]] || error "This file, project_root/bin/common.sh needs to be sourced AFTER project_root/version.sh"
 
 function gather_kafka_connection_info {
   KAFKA_CONN_INFO="$($NOEXEC dcos $KAFKA_DCOS_PACKAGE endpoints broker --name=$KAFKA_DCOS_SERVICE_NAME)"

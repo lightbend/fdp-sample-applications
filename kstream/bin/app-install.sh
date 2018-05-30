@@ -13,6 +13,7 @@ PROJ_ROOT_DIR="$( cd "$DIR/../source/core" && pwd -P )"
 ## deploy.conf full path
 DEPLOY_CONF_FILE="$PROJ_ROOT_DIR/deploy.conf"
 
+. "$DIR/../../version.sh"
 . "$DIR/../../bin/common.sh"
 
 ZOOKEEPER_PORT=2181

@@ -4,6 +4,7 @@ set -e
 SCRIPT=`basename ${BASH_SOURCE[0]}`
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 
+. "$DIR/../../version.sh"
 . "$DIR/../../bin/common.sh"
 
 INGESTION_DATA_APP_ID="$(jq -r '.INGESTION_DATA_APP_ID' $APP_METADATA_FILE)"

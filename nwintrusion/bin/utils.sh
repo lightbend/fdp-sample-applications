@@ -1,5 +1,6 @@
 # Utilities and definitions shared by several scripts.
 
+. "$DIR/../../version.sh"
 . "$DIR/../../bin/common.sh"
 
 KAFKA_DCOS_PACKAGE="kafka"
@@ -62,7 +63,7 @@ function run_anomaly_detection_spark_job {
   echo "  k = $NO_OF_CLUSTERS"
   echo "  micro batch duration = $CLUSTERING_MICRO_BATCH_DURATION seconds"
 
-  echo dcos spark run --name=spark --submit-args="$SPARK_CONF --class $SPARK_APP_CLASS local:///opt/spark/dist/jars/$ANOMALY_DETECTION_JAR-$VERSION.jar $ARGS" 
+  echo dcos spark run --name=spark --submit-args="$SPARK_CONF --class $SPARK_APP_CLASS local:///opt/spark/dist/jars/$ANOMALY_DETECTION_JAR-$VERSION.jar $ARGS"
 
   local SUBMIT="$($NOEXEC dcos spark run --name=spark --submit-args="$SPARK_CONF --class $SPARK_APP_CLASS local:///opt/spark/dist/jars/$ANOMALY_DETECTION_JAR-$VERSION.jar $ARGS")"
 

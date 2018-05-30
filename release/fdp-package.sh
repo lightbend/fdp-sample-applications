@@ -5,6 +5,8 @@ SCRIPT=`basename ${BASH_SOURCE[0]}`
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 ROOT_DIR="${DIR}/.."
 
+. $ROOT_DIR/version.sh
+
 CONTENT_FILE=${DIR}/content.txt
 CONTENT=$(cat $CONTENT_FILE)
 
@@ -12,9 +14,9 @@ function usage {
   cat<< EOF
   fdp-sample-apps:
   This script currently DOES NOT BUILD this package. It just creates an archive of the code.
-  Usage: $SCRIPT VERSION [-h | --help]
+  Usage: $SCRIPT [VERSION] [-h | --help]
 
-  VERSION       E.g., 0.3.0. Required
+  VERSION       E.g., 0.3.0. Required, but defaults to the value in $ROOT_DIR/version.sh
   -h | --help   This message.
 EOF
 }
@@ -40,7 +42,7 @@ done
 
 if [[ -z "$VERSION" ]]
 then
-  echo "$0: ERROR: The version argument is required."
+  echo "$0: ERROR: VERSION is not defined. Pass the value as an argument or check the definition in version.sh"
   usage
   exit 1
 fi
@@ -70,6 +72,9 @@ zip -r ${OUTPUT_FILE} ${OUTPUT_FILE_ROOT}
 
 rm -rf ${OUTPUT_FILE_ROOT}
 
-echo "$0: Building the docker images and publishing them:"
+echo "$0: Building the sample apps and docker images: $ROOT_DIR/build.sh"
 
-#$ROOT_DIR/build.sh
+$ROOT_DIR/build.sh
+
+echo "$0: NOTE: Use the fdp-release project to PUBLISH the Docker images!"
+

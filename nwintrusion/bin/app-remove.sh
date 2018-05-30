@@ -4,6 +4,7 @@ set -e
 SCRIPT=`basename ${BASH_SOURCE[0]}`
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 
+. "$DIR/../../version.sh"
 . "$DIR/../../bin/common.sh"
 
 ANOMALY_DETECTION_SPARK_DRIVER_SUBMIT_ID="$(jq -r '.ANOMALY_DETECTION_SPARK_DRIVER_SUBMIT_ID' $APP_METADATA_FILE)"

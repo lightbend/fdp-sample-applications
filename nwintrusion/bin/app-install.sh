@@ -7,6 +7,7 @@ SCRIPT=$(basename "${BASH_SOURCE[0]}")
 ## run directory
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 
+. "$DIR/../../version.sh"
 . "$DIR/../../bin/common.sh"
 . "$DIR/utils.sh"
 
