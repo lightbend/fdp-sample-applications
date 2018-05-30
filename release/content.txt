@@ -16,8 +16,8 @@ protobufs
 build.sbt
 build.sh
 deploy.conf.template
-killrweather.yaml.template
-loaderinstall.yaml.template
+killrweather.yaml
+loaderinstall.yaml
 LICENSE
 README-DEVELOPERS.md
 README.md

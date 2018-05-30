@@ -48,10 +48,14 @@ then
   exit 1
 fi
 
-echo "$0: Building the zip file of sources:"
+echo "$0: Processing templates for config files:"
+
+$ROOT_DIR/process-templates.sh
 
 OUTPUT_FILE_ROOT=fdp-killrweather-${VERSION}
 OUTPUT_FILE=${OUTPUT_FILE_ROOT}.zip
+
+echo "$0: Building the zip file of sources: $OUTPUT_FILE"
 
 staging=$DIR/staging
 rm -rf $staging
@@ -63,6 +67,7 @@ cd $staging
 
 # Remove files and directories that shouldn't be in the distribution:
 rm -f ${OUTPUT_FILE_ROOT}/README-Lightbend.md
+rm -f ${OUTPUT_FILE_ROOT}/README-Kubernetes.md
 find ${OUTPUT_FILE_ROOT} \( -name whitesource.sbt -o -name WhitesourceLicensePlugin.scala \) -exec rm {} \;
 find ${OUTPUT_FILE_ROOT} -type d | egrep 'project/(project|target)$' | while read d; do rm -rf "$d"; done
 find ${OUTPUT_FILE_ROOT} -type d | egrep 'target$' | while read d; do rm -rf "$d"; done
