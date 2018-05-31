@@ -1,6 +1,3 @@
-README.md
-build.sbt
-deploy.conf
 akkastreamssvc/
 bin/
 build-plugin/
@@ -13,3 +10,6 @@ modelserverchart/
 project/
 protobufs/
 publisher/
+build.sbt
+deploy.conf
+README.md
