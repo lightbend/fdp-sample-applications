@@ -9,5 +9,5 @@ echo $HERE
 . $HERE/version.sh
 
 cd $HERE
-sbt "set version in ThisBuild := \"$VERSION\"" "show version" clean package dockerBuildCommand
+sbt "set version in ThisBuild := \"$VERSION\"" "show version" clean package docker
 
