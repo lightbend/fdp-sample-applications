@@ -27,3 +27,8 @@ diagrams/*.graffle
 deploy.conf
 checkpoints/
 release/staging
+
+# These files are generated from corresponding template files:
+killrweather-app/src/main/resources/killrweatherAppDocker.json
+killrweather.yaml
+loaderinstall.yaml
