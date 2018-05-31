@@ -13,7 +13,8 @@ CONTENT=$(cat $CONTENT_FILE)
 function usage {
   cat<< EOF
   fdp-sample-apps:
-  This script currently DOES NOT BUILD this package. It just creates an archive of the code.
+  This script currently builds the software, including docker images (but doesn't push them).
+  It also creates an archive of the code.
   Usage: $SCRIPT [VERSION] [-h | --help]
 
   VERSION       E.g., 0.3.0. Required, but defaults to the value in $ROOT_DIR/version.sh
