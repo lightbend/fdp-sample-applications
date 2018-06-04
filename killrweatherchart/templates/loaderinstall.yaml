@@ -2,6 +2,8 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: killrweatherdataloader
+  labels:
+    fdpmanager : visible
 spec:
   containers:
   - name: killrweatherdataloader
@@ -32,6 +34,8 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: killrweatherhttpclient
+  labels:
+    fdpmanager : visible
 spec:
   containers:
   - name: killrweatherhttpclient
@@ -44,6 +48,8 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: killrweathergrpcclient
+  labels:
+    fdpmanager : visible
 spec:
   containers:
   - name: killrweathergrpcclient

@@ -79,12 +79,10 @@ lazy val protobufs = (project in file("./protobufs"))
 
 // Supporting project - used as an internal library
 lazy val killrWeatherCore = (project in file("./killrweather-core"))
-  .settings(defaultSettings:_*)
   .settings(libraryDependencies ++= core)
 
 // Spark streaming project
 lazy val killrWeatherApp = sbtdockerSparkAppBase("killrWeatherApp")("./killrweather-app")
-  .settings(defaultSettings:_*)
   .settings(libraryDependencies ++= app)
   .settings (mainClass in Compile := Some("com.lightbend.killrweather.app.KillrWeather"))
   .settings(dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core"  % "2.6.7",
@@ -104,7 +102,6 @@ lazy val killrWeatherApp = sbtdockerSparkAppBase("killrWeatherApp")("./killrweat
 
 // Spark structured streaming project
 lazy val killrWeatherApp_structured = sbtdockerSparkAppBase("killrWeatherApp_structured")("./killrweather-app_structured")
-  .settings(defaultSettings:_*)
   .settings(libraryDependencies ++= appStructured)
   .settings (mainClass in Compile := Some("com.lightbend.killrweather.app.structured.KillrWeatherStructured"))
   .settings(dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core"  % "2.6.7",
@@ -145,7 +142,6 @@ lazy val appLocalRunnerstructured = (project in file("./killrweather-structured-
 
 // Killrweather Beam - for now only build locally
 lazy val killrWeatherApp_beam = (project in file("./killrweather-beam"))
-  .settings(defaultSettings:_*)
   .settings(mainClass in Compile := Some("com.lightbend.killrweather.beam.KillrWeatherBeam"))
   .settings(libraryDependencies ++= beamDependencies)
   .settings(dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core"  % "2.6.7",
@@ -158,7 +154,6 @@ lazy val killrWeatherApp_beam = (project in file("./killrweather-beam"))
 
 // Loader - loading weather data to Kafka - pure scala
 lazy val loader = sbtdockerScalaAppBase("loader")("./killrweather-loader")
-  .settings(defaultSettings:_*)
   .settings(
     mainClass in Compile := Some("com.lightbend.killrweather.loader.kafka.KafkaDataIngester"),
     libraryDependencies ++= loaders,
@@ -168,7 +163,6 @@ lazy val loader = sbtdockerScalaAppBase("loader")("./killrweather-loader")
 
 // httpClient - exposing HTTP listener for weather data - pure scala
 lazy val httpclient = sbtdockerScalaAppBase("httpclient")("./killrweather-httpclient")
-  .settings(defaultSettings:_*)
   .settings(
     mainClass in Compile := Some("com.lightbend.killrweather.client.http.RestAPIs"),
     libraryDependencies ++= clientHTTP,
