@@ -1,6 +1,6 @@
 {
   "id": "/kstream-app-dsl",
-  "cmd": "export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && mkdir $MESOS_SANDBOX/data && mv clarknet_access_log_Aug28 data && export DIRECTORY_TO_WATCH=$MESOS_SANDBOX/data && ./{VERSIONED_DSL_PROJECT_NAME}/bin/dslpackage",
+  "cmd": "mkdir $MESOS_SANDBOX/data && mv $MESOS_SANDBOX/clarknet_access_log_Aug28 $MESOS_SANDBOX/data && export DIRECTORY_TO_WATCH=$MESOS_SANDBOX/data && ./build/dsl/bin/dslpackage",
   "env": {
     "INTERFACE_DSL": "0.0.0.0",
     "KAFKA_BROKERS": {KAFKA_BROKERS},
@@ -20,11 +20,27 @@
   "constraints": [["hostname", "UNIQUE"]],
   "cpus": 1.0,
   "mem": 8192,
+  "container": {
+    "portMappings": [],
+    "type": "DOCKER",
+    "docker": {
+      "image": "lightbend/dslpackage:1.2.0",
+      "forcePullImage": true,
+      "privileged": false,
+      "parameters": []
+    },
+    "volumes": [
+      {
+        "containerPath": "/mnt/data",
+        "hostPath": "/mnt/sandbox/data",
+        "mode": "RW"
+      }
+    ]
+  },
   "disk": 20480,
   "instances": 1,
   "fetch": [
     { "uri": "https://downloads.mesosphere.com/java/jre-8u112-linux-x64.tar.gz" },
-    { "uri": {DSL_PACKAGE_ON_MESOS} },
     { "uri": "ftp://ita.ee.lbl.gov/traces/clarknet_access_log_Aug28.gz" }
   ]
 }

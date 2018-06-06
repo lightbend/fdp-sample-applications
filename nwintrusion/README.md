@@ -175,7 +175,7 @@ $ sbt
 > docker
 ```
 
-This will create a docker image named `lightbend/ingestpackage:X.Y.Z` (for the current version `X.Y.Z`) with the default settings. In order to change the repository name or the version, you need to change `$DOCKER_REPOSITORY` in `nwintrusion/bin/utils.sh` and `$VERSION` in `<PROJECT_HOME>/version.sh`.
+This will create a docker image named `lightbend/ingestpackage:X.Y.Z` (for the current version `X.Y.Z`) with the default settings. The name of the docker repository comes from the `organization` field in `build.sbt` and can be changed there for alternatives. If the repository name is changed, then the value of `$DOCKER_USERNAME` also needs to be changed in `nwintrusion/bin/utils.sh`. The version of the image comes from `<PROJECT_HOME>/version.sh`. Change there if you wish to deploy a different version.
 
 Once the docker image is created, you can push it to the repository at DockerHub.
 
