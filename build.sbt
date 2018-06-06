@@ -126,7 +126,7 @@ lazy val killrWeatherApp_structured = sbtdockerSparkAppBase("killrWeatherApp_str
 // Supporting projects to enable running spark projects locally
 lazy val appLocalRunner = (project in file("./killrweather-app-local"))
   .settings(
-    libraryDependencies ++= spark.map(_.copy(configurations = Option("compile"))) ++ Seq(influxDBClient)
+    libraryDependencies ++= spark.map(_.withConfigurations(configurations = Option("compile"))) ++ Seq(influxDBClient)
   )
   .settings(dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core"  % "2.6.7",
     dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.7")
@@ -134,7 +134,7 @@ lazy val appLocalRunner = (project in file("./killrweather-app-local"))
 
 lazy val appLocalRunnerstructured = (project in file("./killrweather-structured-app-local"))
   .settings(
-    libraryDependencies ++= sparkStructured.map(_.copy(configurations = Option("compile"))) ++ Seq(influxDBClient)
+    libraryDependencies ++= sparkStructured.map(_.withConfigurations(configurations = Option("compile"))) ++ Seq(influxDBClient)
   )
   .settings(dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core"  % "2.6.7")
   .settings(dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.7")

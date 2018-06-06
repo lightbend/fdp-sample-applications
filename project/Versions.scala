@@ -20,6 +20,7 @@ object Versions {
   val AkkaStreams       = "2.5.11"
   val AkkaStreamsKafka  = "0.19"
   val AkkaHTTP          = "10.1.0"
+
   val Cassandra         = "2.1.3"
   val Curator           = "4.0.0"
   val JDK               = "1.8"
