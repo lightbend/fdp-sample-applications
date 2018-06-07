@@ -1,38 +1,14 @@
 import sbtassembly.MergeStrategy
-import deployssh.DeploySSH._
 
-// NOTE: Versioning of all artifacts is under the control of the `sbt-dynver` plugin and
-// enforced by `EnforcerPlugin` found in the `build-plugin` directory.
-//
-// sbt-dynver: https://github.com/dwijnand/sbt-dynver
-//
-// The versions emitted follow the following rules:
-// |  allowSnapshot  | Case                                                                 | version                        |
-// |-----------------| -------------------------------------------------------------------- | ------------------------------ |
-// | false (default) | when on tag v1.0.0, w/o local changes                                | 1.0.0                          |
-// | true            | when on tag v1.0.0 with local changes                                | 1.0.0+20140707-1030            |
-// | true            | when on tag v1.0.0 +3 commits, on commit 1234abcd, w/o local changes | 1.0.0+3-1234abcd               |
-// | true            | when on tag v1.0.0 +3 commits, on commit 1234abcd with local changes | 1.0.0+3-1234abcd+20140707-1030 |
-// | true            | when there are no tags, on commit 1234abcd, w/o local changes        | 1234abcd                       |
-// | true            | when there are no tags, on commit 1234abcd with local changes        | 1234abcd+20140707-1030         |
-// | true            | when there are no commits, or the project isn't a git repo           | HEAD+20140707-1030             |
-//
-// This means DO NOT set or define a `version := ...` setting.
-//
-// If you have pending changes or a missing tag on the HEAD you will need to set
-// `allowSnapshot` to true in order to run `packageBin`.  Otherwise you will get an error
-// with the following information:
-//   ---------------
-// 1. You have uncommmited changes (unclean directory) - Fix: commit your changes and set a tag on HEAD.
-// 2. You have a clean directory but no tag on HEAD - Fix: tag the head with a version that satisfies the regex: 'v[0-9][^+]*'
-// 3. You have uncommmited changes (a dirty directory) but have not set `allowSnapshot` to `true` - Fix: `set (allowSnapshot in ThisBuild) := true`""".stripMargin)
+name := "bigdlvgg"
+
+// global settings for this build
+version in ThisBuild := "1.2.0"
+organization in ThisBuild := "lightbend"
+scalaVersion in ThisBuild := "2.11.8"
 
 val spark = "2.2.0"
-val bigdl = "0.4.0"
-
-allowSnapshot in ThisBuild := true
-
-enablePlugins(DeploySSH)
+val bigdl = "0.5.0"
 
 lazy val commonSettings = Seq(
   resolvers ++= Seq(
@@ -41,7 +17,13 @@ lazy val commonSettings = Seq(
     , Resolver.sonatypeRepo("releases")
     , Resolver.sonatypeRepo("snapshots")
   ),
-  scalaVersion := "2.11.8",
+  scalacOptions ++= Seq(
+    "-feature",
+    "-unchecked",
+    "-language:higherKinds",
+    "-language:postfixOps",
+    "-deprecation"
+  ),
   licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0")),
   libraryDependencies ++= Seq(
       "com.intel.analytics.bigdl"          % "bigdl-SPARK_2.2"   % bigdl exclude("com.intel.analytics.bigdl", "bigdl-core"),
@@ -52,36 +34,60 @@ lazy val commonSettings = Seq(
     )
 )
 
-mainClass in assembly := Some("com.lightbend.fdp.sample.bigdl.TrainVGG")
+// base project settings
+def projectBase(id: String)(base: String = id) = Project(id, base = file(base))
+  .settings(
+    fork in run := true,
 
-lazy val root = (project in file(".")).
-  settings(commonSettings: _*).
-  settings(
-    name := "bigdlsample",
-    scalacOptions ++= Seq(
-      "-feature",
-      "-unchecked",
-      "-language:higherKinds",
-      "-language:postfixOps",
-      "-deprecation"
-    )
+    assemblyMergeStrategy in assembly := {
+      case x if x.contains("com/intel/analytics/bigdl/bigquant/") => MergeStrategy.first
+      case x if x.contains("com/intel/analytics/bigdl/mkl/") => MergeStrategy.first
+      case x =>
+        val oldStrategy = (assemblyMergeStrategy in assembly).value
+        oldStrategy(x)
+    }
   )
 
-//some exclusions and merge strategies for assembly
-excludeDependencies ++= Seq(
-  "org.spark-project.spark" % "unused"
-)
+// settings for an assembly based docker project based on sbt-docker plugin
+def sbtdockerSparkAppBase(id: String)(base: String = id) = projectBase(id)(base)
+  .enablePlugins(sbtdocker.DockerPlugin)
+  .settings(
+    dockerfile in docker := {
 
-assemblyMergeStrategy in assembly := {
-  case x if x.contains("com/intel/analytics/bigdl/bigquant/") => MergeStrategy.first
-  case x if x.contains("com/intel/analytics/bigdl/mkl/") => MergeStrategy.first
-  case x =>
-    val oldStrategy = (assemblyMergeStrategy in assembly).value
-    oldStrategy(x)
-}
+      val artifact: File = assembly.value
+      val artifactTargetPath = s"/opt/spark/dist/jars/${artifact.name}"
 
-deployResourceConfigFiles ++= Seq("deploy.conf")
+      new Dockerfile {
+        from ("mesosphere/spark:2.3.0-2.2.1-2-hadoop-2.6")
+        add(artifact, artifactTargetPath)
+        runRaw("mkdir -p /etc/hadoop/conf")
+        runRaw("export HADOOP_CONF_DIR=/etc/hadoop/conf")
+      }
+    },
 
-deployArtifacts ++= Seq(
-  ArtifactSSH(assembly.value, "/var/www/html/")
-)
+    // Set name for the image
+    imageNames in docker := Seq(
+      ImageName(namespace = Some(organization.value),
+        repository = name.value.toLowerCase, 
+        tag = Some(version.value))
+    ),
+
+    buildOptions in docker := BuildOptions(cache = false)
+  )
+
+// standalone run of the vgg training
+// 1. $ sbt assembly 
+// 2. $ sbt docker 
+// 3. $ sbt run --master local[4] -f /tmp/cifar-10-batches-bin --download /tmp -b 16
+lazy val bigdlSample = sbtdockerSparkAppBase("bigdlSample")(".")
+
+  .settings(commonSettings: _*)
+
+  .settings (
+
+    excludeDependencies ++= Seq(
+      "org.spark-project.spark" % "unused"
+    ),
+
+    mainClass in Compile := Some("com.lightbend.fdp.sample.bigdl.TrainVGG")
+  )

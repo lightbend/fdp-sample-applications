@@ -35,6 +35,7 @@ object Utils {
   val testStd = (0.2466525177466614, 0.2428922662655766, 0.26159238066790275)
 
   case class TrainParams(
+    master: Option[String] = None,
     folder: String = "./",
     checkpoint: Option[String] = None,
     modelSnapshot: Option[String] = None,
@@ -44,11 +45,13 @@ object Utils {
     overWriteCheckpoint: Boolean = false,
     learningRate: Double = 0.01,
     weightDecay: Double = 0.0005,
-    laboratoryURL: Option[String] = None,
     downloadRootFolder: String = "/tmp"
   )
 
   val trainParser = new OptionParser[TrainParams]("BigDL Vgg on Cifar10 Example") {
+    opt[String]('m', "master")
+      .text("where you put Spark master for local run")
+      .action((x, c) => c.copy(master = Some(x)))
     opt[String]('f', "folder")
       .text("where you put the Cifar10 data")
       .action((x, c) => c.copy(folder = x))
@@ -76,9 +79,6 @@ object Utils {
     opt[Double]('l', "learningRate")
       .text("inital learning rate")
       .action((x, c) => c.copy(learningRate = x))
-    opt[String]("lab")
-      .text("data ingestion source")
-      .action((x, c) => c.copy(laboratoryURL = Some(x)))
     opt[String]("download")
       .text("data download root")
       .action((x, c) => c.copy(downloadRootFolder = x))

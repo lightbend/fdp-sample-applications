@@ -46,14 +46,8 @@ object TrainVGG {
   import org.rauschig.jarchivelib._
   import scala.util.{ Try, Success, Failure }
 
-  def download(labURL: Option[String], downloadRoot: String): Try[Unit] = Try {
-    val cifarDataUri = labURL.map { lurl =>
-      val trylab = s"curl --output /dev/null --silent --head --fail $lurl/cifar-10-binary.tar.gz".!
-
-      if (trylab != 0) "https://www.cs.toronto.edu/~kriz/cifar-10-binary.tar.gz"
-      else s"${lurl}/cifar-10-binary.tar.gz"
-
-    }.getOrElse("https://www.cs.toronto.edu/~kriz/cifar-10-binary.tar.gz")
+  def download(downloadRoot: String): Try[Unit] = Try {
+    val cifarDataUri = "https://www.cs.toronto.edu/~kriz/cifar-10-binary.tar.gz"
 
     println(s"cifarDataURI = $cifarDataUri")
 
@@ -69,8 +63,8 @@ object TrainVGG {
     ()
   }
 
-  def extractCifarData(labURL: Option[String], downloadRootFolder: String): Try[Unit] = for {
-    _ <- download(labURL, downloadRootFolder)
+  def extractCifarData(downloadRootFolder: String): Try[Unit] = for {
+    _ <- download(downloadRootFolder)
     _ <- unarchive(s"$downloadRootFolder/cifar-10-binary.tar.gz", downloadRootFolder)
   } yield ()
 
@@ -80,7 +74,7 @@ object TrainVGG {
 
       if (Files.notExists(Paths.get(param.folder))) {
         println(s"cifar-10 data does not exist .. going to download")
-        extractCifarData(param.laboratoryURL, param.downloadRootFolder) match {
+        extractCifarData(param.downloadRootFolder) match {
           case Success(_) => ()
           case Failure(ex) => throw ex
         }
@@ -90,8 +84,11 @@ object TrainVGG {
         throw new Exception("CIFAR data has not been downloaded")
       }
 
-      val conf = Engine.createSparkConf().setAppName("vggtrainapp")
-          .set("spark.rpc.message.maxSize", "200")
+      val conf = param.master.map { m => 
+        Engine.createSparkConf().setAppName("vggtrainapp").setMaster(m).set("spark.rpc.message.maxSize", "200")
+      }.getOrElse {
+        Engine.createSparkConf().setAppName("vggtrainapp").set("spark.rpc.message.maxSize", "200")
+      }
       val sc = new SparkContext(conf)
       Engine.init
 
@@ -105,16 +102,12 @@ object TrainVGG {
         VggForCifar10(classNum = 10)
       }
 
-      val state = param.stateSnapshot.map {
-        T.load(_)
-      }.getOrElse {
-        T(
-          "learningRate" -> 0.01,
-          "weightDecay" -> 0.0005,
-          "momentum" -> 0.9,
-          "dampening" -> 0.0,
-          "learningRateSchedule" -> SGD.EpochStep(25, 0.5)
-        )
+      val optimMethod = if (param.stateSnapshot.isDefined) {
+        OptimMethod.load[Float](param.stateSnapshot.get)
+      } else {
+        new SGD[Float](learningRate = param.learningRate, learningRateDecay = 0.0,
+          weightDecay = param.weightDecay, momentum = 0.9, dampening = 0.0, nesterov = false,
+          learningRateSchedule = SGD.EpochStep(25, 0.5))
       }
 
       val optimizer = Optimizer(
@@ -130,14 +123,18 @@ object TrainVGG {
       if (param.checkpoint.isDefined) {
         optimizer.setCheckpoint(param.checkpoint.get, Trigger.everyEpoch)
       }
+
       if(param.overWriteCheckpoint) {
         optimizer.overWriteCheckpoint()
       }
+
       optimizer
         .setValidation(Trigger.everyEpoch, validateSet, Array(new Top1Accuracy[Float]))
-        .setState(state)
+        .setOptimMethod(optimMethod)
         .setEndWhen(Trigger.maxEpoch(param.maxEpoch))
         .optimize()
+
+      sc.stop()
     })
   }
 }

@@ -6,44 +6,70 @@ This sample application stress tests the DC/OS cluster by running a training and
 
 > **NOTE:** This applications demonstrates using BigDL as a third-party library for machine learning. BigDL is not part of the FDP distribution and Lightbend does not provide support for BigDL or applications that use it.
 
-### Installing the Application
+## Running the application Locally
 
-The easiest way to install the Network Intrusion Detection application is to install it from the pre-built docker image that comes with the Fast Data Platform distribution. Start from `fdp-package-sample-apps/README.md` of the distribution for general instructions on how to deploy the image as a Marathon application.
+The application can be run locally or on the DC/OS cluster.
 
-Once you have installed the docker image (we call it the laboratory) with the default name `fdp-apps-lab`, you can follow the steps outlined in that document to complete the installation of the application. The following part of this document discusses the installation part in more details.
+`sbt` will be used to run applications on your local machine. The following examples demonstrate how to run the individual components from the `sbt` console.
 
-> Assumption: We have `fdp-apps-lab` running in the FDP DC/OS cluster
+```
+$ sbt
+> projects
+[info] In file:/Users/bucktrends/lightbend/fdp-sample-apps/bigdl/source/core/
+[info] 	 * bigdlSample
+> run --master local[4] -f /tmp/cifar-10-batches-bin --download /tmp -b 16
+```
 
-```bash
+This will run the application for training the cifar-10 dataset on a VGG network on the local machine. 
+
+The `--master` argument is optional and is required only for the local run of the application. 
+
+## Deploying and running on DC/OS cluster
+
+The first step in deploying the applications on DC/OS cluster is to prepare a docker image of the application. This can be done from within sbt.
+
+### Prepare docker images
+
+In the `bigdl/source/core/` directory:
+
+```
+$ sbt
+> projects
+[info] 	 * bigdlSample
+> docker
+```
+
+This will create a docker image named `lightbend/bigdlvgg:X.Y.Z` (for the current version `X.Y.Z`) with the default settings. The name of the docker repository comes from the `organization` field in `build.sbt` and can be changed there for alternatives. If the repository name is changed, then the value of `$DOCKER_USERNAME` also needs to be changed in `bigdl/bin/app-install.sh`. The version of the image comes from `<PROJECT_HOME>/version.sh`. Change there if you wish to deploy a different version.
+
+Once the docker image is created, you can push it to the repository at DockerHub.
+
+### Installing on DC/OS cluster
+
+The installation scripts are present in the `bigdl/bin` folder. The script that you need to run is `app-install.sh`.
+
+```
 $ pwd
-<home directory>/fdp-package-sample-apps
-$ cd bin/bigdl
+.../bigdl/bin
+$ ./app-install.sh --help
+
+  Installs the BigDL sample app. Assumes DC/OS authentication was successful
+  using the DC/OS CLI.
+
+  Usage: app-install.sh   [options] 
+
+  eg: ./app-install.sh 
+
+  Options:
+
+  -n | --no-exec              Do not actually run commands, just print them (for debugging).
+  -h | --help                 Prints this message.
 $ ./app-install.sh
 ```
+**Here are a few points that you need to keep in mind before starting the applications on your cluster:**
 
-The default invocation of the script will install and run all the services of this application.
-
-Try the `--help` option for `app-install.sh` for the command-line options.
-
-The script `app-install.sh` takes all configuration parameters from a properties file.  The default file is `app-install.properties` which resides in the same directory, but you can specify the file with the `--config-file` argument.  It is recommended that you keep a set of configuration files for personal development, testing, and production.  Simply copy the default file over and modify as needed.
-
-```
-## laboratory mesos deployment
-laboratory-mesos-path=http://fdp-apps-lab.marathon.mesos
-
-## Spark package version
-spark-package-version=2.0.0-2.2.0-hadoop-2.6
-```
-
-> The installation process fetches the data required from the canned docker image in `fdp-apps-lab`.
-
-Once the installation is complete, the Spark driver should be seen available on the DC/OS console.
-
-> *Besides installing from the supplied docker image, the distribution also publishes the development environment and the associated installation scripts in `fdp-sample-apps/bigdl/bin` folder. The prerequisite of using these scripts is to have a developer version of the laboratory available as part of your cluster. This will be available in a future version of the platform.*
-
-## Running the application
-
-Once the required Spark drivers start running, the training process will start in epochs. The STDOUT of DC/OS console displays the progression of the training along with the error rate in classification.
+1. Need to have done dcos authentication beforehand. Run `dcos auth login`.
+2. Need to have the cluster attached. Run `dcos cluster attach <cluster name>`.
+3. Need to have Spark running on the cluster.
 
 ### Removing the Application
 

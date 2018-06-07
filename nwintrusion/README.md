@@ -260,7 +260,7 @@ This will start all 3 applications at once. In case you feel like, you can start
 **Here are a few points that you need to keep in mind before starting the applications on your cluster:**
 
 1. Need to have done dcos authentication beforehand. Run `dcos auth login`.
-2. Need to have the cluster attached. Run `dcos clsuter attach <cluster name>`.
+2. Need to have the cluster attached. Run `dcos cluster attach <cluster name>`.
 3. Need to have Kafka, Spark, InfluxDB and Grafana running on the cluster.
 
 Here's the default version of the configuration file that the installer uses:
