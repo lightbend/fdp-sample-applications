@@ -9,7 +9,7 @@
       },
       "image": {
         "kind": "DOCKER",
-        "id": "lightbend/loader:1.2.0",
+        "id": "lightbend/loader:VERSION_FDP",
         "forcePull": true
       },
       "volumeMounts": [

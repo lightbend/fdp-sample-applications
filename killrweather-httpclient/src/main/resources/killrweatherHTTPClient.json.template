@@ -1,12 +1,13 @@
 {
-  "id": "/killrweathergrpcclient",
+  "id": "/killrweatherhttpclient",
   "container": {
     "docker": {
-      "image": "lightbend/grpcclient:1.2.0",
+      "image": "lightbend/httpclient:VERSION_FDP",
       "forcePull": true,
     }
   },
   "instances": 1,
   "cpus": 2,
   "mem": 4096
+
 }

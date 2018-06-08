@@ -1,0 +1,105 @@
+data:
+  __metadata:
+    label: "Information about data"
+  datadirectory:
+    __metadata:
+      label: "Data.zip location"
+      description: "The location of the data.zip location"
+      type: "string"
+      required: true
+image:
+  __metadata:
+    label: "Information about used images"
+  app:
+    __metadata:
+      label: "Application image"
+      description: "Name of the application image"
+      type: "string"
+      required: true
+  appstructured:
+    __metadata:
+      label: "Application structured image"
+      description: "Name of the application structured streaming image"
+      type: "string"
+      required: true
+  loader:
+    __metadata:
+      label: "Loader image"
+      description: "Name of the loader image"
+      type: "string"
+      required: true
+  http:
+    __metadata:
+      label: "HTTP client image"
+      description: "Name of the HTTP client image"
+      type: "string"
+      required: true
+  grpc:
+    __metadata:
+      label: "GRPC client image"
+      description: "Name of the GRPC client image"
+      type: "string"
+      required: true
+  pullPolicy:
+    __metadata:
+      label: "Image pull policy"
+      description: "Image pull policy"
+      type: "string"
+      required: true
+  version:
+    __metadata:
+      label: "Image version"
+      description: "Image version should correspond to the FDP version"
+      type: "string"
+      required: true
+app:
+  __metadata:
+    label: "details for the application"
+  jar:
+    __metadata:
+      label: "JAR name"
+      description: "Name of the jar used for application"
+      type: "string"
+      required: true
+  main:
+    __metadata:
+      label: "main class"
+      description: "Fully qualified name of the main class used for application"
+      type: "string"
+      required: true
+structured:
+  __metadata:
+    label: "details for the structured application"
+  jar:
+    __metadata:
+      label: "JAR name"
+      description: "Name of the jar used for structured application"
+      type: "string"
+      required: true
+  main:
+    __metadata:
+      label: "main class"
+      description: "Fully qualified name of the main class used for structured application"
+      type: "string"
+      required: true
+components:
+  __metadata:
+    label: "components to install"
+  app:
+    __metadata:
+      label: "application"
+      description: "Pick an application to install (killrweather) or structured"
+      type: "string"
+      required
+  http:
+    __metadata:
+      label: "HTTP Client"
+      description: "Install HTTP client (yes/no)"
+      type: "string"
+      required: true
+  grpc:
+    __metadata:
+      label: "GRPC Client"
+      description: "Install GRPC client (yes/no)"
+      type: "string"
+      required: true
