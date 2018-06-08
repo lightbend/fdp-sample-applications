@@ -13,15 +13,11 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 ## project root directory
 PROJ_ROOT_DIR="$( cd "$DIR/../source/core" && pwd -P )"
 
-## deploy.conf full path
-DEPLOY_CONF_FILE="$PROJ_ROOT_DIR/deploy.conf"
-
 ZOOKEEPER_PORT=2181
+DOCKER_USERNAME=lightbend
 
-VERSIONED_PROJECT_NAME=
-VERSIONED_NATIVE_PACKAGE_NAME=
-TRAVEL_TIME_APP_JAR=
-TRAVEL_TIME_APP_JAR_ON_MESOS=
+TRAVEL_TIME_APP_JAR="taxiRideApp-assembly-$VERSION.jar"
+TRAVEL_TIME_APP_DOCKER_IMAGE=taxirideapp
 
 # Used by show_help
 HELP_MESSAGE="Installs the NYC Taxi Ride sample app. Assumes DC/OS authentication was successful
@@ -97,7 +93,6 @@ function modify_ingestion_data_template {
     "KAFKA_IN_TOPIC"
     "KAFKA_OUT_TOPIC"
     "KAFKA_ZOOKEEPER_URL"
-    "NATIVE_PACKAGE_ON_MESOS"
     )
 
   for elem in "${arr[@]}"
@@ -107,11 +102,12 @@ function modify_ingestion_data_template {
   done
 
   ## without quotes substitution
-  $NOEXEC sed -i -- "s~{VERSIONED_PROJECT_NAME}~$VERSIONED_PROJECT_NAME~g" $INGESTION_TEMPLATE
+  $NOEXEC sed -i -- "s~{VERSION}~$VERSION~g" $INGESTION_TEMPLATE
+  $NOEXEC sed -i -- "s~{DOCKER_USERNAME}~$DOCKER_USERNAME~g" $INGESTION_TEMPLATE
 }
 
 function load_ingestion_data_job {
-  $NOEXEC dcos marathon app add $INGESTION_TEMPLATE
+  # $NOEXEC dcos marathon app add $INGESTION_TEMPLATE
   $NOEXEC update_json_field INGESTION_DATA_APP_ID "$INGESTION_DATA_APP_ID" "$APP_METADATA_FILE"
 }
 
@@ -119,7 +115,6 @@ function modify_app_template {
   cp $APP_TEMPLATE_FILE $APP_TEMPLATE
   declare -a arr=(
     "APP_DATA_APP_ID"
-    "TRAVEL_TIME_APP_JAR_ON_MESOS"
     )
 
   for elem in "${arr[@]}"
@@ -136,6 +131,8 @@ function modify_app_template {
     "JM_RPC_ADDRESS"
     "JM_RPC_PORT"
     "TRAVEL_TIME_APP_JAR"
+    "VERSION"
+    "DOCKER_USERNAME"
     )
 
   for elem in "${arr2[@]}"
@@ -146,7 +143,7 @@ function modify_app_template {
 }
 
 function load_app_job {
-  $NOEXEC dcos marathon app add $APP_TEMPLATE
+  # $NOEXEC dcos marathon app add $APP_TEMPLATE
   $NOEXEC update_json_field APP_DATA_APP_ID "$APP_DATA_APP_ID" "$APP_METADATA_FILE"
 }
 
@@ -246,36 +243,6 @@ keyval() {
         SKIP_CREATE_TOPICS=$value
       fi
 
-      if [ "$key" == "publish-user" ]
-      then
-        PUBLISH_USER=$value
-      fi
-
-      if [ "$key" == "publish-host" ]
-      then
-        PUBLISH_HOST=$value
-      fi
-
-      if [ "$key" == "ssh-port" ]
-      then
-        SSH_PORT=$value
-      fi
-
-      if [ "$key" == "passphrase" ]
-      then
-        SSH_PASSPHRASE=$value
-      fi
-
-      if [ "$key" == "ssh-keyfile" ]
-      then
-        SSH_KEYFILE=$value
-      fi
-
-      if [ "$key" == "laboratory-mesos-path" ]
-      then
-        LABORATORY_MESOS_PATH=$value
-      fi
-
       if [ "$key" == "security-mode" ]
       then
         SECURITY_MODE=$value
@@ -303,108 +270,15 @@ keyval() {
     then
       SKIP_CREATE_TOPICS=false
     fi
-    if [ -z "${PUBLISH_USER// }" ]
-    then
-      PUBLISH_USER="publisher"
-    fi
     if [ -z "${SECURITY_MODE// }" ]
     then
       SECURITY_MODE=none
     fi
 
-    exit_if_not_defined_or_empty "$PUBLISH_HOST" "publish-host"
-    exit_if_not_defined_or_empty "$SSH_PORT" "ssh-port"
-    exit_if_not_defined_or_empty "$SSH_KEYFILE" "ssh-keyfile"
-    exit_if_not_defined_or_empty "$LABORATORY_MESOS_PATH" "laboratory-mesos-path"
-
   else
     echo "$filename not found."
     exit 6
   fi
-}
-
-function exit_if_not_defined_or_empty() {
-  value=$1
-  name=$2
-
-  if [ -z "${value// }"  ]
-  then
-    error "$name not defined .. exiting"
-  fi
-}
-
-function generate_deploy_conf {
-declare DEPLOY_CONF_DATA=$(cat <<EOF
-{
-  servers = [
-   {
-    name = "fdp-flink-taxiride-ingestion"
-    user = $PUBLISH_USER
-    host = $PUBLISH_HOST
-    port = $SSH_PORT
-    sshKeyFile = $SSH_KEYFILE
-   },
-   {
-    name = "fdp-flink-taxiride-app"
-    user = $PUBLISH_USER
-    host = $PUBLISH_HOST
-    port = $SSH_PORT
-    sshKeyFile = $SSH_KEYFILE
-   }
-  ]
-}
-EOF
-)
-  if [[ -z $NOEXEC ]]
-  then
-    echo "$DEPLOY_CONF_DATA" > "$DEPLOY_CONF_FILE"
-  else
-    $NOEXEC "$DEPLOY_CONF_DATA > $DEPLOY_CONF_FILE"
-  fi
-}
-
-function build_app {
-  $NOEXEC cd "$PROJ_ROOT_DIR"
-
-  if [ -n "$run_ingestion" ]
-  then
-    $NOEXEC sbt ingestion/clean ingestion/clean-files ingestion/universal:packageZipTarball
-  fi
-  if [ -n "$run_app" ]
-  then
-    $NOEXEC sbt app/clean app/clean-files app/assembly
-  fi
-}
-
-function deploy_app {
-  $NOEXEC cd "$PROJ_ROOT_DIR"
-
-  if [ -n "$run_ingestion" ]
-  then
-    $NOEXEC sbt ingestion/clean ingestion/cleanFiles "ingestion/deploySsh fdp-flink-taxiride-ingestion"
-    if [[ -z $NOEXEC ]]
-    then
-      TGZ_NAME=$( ls "$PROJ_ROOT_DIR"/ingestion/target/universal/*.tgz )
-      VERSIONED_NATIVE_PACKAGE_NAME=$( basename "$TGZ_NAME" )
-
-      VERSION=$(echo ${VERSIONED_NATIVE_PACKAGE_NAME%.*} | cut -d- -f2-)
-
-      NATIVE_PACKAGE_ON_MESOS="$LABORATORY_MESOS_PATH"/"$VERSIONED_NATIVE_PACKAGE_NAME"
-      VERSIONED_PROJECT_NAME="ingestion-$VERSION"
-    fi
-  fi
-
-  if [ -n "$run_app" ]
-  then
-    $NOEXEC sbt app/clean app/cleanFiles "app/deploySsh fdp-flink-taxiride-app"
-    if [[ -z $NOEXEC ]]
-    then
-      FULL_JAR_NAME=$( ls "$PROJ_ROOT_DIR"/app/target/scala*/*.jar )
-      TRAVEL_TIME_APP_JAR=$( basename "$FULL_JAR_NAME" )
-      TRAVEL_TIME_APP_JAR_ON_MESOS="$LABORATORY_MESOS_PATH/$TRAVEL_TIME_APP_JAR"
-    fi
-  fi
-
 }
 
 function require_templates {
@@ -500,20 +374,11 @@ function main {
     done
   fi
 
-  header Generating remote deployment information ..
-  generate_deploy_conf
-
   header Getting Flink Job Manager information
   set_job_manager_info
 
-# header Building packages to be deployed ..
-# build_app
-
   header "Gathering Kafka connection information...\n"
   gather_kafka_connection_info
-
-  header Doing remote deployment ..
-  deploy_app
 
   if [ -n "$run_ingestion" ]
   then

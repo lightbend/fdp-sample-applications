@@ -1,29 +1,9 @@
-import scala.language.postfixOps
-
 import sbt._
-import sbt.Keys._
+import Keys._
 
-object Settings extends Build {
+object Common {
 
-  lazy val buildSettings = Seq(
-    name := "Flink TaxiRide",
-    normalizedName := "taxiride",
-    organization := "com.dataartisans",
-    organizationHomepage := Some(url("http://www.github.com/typesafehub")),
-    scalaVersion := Versions.scala,
-    homepage := Some(url("https://github.com/typesafehub/fd-sample-apps/flink")),
-    licenses := Seq(("Apache License, Version 2.0", url("http://www.apache.org/licenses/LICENSE-2.0")))
-  )
-
-  override lazy val settings = super.settings ++ buildSettings
-
-  val parentSettings = buildSettings ++ Seq(
-    publishArtifact := false,
-    publish := {}
-  )
-
-  lazy val defaultSettings = Seq(
-    autoCompilerPlugins := true,
+  val settings: Seq[Def.Setting[_]] = Seq(
     scalacOptions ++= Seq(
       "-deprecation",                      // Emit warning and location for usages of deprecated APIs.
       "-encoding", "utf-8",                // Specify character encoding used by source files.
@@ -36,10 +16,11 @@ object Settings extends Build {
       "-language:postfixOps",              // Allow postfix operator
       "-unchecked",                        // Enable additional warnings where generated code depends on assumptions.
       "-Xcheckinit",                       // Wrap field accessors to throw an exception on uninitialized access.
-      // "-Xfatal-warnings",                  // Fail the compilation if there are any warnings.
+      "-Xfatal-warnings",                  // Fail the compilation if there are any warnings.
       "-Xfuture",                          // Turn on future language features.
       "-Xlint:adapted-args",               // Warn if an argument list is modified to match the receiver.
       "-Xlint:by-name-right-associative",  // By-name parameter of right associative operator.
+//    "-Xlint:constant",                   // Evaluation of a constant arithmetic expression results in an error.
       "-Xlint:delayedinit-select",         // Selecting member of DelayedInit.
       "-Xlint:doc-detached",               // A Scaladoc comment appears to be detached from its element.
       "-Xlint:inaccessible",               // Warn about inaccessible types in method signatures.
@@ -55,29 +36,20 @@ object Settings extends Build {
       "-Xlint:type-parameter-shadow",      // A local type parameter shadows a type already in scope.
       "-Xlint:unsound-match",              // Pattern match may not be typesafe.
       "-Yno-adapted-args",                 // Do not adapt an argument list (either by inserting () or creating a tuple) to match the receiver.
+      "-Ypartial-unification",             // Enable partial unification in type constructor inference
       "-Ywarn-dead-code",                  // Warn when dead code is identified.
+//    "-Ywarn-extra-implicit",             // Warn when more than one implicit parameter section is defined.
       "-Ywarn-inaccessible",               // Warn about inaccessible types in method signatures.
       "-Ywarn-infer-any",                  // Warn when a type argument is inferred to be `Any`.
       "-Ywarn-nullary-override",           // Warn when non-nullary `def f()' overrides nullary `def f'.
-      "-Ywarn-nullary-unit"                // Warn when nullary methods return Unit.
-      // "-Ywarn-value-discard"               // Warn when non-Unit expression results are unused.
-    ),
-    javacOptions in Compile ++= Seq(
-      "-encoding", 
-      "UTF-8", 
-      "-source", 
-      Versions.JDK, 
-      "-target", 
-      Versions.JDK, 
-      "-Xlint:deprecation", 
-      "-Xlint:unchecked",
-      "-g:none"
-    ),
-    run in Compile <<= Defaults.runTask(fullClasspath in Compile, mainClass in (Compile, run), runner in (Compile, run)),
-    ivyLoggingLevel in ThisBuild := UpdateLogging.Quiet,
-    parallelExecution in ThisBuild := false,
-    parallelExecution in Global := false,
-    compileOrder in Compile := CompileOrder.JavaThenScala,
-    compileOrder in Test := CompileOrder.Mixed
+      "-Ywarn-nullary-unit",               // Warn when nullary methods return Unit.
+//    "-Ywarn-unused:implicits",           // Warn if an implicit parameter is unused.
+//    "-Ywarn-unused:locals",              // Warn if a local definition is unused.
+//    "-Ywarn-unused:params",              // Warn if a value parameter is unused.
+//    "-Ywarn-unused:patvars",             // Warn if a variable bound in a pattern is unused.
+//    "-Ywarn-unused:privates",            // Warn if a private member is unused.
+      "-Ywarn-value-discard"               // Warn when non-Unit expression results are unused.
+    )
   )
 }
+
