@@ -3,6 +3,5 @@ bigdl/
 flink/
 kstream/
 nwintrusion/
-build-plugin/
 LICENSE
 README.md
