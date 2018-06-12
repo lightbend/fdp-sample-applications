@@ -71,18 +71,43 @@ One the application starts running, after some time, you can use `curl` to check
 
 > For cluster deployment `kafka.localserver` needs to be set to `false`. This is only required to be done if you attempt to deploy the application in the cluster manually instead of using the pre-packaged docker image.
 
-## Installing the Applications in the Cluster
+## Deploying and running on DC/OS cluster
 
-The easiest way to install the Kafka Streams based sample applications is to install it from the pre-built docker image that comes with the Fast Data Platform distribution. Start from `fdp-package-sample-apps/README.md` of the distribution for general instructions on how to deploy the image as a Marathon application.
+The first step in deploying the applications on DC/OS cluster is to prepare docker images of all the applications. This can be done from within sbt.
 
-Once you have installed the docker image (we call it the *laboratory*) with the default name `fdp-apps-lab`, you can follow the steps outlined in that document to complete the installation of the application. The following part of this document discusses the installation part in more details.
+### Prepare docker images
 
-> Assumption: We have `fdp-apps-lab` running in the FDP DC/OS cluster
+In the `kstream/source/core/` directory:
+
+```
+$ sbt
+> projects
+[info] In file:/Users/bucktrends/lightbend/fdp-sample-apps/kstream/source/core/
+[info] 	   dslPackage
+[info] 	   dslRun
+[info] 	   procPackage
+[info] 	   procRun
+[info] 	 * root
+[info] 	   server
+> project dslPackage
+> universal:packageZipTarball
+> ...
+> docker
+```
+
+This will create a docker image named `lightbend/ingestpackage:X.Y.Z` (for the current version `X.Y.Z`) with the default settings. The name of the docker repository comes from the `organization` field in `build.sbt` and can be changed there for alternatives. If the repository name is changed, then the value of `$DOCKER_USERNAME` also needs to be changed in `nwintrusion/bin/utils.sh`. The version of the image comes from `<PROJECT_HOME>/version.sh`. Change there if you wish to deploy a different version.
+
+This will create a docker image named `lightbend/dslpackage:X.Y.Z` (for the current version `X.Y.Z`) with the default settings. The name of the docker repository comes from the `organization` field in `build.sbt` and can be changed there for alternatives. The version of the image comes from `<PROJECT_HOME>/version.sh`. Change there if you wish to deploy a different version.
+
+Once the docker image is created, you can push it to the repository at DockerHub.
+
+### Installing on DC/OS cluster
+
+The installation scripts are present in the `kstream/bin` folder. The script that you need to run is `app-install.sh` which takes a properties file as configuration. The default one is named `app-install.properties`.
 
 ```
 $ pwd
-<home directory>/fdp-package-sample-apps
-$ cd bin/kstream
+.../kstream/bin
 $ ./app-install.sh --help
   Installs the Kafka Streams sample application. Assumes DC/OS authentication was successful
   using the DC/OS CLI.
@@ -128,34 +153,21 @@ This will install both the modules as applications running under Marathon in the
 The script `app-install.sh` takes all configuration parameters from a properties file.  The default file is `app-install.properties` which resides in the same directory, but you can specify the file with the `--config-file` argument.  It is recommended that you keep a set of configuration files for personal development, testing, and production.  Simply copy the default file over and modify as needed.
 
 ```
-## dcos kafka package - valid values : confluent-kafka | kafka
+## dcos kafka package 
 kafka-dcos-package=kafka
 
 ## dcos service name. beta-kafka is installed as kafka by default. default is value of kafka-dcos-package
 kafka-dcos-service-name=kafka
 
 ## whether to skip creation of kafka topics - valid values : true | false
-skip-create-topics=false
+skip-create-topics=true
 
-## kafka topic partition
+## kafka topic partition : default 1
 kafka-topic-partitions=2
 
-## kafka topic replication factor
+## kafka topic replication factor : default 1
 kafka-topic-replication-factor=2
-
-## laboratory mesos deployment
-laboratory-mesos-path=http://fdp-apps-lab.marathon.mesos
 ```
-
-> The installation process fetches the data required from the canned docker image in `fdp-apps-lab`.
-
-Once the installation is complete, the required services should be seen available on the DC/OS console. One Marathon service will be up named `kstream-app-dsl` and the other one will be named `kstream-app-proc`.
-
-> *Besides installing from the supplied docker image, the distribution also publishes the development environment and the associated installation scripts in `fdp-sample-apps/kstream/bin` folder. The prerequisite of using these scripts is to have a developer version of the laboratory available as part of your cluster. This will be available in a future version of the platform.*
-
-### Starting the data ingestion process
-
-Once the applications are installed as Marathon services, data ingestion will start within some time. Data is ingested from a folder named `data` within the Mesos Sandbox (`$MESOS_SANDBOX/data`). The application starts the first time ingestion automatically within 1 minute of the installation. *If you want to restart the ingestion process then you need to touch the data file within the folder*.
 
 ## Removing the Applications
 
@@ -212,7 +224,7 @@ This reports `true` if the host `world.std.com` has been seen in the ingested da
 > **Note:** In the above `curl` command, the host IP specified has to be one that's accessible from outside the cluster. In case you are not within a VPN, you may need to use a public IP address. Also the ports need to be opened up in the AWS console (if you are running on AWS).
 
 
-> **Note:** When deployed on the cluster, Marathon assigns random free ports to both the applications. Check the log file (`kstream-dsl.log` or `kstream-proc.log`) for the assigned port number. The log files can be found from the Mesos console by clicking into the Mesos Task corresponding to the application. Go to `http://<Master URL>/mesos` and click on the appropriate task's Sandbox link. Move to the `logs` folder and look for the pattern **REST endpoint at http://0.0.0.0:25961** in the `kstream-*.log` file. In this example, `25961` is the assigned port number.
+> **Note:** When deployed on the cluster, Marathon assigns random free ports to both the applications. The actual connection end -points can be found on the DC/OS UI for the corresponding task of the Marathon service. Check out the entry for *Endpoints* under *Configuration* in the *Details* tab of the task.
 
 ## Running in Distributed mode
 

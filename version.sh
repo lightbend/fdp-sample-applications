@@ -1,2 +1,2 @@
-: ${VERSION:=1.2.0-RC1}
+: ${VERSION:=1.2.0}
 export VERSION

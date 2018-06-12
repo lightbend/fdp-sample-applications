@@ -23,17 +23,20 @@ import http.{ WeblogDSLHttpService, SummaryInfoFetcher }
 import models.{LogParseUtil, LogRecord}
 
 import org.apache.kafka.clients.consumer.ConsumerConfig
-import org.apache.kafka.common.serialization.Serdes
+import org.apache.kafka.common.serialization.{ Serdes, Serde }
 import org.apache.kafka.common.utils.Bytes
 import org.apache.kafka.streams.kstream._
 import org.apache.kafka.streams.{ StreamsBuilder, Consumed }
 import org.apache.kafka.streams.state.{ HostInfo, KeyValueStore, WindowStore }
 import org.apache.kafka.streams.{KafkaStreams, KeyValue, StreamsConfig}
 
-import com.lightbend.kafka.scala.streams._
 
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
+
+import com.lightbend.kafka.scala.streams._
+import ImplicitConversions._
+import DefaultSerdes._
 
 object WeblogProcessing extends WeblogWorkflow {
 
@@ -78,6 +81,7 @@ object WeblogProcessing extends WeblogWorkflow {
   }
 
   override def createStreams(config: ConfigData): KafkaStreams = {
+
     // Kafka stream configuration
     val streamingConfig = {
       val settings = new Properties
@@ -87,9 +91,6 @@ object WeblogProcessing extends WeblogWorkflow {
       config.schemaRegistryUrl.foreach{ url =>
         settings.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, url)
       }
-
-      settings.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.ByteArray.getClass.getName)
-      settings.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String.getClass.getName)
 
       // setting offset reset to earliest so that we can re-run the demo code with the same pre-loaded data
       // Note: To re-run the demo, you need to use the offset reset tool:
@@ -118,8 +119,8 @@ object WeblogProcessing extends WeblogWorkflow {
 
     //
     // assumption : the topic contains serialized records of LogRecord (serialized through logRecordSerde)
-    val logRecords = 
-      builder.stream(List(config.toTopic), Consumed.`with`(byteArraySerde, logRecordSerde))
+
+    val logRecords: KStreamS[Array[Byte], LogRecord] = builder.stream(config.toTopic) 
 
     generateAvro(logRecords, config)
     hostCountSummary(logRecords, config)
@@ -134,7 +135,11 @@ object WeblogProcessing extends WeblogWorkflow {
   def generateLogRecords(config: ConfigData)(implicit builder: StreamsBuilderS): Unit = {
 
     // will read network data from `fromTopic`
-    val logs = builder.stream[Array[Byte], String](config.fromTopic)
+    // implicit val baserde: Serde[Array[Byte]] = DefaultSerdes.byteArraySerde
+    // implicit val sserde: Serde[String] = DefaultSerdes.stringSerde
+
+    import DefaultSerdes._
+    val logs: KStreamS[Array[Byte], String] = builder.stream[Array[Byte], String](config.fromTopic)
 
     def predicateValid: (Array[Byte], Extracted) => Boolean = { (_, value) =>
       value match {
@@ -162,7 +167,7 @@ object WeblogProcessing extends WeblogWorkflow {
     filtered(0).mapValues {
       case ValidLogRecord(r) => r
       case _ => ??? // should never happen since we pre-emptively filtered with `branch`
-    }.to(config.toTopic, Produced.`with`(byteArraySerde, logRecordSerde))
+    }.to(config.toTopic) 
 
     // push the extraction errors
     filtered(1).mapValues {
@@ -170,7 +175,7 @@ object WeblogProcessing extends WeblogWorkflow {
         val writer = new StringWriter()
         (writer.toString, v)
       case _ => ??? // should never happen since we pre-emptively filtered with `branch`
-    }.to(config.errorTopic, Produced.`with`(byteArraySerde, tuple2StringSerde))
+    }.to(config.errorTopic) 
   }
 
   sealed abstract class Extracted { }
@@ -178,8 +183,8 @@ object WeblogProcessing extends WeblogWorkflow {
   final case class ValueError(exception: Throwable, originalRecord: String) extends Extracted
 
   def generateAvro(logRecords: KStreamS[Array[Byte], LogRecord], config: ConfigData): Unit = {
-    logRecords.mapValues(makeAvro)
-      .to(config.avroTopic, Produced.`with`(byteArraySerde, logRecordAvroSerde(config.schemaRegistryUrl)))
+    implicit val as = logRecordAvroSerde(config.schemaRegistryUrl)
+    logRecords.mapValues(makeAvro).to(config.avroTopic)
   }
 
   /**
@@ -213,14 +218,14 @@ object WeblogProcessing extends WeblogWorkflow {
     //
     // materialize the summarized information into a topic
     groupedStream.count(ACCESS_COUNT_PER_HOST_STORE, Some(stringSerde))
-      .toStream.to(config.summaryAccessTopic, Produced.`with`(stringSerde, longSerde))
+      .toStream.to(config.summaryAccessTopic) 
 
     groupedStream.windowedBy(TimeWindows.of(60000))
       .count(WINDOWED_ACCESS_COUNT_PER_HOST_STORE, Some(stringSerde))
-      .toStream.to(config.windowedSummaryAccessTopic, Produced.`with`(windowedStringSerde, longSerde))
+      .toStream.to(config.windowedSummaryAccessTopic)
 
     // print the topic info (for debugging)
-    builder.stream(List(config.summaryAccessTopic), Consumed.`with`(stringSerde, longSerde))
+    builder.stream[String, Long](config.summaryAccessTopic) // , Consumed.`with`(stringSerde, longSerde))
       .print(Printed.toSysOut[String, Long].withKeyValueMapper { new KeyValueMapper[String, Long, String]() {
         def apply(key: String, value: Long) = s"""$key / $value"""
       }})
@@ -244,7 +249,7 @@ object WeblogProcessing extends WeblogWorkflow {
           .withKeySerde(stringSerde)
           .withValueSerde(longSerde)
       )
-      .toStream.to(config.summaryPayloadTopic, Produced.`with`(stringSerde, longSerde))
+      .toStream.to(config.summaryPayloadTopic)
 
     groupedStream
       .windowedBy(TimeWindows.of(60000))
@@ -255,9 +260,9 @@ object WeblogProcessing extends WeblogWorkflow {
           .withKeySerde(stringSerde)
           .withValueSerde(longSerde)
       )
-      .toStream.to(config.windowedSummaryPayloadTopic, Produced.`with`(windowedStringSerde, longSerde))
+      .toStream.to(config.windowedSummaryPayloadTopic) 
 
-    builder.stream(List(config.summaryPayloadTopic), Consumed.`with`(stringSerde, longSerde))
+    builder.stream[String, Long](config.summaryPayloadTopic)
       .print(Printed.toSysOut[String, Long].withKeyValueMapper { new KeyValueMapper[String, Long, String]() {
         def apply(key: String, value: Long) = s"""$key / $value"""
       }})

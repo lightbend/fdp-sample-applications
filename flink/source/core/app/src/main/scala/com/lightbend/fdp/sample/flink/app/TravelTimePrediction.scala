@@ -92,6 +92,7 @@ object TravelTimePrediction {
 
     // run the prediction pipeline
     env.execute("Travel Time Prediction")
+    ()
   }
 }
 

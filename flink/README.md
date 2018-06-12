@@ -16,72 +16,177 @@ The main components of running the Flink sample application are:
 1. Deploy the data ingestion module as a Marathon app which will pull data from an S3 bucket and load it into a Kafka topic (`taxiin`)
 2. Deploy travel time prediction application as a Marathon app which will predict the travel time after training from the classifier and write the output into a Kafka topic (`taxiout`)
 
-## Installing the application
+## Running the applications Locally
 
-The installation of the application is done using the laboratory process running under Marathon. The installation will deploy the generated artifacts to the laboratory and use them to run the application as a Marathon service.
+All the applications can be run locally or on the DC/OS cluster using Marathon or Kubernetes.
 
-> Please ensure an appropriate instance of the laboratory is running in the cluster. In the following we assume that the laboratory instance is named `fdp-apps-lab`.
+`sbt` will be used to run applications on your local machine. The following examples demonstrate how to run the individual components from the `sbt` console.
 
-Start by using the `bin` scripts. Using the default options and assuming the DC/OS CLI is on your local machine, run these commands:
+### Running the Data Ingestion application
 
-```bash
-$ cd bin
-$ ./app-install.sh # Install and run the application components.
+```
+$ sbt
+> projects
+[info] In file:/Users/bucktrends/lightbend/fdp-sample-apps/flink/source/core/
+[info] 	   ingestRun
+[info] 	   ingestTaxiRidePackage
+[info] 	 * root
+[info] 	   taxiRideApp
+> project ingestRun
+> ingest
+```
 
-## install components separately
+This will run the data ingestion and transformation application on the local machine. Before running the application, please ensure the configuration files are set up appropriately for the local environment. Here's the default setup of `application.conf` within the `ingestion` folder of the project:
+
+```
+dcos {
+
+  kafka {
+    brokers = "localhost:9092,localhost:9093,localhost:9094"
+    brokers = ${?KAFKA_BROKERS}
+
+    group = "group"
+    group = ${?KAFKA_GROUP}
+
+    intopic = "taxiin"
+    intopic = ${?KAFKA_IN_TOPIC}
+
+    outtopic = "taxiout"
+    outtopic = ${?KAFKA_OUT_TOPIC}
+
+    zookeeper = "localhost:2181"
+    zookeeper = ${?ZOOKEEPER_URL}
+
+    ## settings for data ingestion
+    loader {
+      sourcetopic = ${dcos.kafka.intopic}
+      sourcetopic = ${?KAFKA_IN_TOPIC}
+
+      directorytowatch = "/Users/bucktrends/data"
+      directorytowatch = ${?DIRECTORY_TO_WATCH}
+
+      pollinterval = 1 second
+    }
+  }
+}
+```
+
+All values can be set through environment variables as well. This is done when we deploy to the DC/OS cluster. For local running just change the settings to the values of your local environment.
+
+### Running Taxi Ride application
+
+```
+$ sbt
+> projects
+[info] In file:/Users/bucktrends/lightbend/fdp-sample-apps/flink/source/core/
+[info] 	   ingestRun
+[info] 	   ingestTaxiRidePackage
+[info] 	 * root
+[info] 	   taxiRideApp
+> project taxiRideApp
+> run --broker-list localhost:9092 --inTopic taxiin --outTopic taxiOut
+```
+
+## Deploying and running on DC/OS cluster
+
+The first step in deploying the applications on DC/OS cluster is to prepare docker images of all the applications. This can be done from within sbt.
+
+### Prepare docker images
+
+In the `flink/source/core/` directory:
+
+```
+$ sbt
+> projects
+[info] 	   ingestRun
+[info] 	   ingestTaxiRidePackage
+[info] 	 * root
+[info] 	   taxiRideApp
+> project ingestTaxiRidePackage
+> universal:packageZipTarball
+> ...
+> docker
+```
+
+This will create a docker image named `lightbend/ingesttaxiridepackage:X.Y.Z` (for the current version `X.Y.Z`) with the default settings. The name of the docker user comes from the `organization` field in `build.sbt` and can be changed there for alternatives. If the user name is changed, then the value of `$DOCKER_USERNAME` also needs to be changed in `flink/bin/app-install.sh`. The version of the image comes from `<PROJECT_HOME>/version.sh`. Change there if you wish to deploy a different version.
+
+Once the docker image is created, you can push it to the repository at DockerHub.
+
+Similarly we can prepare the docker image for the Taxi Ride Flink application. 
+
+```
+$ sbt
+> projects
+[info] 	   ingestRun
+[info] 	   ingestTaxiRidePackage
+[info] 	 * root
+[info] 	   taxiRideApp
+> project taxiRideApp
+> docker
+```
+
+> **One version of all applications will already be in lightbend Dockerhub as part of the platform release**
+
+### Installing on DC/OS cluster
+
+The installation scripts are present in the `flink/bin` folder. The script that you need to run is `app-install.sh` which takes a properties file as configuration. The default one is named `app-install.properties`.
+
+```
+$ pwd
+.../flink/bin
+$ ./app-install.sh --help
+  Installs the NYC Taxi Ride sample app. Assumes DC/OS authentication was successful
+  using the DC/OS CLI.
+
+  Usage: app-install.sh   [options] 
+
+  eg: ./app-install.sh 
+
+  Options:
+  --config-file               Configuration file used to lauch applications
+                              Default: ./app-install.properties
+  --start-none                Run no app, but set up the tools and data files.
+  --start-only X              Only start the following apps:
+                                ingestion      Performs data ingestion & transformation
+                                app            Deploys the taxi travel time prediction app
+                              Repeat the option to run more than one.
+                              Default: runs all of them. See also --start-none.
+  -n | --no-exec              Do not actually run commands, just print them (for debugging).
+  -h | --help                 Prints this message.
 $ ./app-install.sh --start-only ingestion --start-only app
 ```
 
-Try the `--help` option for `app-install.sh` for command-line options.
+This will start all 2 applications at once. In case you feel like, you can start them separately, especially if you are low on the cluster resource.
 
-The script `app-install.sh` takes all configuration parameters from a properties file.  The default file is `app-install.properties` which resides in the same directory, but you can specify the file with the `--config-file` argument.  It is recommended that you keep a set of configuration files for personal development, testing, and production.  Simply copy the default file over and modify as needed.
+**Here are a few points that you need to keep in mind before starting the applications on your cluster:**
+
+1. Need to have done dcos authentication beforehand. Run `dcos auth login`.
+2. Need to have the cluster attached. Run `dcos cluster attach <cluster name>`.
+3. Need to have Kafka and Flink running on the cluster.
+
+Here's the default version of the configuration file that the installer uses:
 
 ```
-## dcos kafka package - valid values : confluent-kafka | kafka
+## dcos kafka package
 kafka-dcos-package=kafka
 
 ## dcos service name. beta-kafka is installed as kafka by default. default is value of kafka-dcos-package
 kafka-dcos-service-name=kafka
 
 ## whether to skip creation of kafka topics - valid values : true | false
-skip-create-topics=false
+skip-create-topics=true
 
-## kafka topic partition
+## kafka topic partition : default 1
 kafka-topic-partitions=2
 
-## kafka topic replication factor
+## kafka topic replication factor : default 1
 kafka-topic-replication-factor=2
 
-## name of the user used to publish the artifact.  Typically 'publisher'
-publish-user="publisher"
-
-## the IP address of the publish machine (where laboratory is running)
-publish-host="fdp-apps-lab.marathon.mesos"
-
-## port for the SSH connection. The default configuration is 9022
-ssh-port=9022
-
-## passphrase for your SSH key. Remove this entry if you don't need a passphrase
-passphrase=
-
-## the key file in ~/.ssh/ that is to be used to connect to the deployment host
-ssh-keyfile="dg-test-fdp.pem"
-
-## laboratory mesos deployment
-laboratory-mesos-path=http://fdp-apps-lab.marathon.mesos
+## security mode in cluster - valid values : strict | permissive | none
+security-mode=permissive
 ```
 
-> The installation process fetches the data required from a pre-configured S3 bucket `fdp-sample-apps-artifacts`.
-
-Once the installation is complete, both the Marathon applications  should be seen running on the DC/OS console.
-
-## Running the application
-
-Once the required services are up, data ingestion starts within 1 minute. This is taken care of by a scheduler which schedules this ingestion process the first time. In case you need to do more ingestion, you can kickstart the pipeline by touching the data file already downloaded in the Mesos sandbox area. Do an `ssh` into the node that runs the `nyctaxi-load-data`, go to the Mesos sandbox area, the path of which can be found if you click on the running process from the Mesos Console (http://<mesos-master>/mesos) and touch the data file. Simply do a `touch <filename>` (you may need to sudo for this) and the whole pipeline should start running.
-
-Data ingested from data file -> Write to topic `taxiin` -> `nyctaxi-app` does the travel time computation and writes into topic `taxiout`.
-
-## Removing the application
+## Removing the application from DC/OS
 
 Just run `./app-remove.sh`.
 
@@ -90,9 +195,3 @@ It also has a `--help` option to show available command-line options. For exampl
 ## Output of running the application
 
 The computation results for travel time prediction appears in the Kafka topic `taxiout`. You can run a consumer and check the predicted times as they flow across during processing of the application.
-
-## A note about versioning
-
-Don't put a `version := ...` setting in your sub-project because versioning is completely
-controlled by [`sbt-dynver`](https://github.com/dwijnand/sbt-dynver) and enforced by the `Enforcer` plugin found in the `build-plugin`
-directory.

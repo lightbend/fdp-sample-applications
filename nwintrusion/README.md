@@ -175,7 +175,7 @@ $ sbt
 > docker
 ```
 
-This will create a docker image named `lightbend/ingestpackage:X.Y.Z` (for the current version `X.Y.Z`) with the default settings. In order to change the repository name or the version, you need to change `$DOCKER_REPOSITORY` in `nwintrusion/bin/utils.sh` and `$VERSION` in `<PROJECT_HOME>/version.sh`.
+This will create a docker image named `lightbend/ingestpackage:X.Y.Z` (for the current version `X.Y.Z`) with the default settings. The name of the docker user comes from the `organization` field in `build.sbt` and can be changed there for alternatives. If the user name is changed, then the value of `$DOCKER_USERNAME` also needs to be changed in `nwintrusion/bin/utils.sh`. The version of the image comes from `<PROJECT_HOME>/version.sh`. Change there if you wish to deploy a different version.
 
 Once the docker image is created, you can push it to the repository at DockerHub.
 
@@ -260,7 +260,7 @@ This will start all 3 applications at once. In case you feel like, you can start
 **Here are a few points that you need to keep in mind before starting the applications on your cluster:**
 
 1. Need to have done dcos authentication beforehand. Run `dcos auth login`.
-2. Need to have the cluster attached. Run `dcos clsuter attach <cluster name>`.
+2. Need to have the cluster attached. Run `dcos cluster attach <cluster name>`.
 3. Need to have Kafka, Spark, InfluxDB and Grafana running on the cluster.
 
 Here's the default version of the configuration file that the installer uses:
@@ -281,6 +281,7 @@ kafka-topic-partitions=1
 ## kafka topic replication factor : default 1
 kafka-topic-replication-factor=1
 ```
+> **One version of all application images will already be in lightbend Dockerhub as part of the platform release**
 
 ## Removing the application from DC/OS
 

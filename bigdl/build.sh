@@ -8,7 +8,7 @@ HERE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 # bats test/bin/*.bats
 
 cd ${HERE}/source/core
-sbt "set version in ThisBuild := \"$VERSION\"" clean test package
+sbt "set version in ThisBuild := \"$VERSION\"" clean cleanFiles bigdlSample/clean bigdlSample/docker bigdlSample/dockerPush
 
 # Use this one to verify that the version is set correctly!
 # sbt "set version in ThisBuild := \"$VERSION\"" "show version"

@@ -1,23 +1,45 @@
 import sbtassembly.MergeStrategy
-import NativePackagerHelper._
-import deployssh.DeploySSH._
 
-
-// version in ThisBuild := "0.1.0"
-
-allowSnapshot in ThisBuild := true
-
+// global settings for this build
 name in ThisBuild := "fdp-kstream"
-
+version in ThisBuild := "1.2.0"
 organization in ThisBuild := "lightbend"
-
 scalaVersion in ThisBuild := Versions.scalaVersion
 
 resolvers += "Confluent Maven" at "http://packages.confluent.io/maven/"
 
-def appProject(id: String)(base:String = id) = Project(id, base = file(base))
+// base project settings
+def projectBase(id: String)(base: String = id) = Project(id, base = file(base))
   .enablePlugins(JavaAppPackaging)
-  .enablePlugins(DeploySSH)
+  .settings(
+    fork in run := true
+  )
+
+// settings for a native-packager based docker project based on sbt-docker plugin
+def sbtdockerAppBase(id: String)(base: String = id) = projectBase(id)(base)
+  .enablePlugins(sbtdocker.DockerPlugin)
+  .settings(
+    dockerfile in docker := {
+      val appDir = stage.value
+      val targetDir = s"/$base"
+
+      new Dockerfile {
+        from("openjdk:8u151-jre")
+        entryPoint(s"$targetDir/bin/${executableScriptName.value}")
+        copy(appDir, targetDir)
+      }
+    },
+
+    // Set name for the image
+    imageNames in docker := Seq(
+      ImageName(namespace = Some(organization.value),
+        repository = name.value.toLowerCase,
+        tag = Some(version.value))
+    ),
+
+    buildOptions in docker := BuildOptions(cache = false)
+  )
+
 
 // standalone run of the dsl example application
 lazy val dslRun = (project in file("./example-dsl"))
@@ -37,19 +59,14 @@ lazy val dslRun = (project in file("./example-dsl"))
   .dependsOn(server)
 
 // packaged run of the dsl example application
-lazy val dslPackage = appProject("dslPackage")("build/dsl")
+lazy val dslPackage = sbtdockerAppBase("dslPackage")("build/dsl")
   .settings(
-    scalaVersion := Versions.scalaVersion,
     resourceDirectory in Compile := (resourceDirectory in (dslRun, Compile)).value,
     mappings in Universal ++= {
       Seq(((resourceDirectory in Compile).value / "application-dsl.conf") -> "conf/application.conf") ++
         Seq(((resourceDirectory in Compile).value / "logback-dsl.xml") -> "conf/logback.xml") ++
         Seq(((resourceDirectory in Compile).value / "log4j.properties") -> "conf/log4j.properties")
     },
-    deployResourceConfigFiles ++= Seq("deploy.conf"),
-    deployArtifacts ++= Seq(
-      ArtifactSSH((packageZipTarball in Universal).value, "/var/www/html/")
-    ),
     assemblyMergeStrategy in assembly := {
       case PathList("application-dsl.conf") => MergeStrategy.discard
       case PathList("logback-dsl.xml") => MergeStrategy.discard
@@ -83,7 +100,7 @@ lazy val procRun = (project in file("./example-proc"))
   .dependsOn(server)
 
 // packaged run of the proc example application
-lazy val procPackage = appProject("procPackage")("build/proc")
+lazy val procPackage = sbtdockerAppBase("procPackage")("build/proc")
   .settings(
     scalaVersion := Versions.scalaVersion,
     resourceDirectory in Compile := (resourceDirectory in (procRun, Compile)).value,
@@ -92,10 +109,6 @@ lazy val procPackage = appProject("procPackage")("build/proc")
         Seq(((resourceDirectory in Compile).value / "logback-proc.xml") -> "conf/logback.xml") ++
         Seq(((resourceDirectory in Compile).value / "log4j.properties") -> "conf/log4j.properties")
     },
-    deployResourceConfigFiles ++= Seq("deploy.conf"),
-    deployArtifacts ++= Seq(
-      ArtifactSSH((packageZipTarball in Universal).value, "/var/www/html/")
-    ),
     assemblyMergeStrategy in assembly := {
       case PathList("application-proc.conf") => MergeStrategy.discard
       case PathList("logback-proc.xml") => MergeStrategy.discard

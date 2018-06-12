@@ -1,6 +1,6 @@
 {
   "id": "/kstream-app-proc-1",
-  "cmd": "export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && ./{VERSIONED_PROC_PROJECT_NAME}/bin/procpackage",
+  "cmd": "./build/proc/bin/procpackage",
   "env": {
     "INTERFACE_PROC": "0.0.0.0",
     "KAFKA_BROKERS": {KAFKA_BROKERS},
@@ -14,11 +14,27 @@
   "constraints": [["hostname", "UNIQUE"]],
   "cpus": 1.0,
   "mem": 8192,
+  "container": {
+    "portMappings": [],
+    "type": "DOCKER",
+    "docker": {
+      "image": "lightbend/procpackage:1.2.0",
+      "forcePullImage": true,
+      "privileged": false,
+      "parameters": []
+    },
+    "volumes": [
+      {
+        "containerPath": "/mnt/data",
+        "hostPath": "/mnt/sandbox/data",
+        "mode": "RW"
+      }
+    ]
+  },
   "disk": 20480,
   "instances": 1,
   "fetch": [
-    { "uri": "https://downloads.mesosphere.com/java/jre-8u112-linux-x64.tar.gz" },
-    { "uri": {PROC_PACKAGE_ON_MESOS} }
+    { "uri": "https://downloads.mesosphere.com/java/jre-8u112-linux-x64.tar.gz" }
   ]
 }
 

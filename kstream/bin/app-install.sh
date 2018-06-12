@@ -10,15 +10,10 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 ## project root directory
 PROJ_ROOT_DIR="$( cd "$DIR/../source/core" && pwd -P )"
 
-## deploy.conf full path
-DEPLOY_CONF_FILE="$PROJ_ROOT_DIR/deploy.conf"
-
 . "$DIR/../../version.sh"
 . "$DIR/../../bin/common.sh"
 
 ZOOKEEPER_PORT=2181
-VERSIONED_DSL_PACKAGE_NAME=
-VERSIONED_PROC_PACKAGE_NAME=
 APP_METADATA_FILE_DSL="$DIR/app.metadata.dsl.json"
 APP_METADATA_FILE_PROC="$DIR/app.metadata.proc.json"
 
@@ -227,36 +222,6 @@ keyval() {
         SKIP_CREATE_TOPICS=$value
       fi
 
-      if [ "$key" == "publish-user" ]
-      then
-        PUBLISH_USER=$value
-      fi
-
-      if [ "$key" == "publish-host" ]
-      then
-        PUBLISH_HOST=$value
-      fi
-
-      if [ "$key" == "ssh-port" ]
-      then
-        SSH_PORT=$value
-      fi
-
-      if [ "$key" == "passphrase" ]
-      then
-        SSH_PASSPHRASE=$value
-      fi
-
-      if [ "$key" == "ssh-keyfile" ]
-      then
-        SSH_KEYFILE=$value
-      fi
-
-      if [ "$key" == "laboratory-mesos-path" ]
-      then
-        LABORATORY_MESOS_PATH=$value
-      fi
-
     done < "$filename"
 
     if [ -z "${KAFKA_DCOS_PACKAGE// }" ]
@@ -279,16 +244,7 @@ keyval() {
     then
       SKIP_CREATE_TOPICS=false
     fi
-    if [ -z "${PUBLISH_USER// }" ]
-    then
-      PUBLISH_USER="publisher"
-    fi
 
-
-    exit_if_not_defined_or_empty "$PUBLISH_HOST" "publish-host"
-    exit_if_not_defined_or_empty "$SSH_PORT" "ssh-port"
-    exit_if_not_defined_or_empty "$SSH_KEYFILE" "ssh-keyfile"
-    exit_if_not_defined_or_empty "$LABORATORY_MESOS_PATH" "laboratory-mesos-path"
     set_schema_registry_url
 
   else
@@ -320,76 +276,6 @@ function exit_if_not_defined_or_empty() {
   fi
 }
 
-function generate_deploy_conf {
-declare DEPLOY_CONF_DATA=$(cat <<EOF
-{
-  servers = [
-   {
-    name = "fdp-kstream-dsl"
-    user = $PUBLISH_USER
-    host = $PUBLISH_HOST
-    port = $SSH_PORT
-    sshKeyFile = $SSH_KEYFILE
-   },
-   {
-    name = "fdp-kstream-proc"
-    user = $PUBLISH_USER
-    host = $PUBLISH_HOST
-    port = $SSH_PORT
-    sshKeyFile = $SSH_KEYFILE
-   }
-  ]
-}
-EOF
-)
-  if [[ -z $NOEXEC ]]
-  then
-    echo "$DEPLOY_CONF_DATA" > "$DEPLOY_CONF_FILE"
-  else
-    $NOEXEC "$DEPLOY_CONF_DATA > $DEPLOY_CONF_FILE"
-  fi
-}
-
-function build_app {
-  $NOEXEC cd "$PROJ_ROOT_DIR"
-
-  if [ -n "$run_dsl" ]
-  then
-    $NOEXEC rm -rf build/dsl
-
-    $NOEXEC sbt clean "dslPackage/deploySsh fdp-kstream-dsl"
-
-    if [[ -z $NOEXEC ]]
-    then
-      DSL_TGZ_NAME=$( ls "$PROJ_ROOT_DIR"/build/dsl/target/universal/*.tgz )
-      VERSIONED_DSL_PACKAGE_NAME=$( basename "$DSL_TGZ_NAME" )
-
-      VERSION=$(echo ${VERSIONED_DSL_PACKAGE_NAME%.*} | cut -d- -f2-)
-
-      VERSIONED_DSL_PROJECT_NAME="dslpackage-$VERSION"
-      DSL_PACKAGE_ON_MESOS="$LABORATORY_MESOS_PATH"/"$VERSIONED_DSL_PACKAGE_NAME"
-    fi
-  fi
-
-  if [ -n "$run_proc" ]
-  then
-    $NOEXEC rm -rf build/proc
-
-    $NOEXEC sbt clean "procPackage/deploySsh fdp-kstream-proc"
-
-    if [[ -z $NOEXEC ]]
-    then
-      PROC_TGZ_NAME=$( ls "$PROJ_ROOT_DIR"/build/proc/target/universal/*.tgz )
-      VERSIONED_PROC_PACKAGE_NAME=$( basename "$PROC_TGZ_NAME" )
-
-      VERSION=$(echo ${VERSIONED_PROC_PACKAGE_NAME%.*} | cut -d- -f2-)
-
-      VERSIONED_PROC_PROJECT_NAME="procpackage-$VERSION"
-      PROC_PACKAGE_ON_MESOS="$LABORATORY_MESOS_PATH"/"$VERSIONED_PROC_PACKAGE_NAME"
-    fi
-  fi
-}
-
 function modify_dsl_json_template {
   $NOEXEC cp "$KSTREAM_DSL_JSON_TEMPLATE" "$KSTREAM_DSL_JSON"
 
@@ -404,7 +290,6 @@ function modify_dsl_json_template {
     "KAFKA_WINDOWED_SUMMARY_PAYLOAD_TOPIC_DSL"
     "KAFKA_ERROR_TOPIC_DSL"
     "SCHEMA_REGISTRY_URL"
-    "DSL_PACKAGE_ON_MESOS"
     )
 
   for elem in "${arr[@]}"
@@ -412,9 +297,6 @@ function modify_dsl_json_template {
     eval value="\$$elem"
     $NOEXEC sed -i -- "s~{$elem}~\"$value\"~g" "$KSTREAM_DSL_JSON"
   done
-
-  ## without quotes substitution
-  $NOEXEC sed -i -- "s~{VERSIONED_DSL_PROJECT_NAME}~$VERSIONED_DSL_PROJECT_NAME~g" $KSTREAM_DSL_JSON
 }
 
 function modify_proc_json_template {
@@ -424,7 +306,6 @@ function modify_proc_json_template {
     "KAFKA_BROKERS"
     "KAFKA_FROM_TOPIC_PROC"
     "KAFKA_ERROR_TOPIC_PROC"
-    "PROC_PACKAGE_ON_MESOS"
     )
 
   for elem in "${arr[@]}"
@@ -432,9 +313,6 @@ function modify_proc_json_template {
     eval value="\$$elem"
     $NOEXEC sed -i -- "s~{$elem}~\"${value//\"}\"~g" "$KSTREAM_PROC_JSON"
   done
-
-  ## without quotes substitution
-  $NOEXEC sed -i -- "s~{VERSIONED_PROC_PROJECT_NAME}~$VERSIONED_PROC_PROJECT_NAME~g" $KSTREAM_PROC_JSON
 }
 
 function load_marathon_job {
@@ -550,12 +428,6 @@ function main {
     fi
   fi
 
-  header Generating remote deployment information ..
-  generate_deploy_conf
-
-  header Building packages to be deployed ..
-  build_app
-
   header "Gathering Kafka connection information...\n"
   gather_kafka_connection_info
 
@@ -582,3 +454,4 @@ function main {
 
 main "$@"
 exit 0
+

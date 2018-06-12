@@ -92,17 +92,19 @@ $ sbt
 > dslPackage/universal:packageZipTarball
 ```
 
-This creates a distribution under a folder `<project home>/build`.
+This creates a distribution under a folder `<project home>/build`. 
+
+> In the following script, replace `X.Y.Z` with the actual version of the generated artifact, e.g. `1.2.0`.
 
 ```bash
 $ pwd
 <project home>
 $ cd build/dsl/target/universal
 $ ls
-dslpackage-0.0.1.tgz
+dslpackage-X.Y.Z.tgz
 ## unpack the distribution
-$ tar xvfz dslpackage-0.0.1.tgz
-$ cd dslpackage-0.0.1
+$ tar xvfz dslpackage-X.Y.Z.tgz
+$ cd dslpackage-X.Y.Z
 $ ls
 bin	   conf	lib
 $ cd conf
@@ -111,7 +113,7 @@ application.conf	logback.xml
 ## change the above 2 files based on your requirements.
 $ cd ..
 $ pwd
-<...>/dslpackage-0.0.1
+<...>/dslpackage-X.Y.Z
 ```
 
 ### Step 2: Run the first instance of the application
@@ -123,24 +125,24 @@ Ensure the following:
 
 ```bash
 $ pwd
-<...>/dslpackage-0.0.1
+<...>/dslpackage-X.Y.Z
 $ bin/dslpackage
 ```
 
 This starts the single instance of the application. After some time you will see data printed in the console regarding the host access information as present from the data file.
 
-In the log file, created under `<...>/dslpackage-0.0.1/logs`, check if the REST service has started and note the host and port details. It should be something like `localhost:7070` (the default setting in `application.conf`).
+In the log file, created under `<...>/dslpackage-X.Y.Z/logs`, check if the REST service has started and note the host and port details. It should be something like `localhost:7070` (the default setting in `application.conf`).
 
 ### Step 3: Run the second instance of the application
 
 If you decide to run multiple instances of the application you may choose to split the dataset into 2 parts and keep them in different folders. Also you need to copy the current distribution in some other folder and start the second instance from there, since you need to run it with changed settings in `application.conf`. Say we want to copy in a folder named `clarknet-2`.
 
 ```bash
-$ cp <project home>/build/dsl/target/universal/dslpackage-0.0.1.tgz clarknet-2
+$ cp <project home>/build/dsl/target/universal/dslpackage-X.Y.Z.tgz clarknet-2
 $ cd clarknet-2
-$ tar xvfz dslpackage-0.0.1.tgz
+$ tar xvfz dslpackage-X.Y.Z.tgz
 ## unpack the distribution
-$ cd dslpackage-0.0.1
+$ cd dslpackage-X.Y.Z
 $ ls
 bin	   conf	lib
 $ cd conf
@@ -149,7 +151,7 @@ application.conf	logback.xml
 ## change the above 2 files based on your requirements.
 $ cd ..
 $ pwd
-<...>/dslpackage-0.0.1
+<...>/dslpackage-X.Y.Z
 ```
 
 The following settings need to be changed in `application.conf` before you can run the second instance:
@@ -160,7 +162,7 @@ The following settings need to be changed in `application.conf` before you can r
 
 ```bash
 $ pwd
-<...>/dslpackage-0.0.1
+<...>/dslpackage-X.Y.Z
 $ bin/dslpackage
 ```
 

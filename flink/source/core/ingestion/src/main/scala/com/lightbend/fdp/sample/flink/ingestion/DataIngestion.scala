@@ -45,8 +45,9 @@ object DataIngestion extends LazyLogging with Serializers {
     // whenever we find new / changed files in the configured location, we run data loading
     registerForIngestion(config)
 
-    system.scheduler.scheduleOnce(1 minute) {
+    val _ = system.scheduler.scheduleOnce(1 minute) {
       Seq("/bin/sh", "-c", s"touch ${config.directoryToWatch}/*.csv").!
+      ()
     }
   }
 
