@@ -10,7 +10,7 @@ bats test/bin/*.bats
 cd ${HERE}/source/core
 for i in ingestTaxiRidePackage taxiRideApp
 do
-  sbt "set version in ThisBuild := \"$VERSION\"" "show version" $i/clean $i/docker
+  sbt "set version in ThisBuild := \"$VERSION\"" "show version" $i/clean $i/docker $i/dockerPush
 done
 
 # Use this one to verify that the version is set correctly!

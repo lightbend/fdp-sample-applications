@@ -11,7 +11,7 @@ echo "nwintrusion: VERSION = $VERSION"
 cd ${HERE}/source/core
 for i in ingestPackage anomalyDetection batchKMeans
 do
-  sbt "set version in ThisBuild := \"$VERSION\"" "show version" $i/clean $i/docker
+  sbt "set version in ThisBuild := \"$VERSION\"" "show version" $i/clean $i/docker $i/dockerPush
 done
 
 # Use this one to verify that the version is set correctly!
