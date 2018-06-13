@@ -58,7 +58,7 @@ def sbtdockerSparkAppBase(id: String)(base: String = id) = projectBase(id)(base)
       val artifactTargetPath = s"/opt/spark/dist/jars/${artifact.name}"
 
       new Dockerfile {
-        from ("mesosphere/spark:2.3.0-2.2.1-2-hadoop-2.6")
+        from ("lightbend/spark:2.3.1-2.2.1-2-hadoop-2.6.5-01")
         add(artifact, artifactTargetPath)
         runRaw("mkdir -p /etc/hadoop/conf")
         runRaw("export HADOOP_CONF_DIR=/etc/hadoop/conf")
