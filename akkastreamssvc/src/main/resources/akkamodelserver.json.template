@@ -2,7 +2,7 @@
   "id": "/akkamodelserver",
   "container": {
     "docker": {
-      "image": "lightbend/akkasvc:1.2.0",
+      "image": "lightbend/akkasvc:VERSION_FDP",
       "forcePull": true
     }
   },

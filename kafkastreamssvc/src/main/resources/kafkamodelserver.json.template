@@ -2,7 +2,7 @@
   "id": "/kafkamodelserver",
   "container": {
     "docker": {
-      "image": "lightbend/kafkasvc:1.2.0",
+      "image": "lightbend/kafkasvc:VERSION_FDP",
       "forcePull": true
     }
   },
