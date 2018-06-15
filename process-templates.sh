@@ -18,7 +18,7 @@ function process_templates {
     then
       echo "  Processing template: $t"
       file=${t%.template}
-      cat "$t" | sed -e "s/VERSION/$VERSION/g" > "$file"
+      cat "$t" | sed -e "s/FDP_VERSION/$VERSION/g" > "$file"
     fi
   done
 }

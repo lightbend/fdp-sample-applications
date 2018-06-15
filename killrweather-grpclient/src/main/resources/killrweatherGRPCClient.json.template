@@ -2,7 +2,7 @@
   "id": "/killrweathergrpcclient",
   "container": {
     "docker": {
-      "image": "lightbend/grpcclient:VERSION_FDP",
+      "image": "lightbend/grpcclient:FDP_VERSION",
       "forcePull": true,
     }
   },
