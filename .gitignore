@@ -129,6 +129,7 @@ hs_err_pid*
 
 #Ignore generated JSON files
 bin/*.json
-.DS_Store
 modelserverchart/.DS_Store
-
+akkastreamssvc/src/main/resources/akkamodelserver.json
+kafkastreamssvc/src/main/resources/kafkamodelserver.json
+publisher/src/main/resources/modelloader.json
