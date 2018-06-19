@@ -91,7 +91,7 @@ zip -r "$OUTPUT_FILE" "$OUTPUT_FILE_ROOT"
 
 rm -rf "$OUTPUT_FILE_ROOT"
 
-echo "$0: Building the sample apps and docker images: $ROOT_DIR/build.sh"
+echo "$0: Building the Killrweather sample apps and docker images: $ROOT_DIR/build.sh"
 
 $ROOT_DIR/build.sh $VERSION
 
