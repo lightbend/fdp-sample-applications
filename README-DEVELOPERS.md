@@ -1,6 +1,6 @@
 # KillrWeather - Developers
 
-These instructions describe how to build KillrWeather and deploy it yourself.
+These instructions describe how to build KillrWeather and deploy it yourself. To run the prebuilt images in Lightbend's DockerHub account, see the README.md for instructions.
 
 ## Build the code
 
@@ -265,6 +265,8 @@ You also need the data set. Copy the `data` directory recursively to `killrweath
 
 #### Run the Main Application with Marathon
 
+First read what README.md has to say about the JSON files and the templates used to create them.
+
 The JSON file used to configure the app is `KillrWeather-app/src/main/resource/KillrweatherApp.json`. First, edit this file and find the following line, then change the URL to set the correct server name or IP address:
 
 ```
@@ -276,7 +278,7 @@ Then find all occurrences in the file of `killrWeatherApp-assembly-VERSION` (at 
 Now run the app as a marathon job, use the following DC/OS CLI command:
 
 ```bash
-dcos marathon app add < killrweather-app/src/main/resource/killrweatherApp.json
+dcos marathon app add killrweather-app/src/main/resource/killrweatherApp.json
 ```
 
 (Note the redirection of input.)
@@ -294,13 +296,13 @@ Then find all occurrences in the file of `killrWeatherApp_structured-assembly-VE
 Now you can run the app:
 
 ```bash
-dcos marathon app add < killrweather-app_structured/src/main/resource/killrweatherApp_structured.json
+dcos marathon app add killrweather-app_structured/src/main/resource/killrweatherApp_structured.json
 ```
 
 ### Deploy the Clients
 
 In addition to the Kafka driver,
-the application provides two additional clients: 
+the application provides two additional clients:
 one for HTTP (`httpclient-VERSION`) and one for GRPC (`grpcclient-VERSION`). Deploying either one as a Marathon service allows it to be scaled easily (behind Marathon-LB) to increase scalability and fail over. Both archives were also deployed to the web server.
 
 The HTTP client uses the REST API on top of Kafka. First edit its config file, `./killrweather-httpclient/src/main/resources/killrweatherHTTPClient.json`. Change the server name/IP of the URL:
@@ -314,7 +316,7 @@ Also, find **both** occurrences of `httpclient-VERSION...` and change the versio
 Now deploy it to the cluster as a marathon service using the command:
 
 ```bash
-dcos marathon app add < ./killrweather-httpclient/src/main/resources/killrweatherHTTPClient.json
+dcos marathon app add ./killrweather-httpclient/src/main/resources/killrweatherHTTPClient.json
 ```
 
 Alternatively, the Google RPC client uses the Google RPC interface on top of Kafka. Edit its config file `./killrweather-grpcclient/src/main/resources/killrweatherGRPCClient.json` and change the archive URL and `VERSION` strings in **both** places, just as for the HTTP client.
@@ -322,6 +324,6 @@ Alternatively, the Google RPC client uses the Google RPC interface on top of Kaf
 Then it can be deployed on the cluster as a marathon service using the following command:
 
 ```bash
-dcos marathon app add < ./killrweather-grpcclient/src/main/resources/killrweatherGRPCClient.json
+dcos marathon app add ./killrweather-grpcclient/src/main/resources/killrweatherGRPCClient.json
 ```
 
