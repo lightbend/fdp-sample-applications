@@ -50,7 +50,7 @@ We can use the `sbt deploySsh ...` command, because `jim-lab` supports it:
 sbt 'deploySsh killrWeather'
 ```
 
-This will create the jars and copy them to the `jim-lab` image, directory `/var/www/html`. 
+This will create the jars and copy them to the `jim-lab` image, directory `/var/www/html`.
 If you want to run ingesters from `jim-lab` you will also have to manually copy up the contents of the `data` directory there using
 ````
 scp -P 9022 "local location" "remote location"
@@ -59,19 +59,24 @@ Note - if you only want to build artifacts locally without pushing them to the w
 ```bash
 sbt deploySsh
 ```
-which will create all of the artifacts locally without pushing them to cluster. 
+which will create all of the artifacts locally without pushing them to cluster.
 
 #### Run the Main Application with Marathon
 
-You should only need to set the correct `VERSION` string in `KillrWeather-app/src/main/resource/KillrweatherApp.json`. Then deploy using the DC/OS CLI command described in the other README.
+> **Note:** You'll need to modify the following JSON files to set the correct DockerHub account to your account.
+
+To deploy the main app, use the DC/OS CLI command described in the other README:
 
 ```bash
-dcos marathon app add < killrweather-app/src/main/resource/killrweatherApp.json
+dcos marathon app add killrweather-app/src/main/resource/killrweatherAppDocker.json
 ```
 
-You can also use the _Structured Streaming_ alternative, as described in the other README.
+You can also use the _Structured Streaming_ alternative:
+
+```bash
+dcos marathon app add killrweather-app/src/main/resource/killrweatherApp_structuredDocker.json
+```
 
 ### Deploy the Clients
 
-Similarly, you should only need to set the correct `VERSION` string in `./killrweather-httpclient/src/main/resources/killrweatherHTTPClient.json` and `./killrweather-grpcclient/src/main/resources/killrweatherGRPCClient.json`.
-
+The same instructions apply for the clients. See README.md for details. Modify the JSON files as needed.
