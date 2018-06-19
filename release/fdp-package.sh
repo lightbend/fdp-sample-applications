@@ -95,4 +95,4 @@ echo "$0: Building the Killrweather sample apps and docker images: $ROOT_DIR/bui
 
 $ROOT_DIR/build.sh $VERSION
 
-echo "$0: NOTE: Use the fdp-release project to PUBLISH the Docker images!"
+echo "$0: NOTE: If successful, new Docker images were pushed to DockerHub!"
