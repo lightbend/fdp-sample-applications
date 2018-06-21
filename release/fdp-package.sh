@@ -91,4 +91,4 @@ echo "$0: Building the sample apps and docker images: $ROOT_DIR/build.sh"
 
 $ROOT_DIR/build.sh $VERSION
 
-echo "$0: NOTE: Use the fdp-release project to PUBLISH the Docker images!"
+echo "$0: Finished. The Docker images should be in DockerHub!"
