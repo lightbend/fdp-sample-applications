@@ -34,14 +34,68 @@ In addition to Cassandra, the application also demonstrates integration with Inf
 
 The original [KillrWeather Wiki](https://github.com/killrweather/killrweather/wiki) is still a great source of information.
 
-## Using Applications
+## Using the Applications
 
 We foresee 2 groups of users:
 
-* Users that just want to see how application runs. For this type of users, see the `fdp-package-sample-apps-X.Y.Z.zip` archive that comes with the FDP distribution. It includes a set of scripts for loading a prebuilt Docker image with the compiled sample apps and required tools.
-* Users that want to use this project as a starting point for their own implementation.
-This users need to know how to build the project and run it locally and on the cluster.
-This information is provided in the companion file, `README-DEVELOPERS.md`.
+* Users who just want to see how application runs. We provide prebuilt Docker images.
+* Users who want to use this project as a starting point for their own applications, so they'll want to build the code themselves.
+
+## Building and configuring applications
+
+If you want to build the applications yourself, use the provided SBT build in the source distribution. It leverages the [SBT Docker plugin](https://github.com/marcuslonnberg/sbt-docker).
+It supports several commands:
+
+* `sbt docker` builds a docker image locally
+* `sbt dockerPush` pushes an image to the dockerHub
+* `sbt dockerBuildAndPush` builds image and pushes it to the dockerHub
+
+## Deploying The applications to FDP
+The following templates for deploying application to DC/OS are provided:
+
+* KillrWeather App: `killrweather-app/src/main/resources/killrweatherAppDocker.json.template`
+* KillrWeather App (Structured): `killrweather-app_structured/src/main/resources/killrweatherApp_structuredDocker.json.template`
+* GRPC Clicent: `./killrweather-grpclient/src/main/resources/killrweatherGRPCClientDocker.json.template`
+* HTTP Clicent: `./killrweather-grpclient/src/main/resources/killrweatherHTTPClientDocker.json.template`
+* Data Loader: `killrweather-loader/src/main/resources/killrweatherloaderDocker.json.template`
+
+If you are looking at this code as distributed with a Fast Data Platform release, you'll also have corresponding JSON files. The only difference is occurrences of the string `FDP_VERSION` has been replaced with the actual version string.
+
+If you are looking at the git repo itself, then run the following script to generate the JSON files from the templates, using an appropriate value for `VERSION`, e.g., `1.2.0`:
+
+```bash
+./process-templates.sh VERSION
+```
+
+Now you can deploy these apps to Fast Data Platform, starting with the loader:
+
+```bash
+dcos marathon app add killrweather-loader/src/main/resources/killrweatherloaderDocker.json
+```
+
+Then pick a client, either,
+
+```bash
+dcos marathon app add killrweather-grpclient/src/main/resources/killrweatherGRPCClientDocker.json.template
+```
+
+or
+
+```bash
+dcos marathon app add killrweather-grpclient/src/main/resources/killrweatherHTTPClientDocker.json.template
+```
+
+Finally, run one of the apps, either,
+
+```bash
+dcos marathon app add killrweather-app/src/main/resources/killrweatherAppDocker.json
+```
+
+or
+
+```bash
+dcos marathon app add killrweather-app/src/main/resources/killrweatherApp_structuredDocker.json
+```
 
 ## See What's Going On...
 

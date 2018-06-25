@@ -30,5 +30,10 @@ release/staging
 
 # These files are generated from corresponding template files:
 killrweather-app/src/main/resources/killrweatherAppDocker.json
+killrweather-app_structured/src/main/resources/killrweatherApp_structuredDocker.json
+killrweather-grpclient/src/main/resources/killrweatherGRPCClientDocker.json
+killrweather-httpclient/src/main/resources/killrweatherHTTPClientDocker.json
+killrweather-loader/src/main/resources/killrweatherloaderDocker.json
+
 killrweather.yaml
 loaderinstall.yaml
