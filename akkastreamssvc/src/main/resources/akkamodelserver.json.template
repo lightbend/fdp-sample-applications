@@ -2,7 +2,7 @@
   "id": "/akkamodelserver",
   "container": {
     "docker": {
-      "image": "lightbend/akkasvc:FDP_VERSION",
+      "image": "lightbend/fdp-akka-kafka-streams-model-server-akka-streams-server:FDP_VERSION",
       "forcePull": true
     }
   },
