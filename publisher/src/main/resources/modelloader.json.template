@@ -10,7 +10,7 @@
       },
       "image": {
         "kind": "DOCKER",
-        "id": "lightbend/publisher:VERSION_FDP",
+        "id": "lightbend/publisher:FDP_VERSION",
         "forcePull": true
       },
       "volumeMounts": [
