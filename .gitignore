@@ -29,3 +29,6 @@ release/staging/
 deploy.conf
 kstream/source/core/example-dsl/tmp/
 kstream/source/core/example-proc/tmp/
+nwintrusion/bin/helmcharts/anomalychart/values.yaml
+nwintrusion/bin/helmcharts/batchkmeanschart/values.yaml
+nwintrusion/bin/helmcharts/transformchart/values.yaml

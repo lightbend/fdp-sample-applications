@@ -78,8 +78,10 @@ zip -r ${OUTPUT_FILE} ${OUTPUT_FILE_ROOT}
 
 rm -rf ${OUTPUT_FILE_ROOT}
 
-echo "$0: Building the sample apps and docker images: $ROOT_DIR/build.sh"
+echo "$0: Process templates for config files to set the version string:"
+$ROOT_DIR/process-templates.sh $VERSION
 
+echo "$0: Build the sample apps and docker images: $ROOT_DIR/build.sh"
 $ROOT_DIR/build.sh $VERSION
 
 echo "$PWD: $0: NOTE: The Docker images should have been published to DockerHub!"
