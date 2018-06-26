@@ -7,7 +7,7 @@
     "portMappings": [],
     "type": "DOCKER",
     "docker": {
-      "image": "lightbend/ingestpackage:1.2.0",
+      "image": "lightbend/ingestpackage:{VERSION}",
       "forcePullImage": true,
       "privileged": false,
       "parameters": []

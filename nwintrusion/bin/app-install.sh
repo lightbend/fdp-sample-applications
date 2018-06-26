@@ -85,6 +85,7 @@ function modify_transform_data_template {
     "KAFKA_TO_TOPIC"
     "KAFKA_ERROR_TOPIC"
     "KAFKA_ZOOKEEPER_URL"
+    "VERSION"
     )
 
   for elem in "${arr[@]}"

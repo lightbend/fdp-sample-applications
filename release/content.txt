@@ -1,7 +1,0 @@
-bin/
-bigdl/
-flink/
-kstream/
-nwintrusion/
-LICENSE
-README.md

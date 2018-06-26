@@ -290,6 +290,7 @@ function modify_dsl_json_template {
     "KAFKA_WINDOWED_SUMMARY_PAYLOAD_TOPIC_DSL"
     "KAFKA_ERROR_TOPIC_DSL"
     "SCHEMA_REGISTRY_URL"
+    "VERSION"
     )
 
   for elem in "${arr[@]}"
@@ -306,6 +307,7 @@ function modify_proc_json_template {
     "KAFKA_BROKERS"
     "KAFKA_FROM_TOPIC_PROC"
     "KAFKA_ERROR_TOPIC_PROC"
+    "VERSION"
     )
 
   for elem in "${arr[@]}"

@@ -18,7 +18,7 @@
     "portMappings": [],
     "type": "DOCKER",
     "docker": {
-      "image": "lightbend/procpackage:1.2.0",
+      "image": "lightbend/procpackage:{VERSION}",
       "forcePullImage": true,
       "privileged": false,
       "parameters": []
