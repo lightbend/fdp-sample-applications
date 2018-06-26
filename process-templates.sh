@@ -26,10 +26,10 @@ function process_templates {
 echo "Processing templates:"
 for d in *
 do
-  case "$d" in
+  case $d in
     release|target|build-plugin) ;;  # skip
     *)
-      find "$d" -name 'values.yaml' | while read f
+      find "$d" -name 'values.yaml.template' | while read f
       do
         process_templates "$f"
       done
