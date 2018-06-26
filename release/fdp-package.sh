@@ -7,9 +7,6 @@ ROOT_DIR="${DIR}/.."
 
 . $ROOT_DIR/version.sh
 
-CONTENT_FILE=${DIR}/content.txt
-CONTENT=$(cat $CONTENT_FILE)
-
 function usage {
   cat<< EOF
   fdp-sample-apps:
@@ -58,9 +55,17 @@ rm -rf $staging
 mkdir -p $staging
 
 mkdir -p $staging/$OUTPUT_FILE_ROOT
-for f in ${CONTENT}
+echo "Copying files to $staging/$OUTPUT_FILE_ROOT:"
+cd ${ROOT_DIR}
+for f in *
 do
-  cp -r ${ROOT_DIR}/$f $staging/$OUTPUT_FILE_ROOT/$f
+  case $f in
+    release|target|build-plugin) ;;  # skip
+    *)
+      echo "=== $f..."
+      cp -r $f $staging/$OUTPUT_FILE_ROOT/$f
+      ;;
+  esac
 done
 cd $staging
 
