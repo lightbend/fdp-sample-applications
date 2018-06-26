@@ -7,9 +7,6 @@ ROOT_DIR="${DIR}/.."
 
 . $ROOT_DIR/version.sh
 
-CONTENT_FILE=${DIR}/content.txt
-CONTENT=$(cat $CONTENT_FILE)
-
 function usage {
   cat<< EOF
   fdp-sample-apps:
@@ -58,9 +55,17 @@ rm -rf $staging
 mkdir -p $staging
 
 mkdir -p $staging/$OUTPUT_FILE_ROOT
-for f in ${CONTENT}
+echo "Copying files to $staging/$OUTPUT_FILE_ROOT:"
+cd ${ROOT_DIR}
+for f in *
 do
-  cp -r ${ROOT_DIR}/$f $staging/$OUTPUT_FILE_ROOT/$f
+  case $f in
+    release|target|build-plugin) ;;  # skip
+    *)
+      echo "=== $f..."
+      cp -r $f $staging/$OUTPUT_FILE_ROOT/$f
+      ;;
+  esac
 done
 cd $staging
 
@@ -73,9 +78,11 @@ zip -r ${OUTPUT_FILE} ${OUTPUT_FILE_ROOT}
 
 rm -rf ${OUTPUT_FILE_ROOT}
 
-echo "$0: Building the sample apps and docker images: $ROOT_DIR/build.sh"
+echo "$0: Process templates for config files to set the version string:"
+$ROOT_DIR/process-templates.sh $VERSION
 
-$ROOT_DIR/build.sh
+echo "$0: Build the sample apps and docker images: $ROOT_DIR/build.sh"
+$ROOT_DIR/build.sh $VERSION
 
-echo "$0: NOTE: Use the fdp-release project to PUBLISH the Docker images!"
+echo "$PWD: $0: NOTE: The Docker images should have been published to DockerHub!"
 

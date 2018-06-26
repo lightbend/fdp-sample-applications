@@ -6,9 +6,9 @@
 image:
   kmeans: lightbend/batchkmeans-k8s
   pullPolicy: Always
-  version: 1.2.0
+  version: FDP_VERSION
 
 # assembly jars and main classes
 kmeans:
-  jar: batchKMeans-assembly-1.2.0.jar
+  jar: batchKMeans-assembly-FDP_VERSION.jar
   main: com.lightbend.fdp.sample.nwintrusion.batchkmeans.BatchKMeans

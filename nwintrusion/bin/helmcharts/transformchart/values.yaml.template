@@ -12,6 +12,6 @@ data:
 image:
   repository: lightbend
   name: ingestpackage
-  tag: 1.2.0
+  tag: FDP_VERSION
   pullPolicy: Always
-  version: 1.2.0
+  version: FDP_VERSION

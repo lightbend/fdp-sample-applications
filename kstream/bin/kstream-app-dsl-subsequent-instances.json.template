@@ -25,7 +25,7 @@
     "portMappings": [],
     "type": "DOCKER",
     "docker": {
-      "image": "lightbend/dslpackage:1.2.0",
+      "image": "lightbend/dslpackage:{VERSION}",
       "forcePullImage": true,
       "privileged": false,
       "parameters": []
