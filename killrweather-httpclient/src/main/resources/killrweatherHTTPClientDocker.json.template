@@ -2,7 +2,7 @@
   "id": "/killrweatherhttpclient",
   "container": {
     "docker": {
-      "image": "lightbend/httpclient:FDP_VERSION",
+      "image": "lightbend/fdp-killrweather-httpclient:FDP_VERSION",
       "forcePull": true,
     }
   },

@@ -7,11 +7,11 @@ data:
   datadirectory: http://s3-eu-west-1.amazonaws.com/fdp-killrweather-data/killrweather/data.zip
 # docker images
 image:
-  app: lightbend/killrweatherapp-k8s
-  appstructured: lightbend/killrweatherapp_structured-k8s
-  loader: lightbend/loader
-  http: lightbend/httpclient
-  grpc: lightbend/grpcclient
+  app: lightbend/fdp-killrweather-app-k8s
+  appstructured: lightbend/fdp-killrweather-structured-app-k8s
+  loader: lightbend/fdp-killrweather-loader
+  http: lightbend/fdp-killrweather-httpclient
+  grpc: lightbend/fdp-killrweather-grpcclient
   pullPolicy: Always
   version: 1.2.0
 # assembly jars and main classes

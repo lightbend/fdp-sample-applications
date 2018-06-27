@@ -7,7 +7,7 @@
     "type": "DOCKER",
     "volumes": [],
     "docker": {
-      "image": "lightbend/killrweatherapp:FDP_VERSION",
+      "image": "lightbend/fdp-killrweather-app:FDP_VERSION",
       "forcePullImage": true,
       "privileged": false,
       "parameters": []
