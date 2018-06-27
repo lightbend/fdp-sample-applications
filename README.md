@@ -43,7 +43,8 @@ We foresee 2 groups of users:
 
 ## Building and configuring applications
 
-If you want to build the applications yourself, use the provided SBT build in the source distribution. It leverages the [SBT Docker plugin](https://github.com/marcuslonnberg/sbt-docker).
+The Docker images already exist, but if you want to build the applications yourself, perhaps because you've made changes, then use the provided SBT build here in the source distribution. It leverages the [SBT Docker plugin](https://github.com/marcuslonnberg/sbt-docker).
+
 It supports several commands:
 
 * `sbt docker` builds a docker image locally
@@ -67,22 +68,22 @@ If you are looking at the git repo itself, then run the following script to gene
 ./process-templates.sh VERSION
 ```
 
-Now you can deploy these apps to Fast Data Platform, starting with the loader:
+Now you can deploy these apps to Fast Data Platform, starting with the loader. Note that the loader is actually deployed as a _pod_:
 
 ```bash
-dcos marathon app add killrweather-loader/src/main/resources/killrweatherloaderDocker.json
+dcos marathon pod add killrweather-loader/src/main/resources/killrweatherloaderDocker.json
 ```
 
-Then pick a client, either,
+The loader writes everything directly to Kafka. The two provided clients are alternative, which listen for connections and then write to Kafak. Here is how you would run them, although you don't need them if you're running the loader:
 
 ```bash
-dcos marathon app add killrweather-grpclient/src/main/resources/killrweatherGRPCClientDocker.json.template
+dcos marathon app add killrweather-grpclient/src/main/resources/killrweatherGRPCClientDocker.json
 ```
 
 or
 
 ```bash
-dcos marathon app add killrweather-grpclient/src/main/resources/killrweatherHTTPClientDocker.json.template
+dcos marathon app add killrweather-grpclient/src/main/resources/killrweatherHTTPClientDocker.json
 ```
 
 Finally, run one of the apps, either,
