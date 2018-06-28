@@ -11,4 +11,4 @@ HERE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 echo "$0: Using version $VERSION"
 
 cd "$HERE"
-sbt "set version in ThisBuild := \"$VERSION\"" "show version" clean package docker
+sbt --no-colors "set version in ThisBuild := \"$VERSION\"" "show version" clean package docker
