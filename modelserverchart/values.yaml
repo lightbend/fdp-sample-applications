@@ -12,6 +12,23 @@ image:
   publisher: lightbend/publisher
   pullPolicy: Always
   version: 1.2.0
+# Configuration parameters for an application
+configuration:
+  kafka:
+    brokerlist : broker.kafka.l4lb.thisdcos.directory:9092
+  grafana :
+    host : grafana.marathon.l4lb.thisdcos.directory
+    port : 3000
+  influx :
+    host : influxdb.marathon.l4lb.thisdcos.directory
+    port : 8086
+  statelistener :
+    port : 5500
+  publisher :
+    data_publish_interval : 1 second
+    model_publish_interval : 5 minutes
+    data_mount : /usr/share
+    data_file : winequality_red.csv
 # Server type. If akka - install akka implementation, otherwise - kafka implementation
 server:
   type: akka

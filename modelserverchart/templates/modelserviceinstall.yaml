@@ -7,3 +7,16 @@ spec:
   - name: {{ if eq .Values.server.type "akka" }} akkamodelserver {{ else }} kafkamodelserver  {{ end }}
     image: {{ if eq .Values.server.type "akka" }} {{ .Values.image.akka }}:{{.Values.image.version }} {{ else }} {{ .Values.image.kafka}}:{{.Values.image.version }} {{ end }}
     imagePullPolicy: {{ .Values.image.pullPolicy }}
+    env:
+      - name: KAFKA_BROKERS_LIST
+        value: {{ .Values.configuration.kafka.brokerlist}}
+      - name: GRAFANA_HOST
+        value: {{ .Values.configuration.grafana.host}}
+      - name: GRAFANA_PORT
+        value: {{ .Values.configuration.grafana.port}}
+      - name: INFLUXDB_HOST
+        value: {{ .Values.configuration.influx.host}}
+      - name: INFLUXDB_PORT
+        value: {{ .Values.configuration.influx.port}}
+      - name: MODEL_SERVER_PORT
+        value: {{ .Values.configuration.statelistener.port}}

@@ -7,9 +7,20 @@ spec:
   - name: modelserverpublisher
     image: {{ .Values.image.publisher}}:{{.Values.image.version }}
     imagePullPolicy: {{ .Values.image.pullPolicy }}
+    env:
+      - name: KAFKA_BROKERS_LIST
+        value: {{ .Values.configuration.kafka.brokerlist}}
+      - name: DATA_PUBLISH_INTERVAL
+        value: {{ .Values.configuration.publisher.data_publish_interval}}
+      - name: MODEL_PUBLISH_INTERVAL
+        value: {{ .Values.configuration.publisher.model_publish_interval}}
+      - name: DATA_DIRECTORY
+        value: {{ .Values.configuration.publisher.data_mount}}/data
+      - name: DATA_FILENAME
+        value: {{ .Values.configuration.publisher.data_file}}
     volumeMounts:
     - name: datadir
-      mountPath: /usr/share
+      mountPath: {{ .Values.configuration.publisher.data_mount}}
   # These container runs during pod initialization
   initContainers:
   - name: install
@@ -17,10 +28,10 @@ spec:
     command:
     - sh
     - -c
-    - wget {{ .Values.data.datadirectory }} -O /data-dir/data.zip; unzip /data-dir/data.zip -d /data-dir/
+    - wget {{ .Values.data.datadirectory }} -O {{ .Values.configuration.publisher.data_mount}}/data.zip; unzip {{ .Values.configuration.publisher.data_mount}}/data.zip -d {{ .Values.configuration.publisher.data_mount}}/
     volumeMounts:
     - name: datadir
-      mountPath: "/data-dir"
+      mountPath: {{ .Values.configuration.publisher.data_mount}}
   dnsPolicy: Default
   volumes:
   - name: datadir
