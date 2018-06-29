@@ -46,14 +46,14 @@ then
   exit 1
 fi
 
-echo "$0: Processing templates for config files:"
+echo "$0: Process templates for config files to set the version string:"
 
 $ROOT_DIR/process-templates.sh $VERSION
 
 OUTPUT_FILE_ROOT=$PROJECT-$VERSION
 OUTPUT_FILE=${OUTPUT_FILE_ROOT}.zip
 
-echo "$0: Building the zip file of sources: $OUTPUT_FILE"
+echo "$0: Build the zip file of sources: $OUTPUT_FILE"
 
 staging=$DIR/staging
 rm -rf $staging
