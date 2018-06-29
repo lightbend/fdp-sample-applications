@@ -10,6 +10,19 @@ spec:
   containers:
   - name: killrweatherapp
     image: {{ .Values.image.app}}:{{.Values.image.version }}
+    env:
+      - name: KAFKA_BROKERS
+        value: {{ .Values.configuration.kafka.brokerlist}}
+      - name: ASSANDRA_HOSTS
+        value: {{ .Values.configuration.cassandra.hosts}}
+      - name: GRAFANA_HOST
+        value: {{ .Values.configuration.grafana.host}}
+      - name: GRAFANA_PORT
+        value: {{ .Values.configuration.grafana.port}}
+      - name: INFLUXDB_HOST
+        value: {{ .Values.configuration.influx.host}}
+      - name: INFLUXDB_PORT
+        value: {{ .Values.configuration.influx.port}}
     command:
     - sh
     - -c
@@ -39,6 +52,19 @@ spec:
   containers:
   - name: killrweatherappstructured
     image: {{ .Values.image.appstructured}}:{{.Values.image.version }}
+    env:
+      - name: KAFKA_BROKERS
+        value: {{ .Values.configuration.kafka.brokerlist}}
+      - name: ASSANDRA_HOSTS
+        value: {{ .Values.configuration.cassandra.hosts}}
+      - name: GRAFANA_HOST
+        value: {{ .Values.configuration.grafana.host}}
+      - name: GRAFANA_PORT
+        value: {{ .Values.configuration.grafana.port}}
+      - name: INFLUXDB_HOST
+        value: {{ .Values.configuration.influx.host}}
+      - name: INFLUXDB_PORT
+        value: {{ .Values.configuration.influx.port}}
     command:
     - sh
     - -c

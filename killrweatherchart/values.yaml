@@ -16,14 +16,29 @@ image:
   version: 1.2.0
 # assembly jars and main classes
 app:
-  jar: killrWeatherApp-assembly-1.2.0.jar
+  jar: killrWeatherApp-assembly
   main: com.lightbend.killrweather.app.KillrWeather
 structured:
-  jar: killrWeatherApp_structured-assembly-1.2.0.jar
+  jar: killrWeatherApp_structured-assembly
   main: com.lightbend.killrweather.app.structured.KillrWeatherStructured
-
 # components to install
 components:
   app: "killrweather"
   http: "no"
   grpc: "no"
+# Configuration parameters for an application
+configuration:
+  kafka:
+    brokerlist : broker.kafka.l4lb.thisdcos.directory:9092
+  cassandra:
+    hosts : "node-0-server.cassandra.autoip.dcos.thisdcos.directory, node-1-server.cassandra.autoip.dcos.thisdcos.directory, node-2-server.cassandra.autoip.dcos.thisdcos.directory"
+  grafana :
+    host : grafana.marathon.l4lb.thisdcos.directory
+    port : 3000
+  influx :
+    host : http://influxdb.marathon.l4lb.thisdcos.directory
+    port : 8086
+  loader :
+    publish_interval : 1 second
+    data_mount : /usr/share
+    batch_size : 10
