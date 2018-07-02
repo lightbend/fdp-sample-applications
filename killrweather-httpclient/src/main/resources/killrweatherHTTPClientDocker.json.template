@@ -8,6 +8,8 @@
   },
   "instances": 1,
   "cpus": 2,
-  "mem": 4096
-
+  "mem": 4096,
+  "environment": {
+    "KAFKA_BROKERS": "broker.kafka.l4lb.thisdcos.directory:9092"
+  }
 }

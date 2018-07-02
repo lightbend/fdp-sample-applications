@@ -30,13 +30,14 @@ spec:
         --master k8s://http://kube-apiserver-0-instance.kubernetes.mesos:9000
         --deploy-mode cluster
         --files http://api.hdfs.marathon.l4lb.thisdcos.directory/v1/endpoints/hdfs-site.xml,http://api.hdfs.marathon.l4lb.thisdcos.directory/v1/endpoints/core-site.xml
-        --name killrweather --class {{ .Values.app.main }}
+        --name killrweather
+        --class {{ .Values.app.main }}
         --conf spark.executor.instances=3
         --conf spark.kubernetes.mountDependencies.filesDownloadDir=/etc/hadoop/conf
         --conf 'spark.driver.extraJavaOptions=-Dconfig.resource=cluster.conf'
         --conf 'spark.executor.extraJavaOptions=-Dconfig.resource=cluster.conf'
         --conf spark.kubernetes.container.image={{ .Values.image.app}}:{{.Values.image.version }}
-        --conf spark.kubernetes.container.image.pullPolicy=Always
+        --conf spark.kubernetes.container.image.pullPolicy={{ .Values.image.pullPolicy}}
         local:///opt/spark/jars/{{ .Values.app.jar}}:{{.Values.image.version }}.jar"
   restartPolicy: Never
 
@@ -55,7 +56,7 @@ spec:
     env:
       - name: KAFKA_BROKERS
         value: {{ .Values.configuration.kafka.brokerlist}}
-      - name: ASSANDRA_HOSTS
+      - name: CASSANDRA_HOSTS
         value: {{ .Values.configuration.cassandra.hosts}}
       - name: GRAFANA_HOST
         value: {{ .Values.configuration.grafana.host}}
@@ -72,13 +73,14 @@ spec:
         --master k8s://http://kube-apiserver-0-instance.kubernetes.mesos:9000
         --deploy-mode cluster
         --files http://api.hdfs.marathon.l4lb.thisdcos.directory/v1/endpoints/hdfs-site.xml,http://api.hdfs.marathon.l4lb.thisdcos.directory/v1/endpoints/core-site.xml
-        --name killrweather --class {{ .Values.structured.main }}
+        --name killrweather
+        --class {{ .Values.structured.main }}
         --conf spark.executor.instances=3
         --conf spark.kubernetes.mountDependencies.filesDownloadDir=/etc/hadoop/conf
         --conf 'spark.driver.extraJavaOptions=-Dconfig.resource=cluster.conf'
         --conf 'spark.executor.extraJavaOptions=-Dconfig.resource=cluster.conf'
         --conf spark.kubernetes.container.image={{ .Values.image.appstructured}}:{{.Values.image.version }}
-        --conf spark.kubernetes.container.image.pullPolicy=Always
+        --conf spark.kubernetes.container.image.pullPolicy={{ .Values.image.pullPolicy}}
         local:///opt/spark/jars/{{ .Values.structured.jar}}:{{.Values.image.version }}.jar"
   restartPolicy: Never
 

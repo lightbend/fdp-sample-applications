@@ -49,5 +49,12 @@
     "inactiveAfterSeconds": 0,
     "expungeAfterSeconds": 0
   },
-  "healthChecks": []
+  "environment": {
+    "KAFKA_BROKERS": "broker.kafka.l4lb.thisdcos.directory:9092",
+    "CASSANDRA_HOSTS" : "node-0-server.cassandra.autoip.dcos.thisdcos.directory, node-1-server.cassandra.autoip.dcos.thisdcos.directory, node-2-server.cassandra.autoip.dcos.thisdcos.directory"
+    "GRAFANA_HOST": "grafana.marathon.l4lb.thisdcos.directory",
+    "GRAFANA_PORT": "3000",
+    "INFLUXDB_HOST": "influxdb.marathon.l4lb.thisdcos.directory",
+    "INFLUXDB_PORT": "8086"
+  }
 }
