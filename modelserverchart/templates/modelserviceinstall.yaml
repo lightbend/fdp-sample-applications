@@ -13,10 +13,10 @@ spec:
       - name: GRAFANA_HOST
         value: {{ .Values.configuration.grafana.host}}
       - name: GRAFANA_PORT
-        value: {{ .Values.configuration.grafana.port}}
+        value: "{{ .Values.configuration.grafana.port}}"
       - name: INFLUXDB_HOST
         value: {{ .Values.configuration.influx.host}}
       - name: INFLUXDB_PORT
-        value: {{ .Values.configuration.influx.port}}
+        value: "{{ .Values.configuration.influx.port}}"
       - name: MODEL_SERVER_PORT
-        value: {{ .Values.configuration.statelistener.port}}
+        value: "{{ .Values.configuration.statelistener.port}}"

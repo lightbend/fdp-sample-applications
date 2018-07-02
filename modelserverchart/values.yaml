@@ -15,7 +15,7 @@ image:
 # Configuration parameters for an application
 configuration:
   kafka:
-    brokerlist : broker.kafka.l4lb.thisdcos.directory:9092
+    brokerlist : "broker.kafka.l4lb.thisdcos.directory:9092"
   grafana :
     host : grafana.marathon.l4lb.thisdcos.directory
     port : 3000
