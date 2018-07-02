@@ -17,7 +17,7 @@ spec:
       - name: DATA_DIRECTORY
         value: {{ .Values.configuration.loader.data_mount}}/data/load/
       - name: DATA_BATCH_SIZE
-        value: {{ .Values.configuration.loader.batch_size}}
+        value: "{{ .Values.configuration.loader.batch_size}}"
     volumeMounts:
     - name: datadir
       mountPath: {{ .Values.configuration.loader.data_mount}}

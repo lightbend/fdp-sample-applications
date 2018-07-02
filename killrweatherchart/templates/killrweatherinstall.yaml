@@ -13,16 +13,16 @@ spec:
     env:
       - name: KAFKA_BROKERS
         value: {{ .Values.configuration.kafka.brokerlist}}
-      - name: ASSANDRA_HOSTS
+      - name: CASSANDRA_HOSTS
         value: {{ .Values.configuration.cassandra.hosts}}
       - name: GRAFANA_HOST
         value: {{ .Values.configuration.grafana.host}}
       - name: GRAFANA_PORT
-        value: {{ .Values.configuration.grafana.port}}
+        value: "{{ .Values.configuration.grafana.port}}"
       - name: INFLUXDB_HOST
         value: {{ .Values.configuration.influx.host}}
       - name: INFLUXDB_PORT
-        value: {{ .Values.configuration.influx.port}}
+        value: "{{ .Values.configuration.influx.port}}"
     command:
     - sh
     - -c
@@ -61,11 +61,11 @@ spec:
       - name: GRAFANA_HOST
         value: {{ .Values.configuration.grafana.host}}
       - name: GRAFANA_PORT
-        value: {{ .Values.configuration.grafana.port}}
+        value: "{{ .Values.configuration.grafana.port}}"
       - name: INFLUXDB_HOST
         value: {{ .Values.configuration.influx.host}}
       - name: INFLUXDB_PORT
-        value: {{ .Values.configuration.influx.port}}
+        value: "{{ .Values.configuration.influx.port}}"
     command:
     - sh
     - -c

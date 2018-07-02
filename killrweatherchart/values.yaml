@@ -7,7 +7,7 @@ data:
   datadirectory: http://s3-eu-west-1.amazonaws.com/fdp-killrweather-data/killrweather/data.zip
 # docker images
 image:
-  app: lightbend/fdp-killrweather-app-k8s
+  app: lightbend/fdp-killrweatherapp-k8s
   appstructured: lightbend/fdp-killrweather-structured-app-k8s
   loader: lightbend/fdp-killrweather-loader
   http: lightbend/fdp-killrweather-httpclient
