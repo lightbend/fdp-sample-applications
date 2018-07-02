@@ -57,5 +57,12 @@
   "scaling": {
     "instances": 1,
     "kind": "fixed"
+  },
+  "environment": {
+    "KAFKA_BROKERS_LIST": "broker.kafka.l4lb.thisdcos.directory:9092",
+    "DATA_PUBLISH_INTERVAL": "1 second",
+    "MODEL_PUBLISH_INTERVAL": "3 minutes",
+    "DATA_DIRECTORY": "/usr/share/data",
+    "DATA_FILENAME": "winequality_red.csv"
   }
 }

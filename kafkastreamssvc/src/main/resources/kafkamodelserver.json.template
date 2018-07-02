@@ -10,5 +10,13 @@
   "cpus": 0.2,
   "mem": 2048,
   "disk": 512,
-  "gpus": 0
+  "gpus": 0,
+  "env": {
+    "KAFKA_BROKERS_LIST": "broker.kafka.l4lb.thisdcos.directory:9092",
+    "MODEL_SERVER_PORT": "5500",
+    "GRAFANA_HOST": "grafana.marathon.l4lb.thisdcos.directory",
+    "GRAFANA_PORT": "3000",
+    "INFLUXDB_HOST": "influxdb.marathon.l4lb.thisdcos.directory",
+    "INFLUXDB_PORT": "8086"
+  }
 }
