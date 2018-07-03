@@ -90,7 +90,7 @@ components:
       label: "application"
       description: "Pick an application to install (killrweather) or structured"
       type: "string"
-      required
+      required: true
   http:
     __metadata:
       label: "HTTP Client"
@@ -155,7 +155,7 @@ configuration:
         type: "integer"
         required: true
   loader :
-   __metadata:
+    __metadata:
       label: "Loader configuration"
     publish_interval :
       __metadata:

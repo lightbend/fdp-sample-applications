@@ -1,0 +1,35 @@
+data:
+  datadirectory: '{{ data|datadirectory }}'
+image:
+  app: '{{ image|app }}'
+  appstructured: '{{ image|appstructured }}'
+  loader: '{{ image|loader }}'
+  http: '{{ image|http }}'
+  grpc: '{{ image|grpc }}'
+  pullPolicy: '{{ image|pullPolicy }}'
+  version: '{{ image|version }}'
+app:
+  jar: '{{ app|jar }}'
+  main: '{{ app|main }}'
+structured:
+  jar: '{{ structured|jar }}'
+  main: '{{ structured|main }}'
+components:
+  app: '{{ components|app }}'
+  http: '{{ components|http }}'
+  grpc: '{{ components|grpc }}'
+configuration:
+  kafka:
+    brokerlist: '{{ configuration|kafka|brokerlist }}'
+  cassandra:
+    hosts: '{{ configuration|cassandra|hosts }}'
+  grafana:
+    host: '{{ configuration|grafana|host }}'
+    port: !!int '{{ configuration|grafana|port }}'
+  influx:
+    host: '{{ configuration|influx|host }}'
+    port: !!int '{{ configuration|influx|port }}'
+  loader:
+    publish_interval: '{{ configuration|loader|publish_interval }}'
+    data_mount: '{{ configuration|loader|data_mount }}'
+    batch_size: !!int '{{ configuration|loader|batch_size }}'
