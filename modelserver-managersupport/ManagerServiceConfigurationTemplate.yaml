@@ -1,0 +1,27 @@
+data:
+  datadirectory: '{{ data|datadirectory }}'
+image:
+  akka: '{{ image|akka }}'
+  kafka: '{{ image|kafka }}'
+  publisher: '{{ image|publisher }}'
+  pullPolicy: '{{ image|pullPolicy }}'
+  version: '{{ image|version }}'
+configuration:
+  kafka:
+    brokerlist: '{{ configuration|kafka|brokerlist }}'
+  grafana:
+    host: '{{ configuration|grafana|host }}'
+    port: !!int '{{ configuration|grafana|port }}'
+  influx:
+    host: '{{ configuration|influx|host }}'
+    port: !!int '{{ configuration|influx|port }}'
+  statelistener:
+    port: !!int '{{ configuration|statelistener|port }}'
+  publisher:
+    data_publish_interval: '{{ configuration|publisher|data_publish_interval }}'
+    model_publish_interval: '{{ configuration|publisher|model_publish_interval }}'
+    data_mount: '{{ configuration|publisher|data_mount }}'
+    data_file: '{{ configuration|publisher|data_file }}'
+server:
+  type: '{{ server|type }}'
+

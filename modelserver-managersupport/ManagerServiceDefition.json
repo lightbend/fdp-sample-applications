@@ -1,0 +1,13 @@
+{
+  "uid" : "uid",
+  "name" : "modelserverchart",
+  "description" : "A Helm chart for Kubernetes deployment of the akka/kafka streams model server. It installs publisher and either akka or kafka streams implementation, depending on the values",
+  "group" : "group",
+  "version" : "0.1.0",
+  "defaultAdminLink" : false,
+  "dependencies" : [ ],
+  "optionalDeps" : [ ],
+  "installable" : true,
+  "resourcePath" : "file:////Users/boris/Projects/fdp-akka-kafka-streams-model-server/modelserverchart/",
+  "order" : 0
+}

@@ -92,7 +92,7 @@ configuration:
         type: "integer"
         required: true
   publisher :
-   __metadata:
+    __metadata:
       label: "Publisher configuration"
     data_publish_interval :
       __metadata:
@@ -126,4 +126,4 @@ server:
       label: "server type"
       description: "which server to install - if akka - akka, otherwise kafka"
       type: "string"
-      required
+      required: true
