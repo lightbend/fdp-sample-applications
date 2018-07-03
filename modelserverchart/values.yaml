@@ -7,9 +7,9 @@ data:
   datadirectory: http://s3-eu-west-1.amazonaws.com/fdp-killrweather-data/data/data.zip
 # docker images
 image:
-  akka: lightbend/akkasvc
-  kafka: lightbend/kafkasvc
-  publisher: lightbend/publisher
+  akka: lightbend/fdp-akka-kafka-streams-model-server-akka-streams-server
+  kafka: lightbend/fdp-akka-kafka-streams-model-server-kafka-streams-server
+  publisher: lightbend/fdp-akka-kafka-streams-model-server-model-publisher
   pullPolicy: Always
   version: 1.2.0
 # Configuration parameters for an application
