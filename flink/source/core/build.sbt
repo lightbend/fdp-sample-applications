@@ -96,7 +96,7 @@ lazy val ingestRun = (project in file("./ingestion"))
 // packaged run of the data ingestion application
 // 1. $ sbt universal:packageZipTarball
 // 2. $ sbt docker
-lazy val ingestTaxiRidePackage = sbtdockerAppBase("ingestTaxiRidePackage")("build/ingestion")
+lazy val ingestTaxiRidePackage = sbtdockerAppBase("fdp-flink-ingestion")("build/ingestion")
   .enablePlugins(JavaAppPackaging)
   .settings(
     resourceDirectory in Compile := (resourceDirectory in (ingestRun, Compile)).value,
@@ -132,7 +132,7 @@ lazy val ingestTaxiRidePackage = sbtdockerAppBase("ingestTaxiRidePackage")("buil
 // 1. $ sbt assembly 
 // 2. $ sbt docker 
 // 3. $ sbt run --broker-list localhost:9092 --inTopic taxiin --outTopic taxiOut
-lazy val taxiRideApp = sbtdockerFlinkAppBase("taxiRideApp")("./app")
+lazy val taxiRideApp = sbtdockerFlinkAppBase("fdp-flink-taxiride")("./app")
 
   .settings(Common.settings: _*)
   .settings(libraryDependencies ++= Dependencies.app)

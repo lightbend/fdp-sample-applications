@@ -1,6 +1,6 @@
 {
   "id": "/kstream-app-dsl-1",
-  "cmd": "./build/dsl/bin/dslpackage",
+  "cmd": "./build/dsl/bin/fdp-kstream-dsl",
   "env": {
     "INTERFACE_DSL": "0.0.0.0",
     "KAFKA_BROKERS": {KAFKA_BROKERS},
@@ -25,7 +25,7 @@
     "portMappings": [],
     "type": "DOCKER",
     "docker": {
-      "image": "lightbend/dslpackage:{VERSION}",
+      "image": "lightbend/fdp-kstream-dsl:{VERSION}",
       "forcePullImage": true,
       "privileged": false,
       "parameters": []

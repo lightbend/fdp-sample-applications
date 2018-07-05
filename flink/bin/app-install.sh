@@ -16,8 +16,8 @@ PROJ_ROOT_DIR="$( cd "$DIR/../source/core" && pwd -P )"
 ZOOKEEPER_PORT=2181
 DOCKER_USERNAME=lightbend
 
-TRAVEL_TIME_APP_JAR="taxiRideApp-assembly-$VERSION.jar"
-TRAVEL_TIME_APP_DOCKER_IMAGE=taxirideapp
+TRAVEL_TIME_APP_JAR="fdp-flink-taxiride-assembly-$VERSION.jar"
+TRAVEL_TIME_APP_DOCKER_IMAGE=fdp-flink-taxiride
 
 # Used by show_help
 HELP_MESSAGE="Installs the NYC Taxi Ride sample app. Assumes DC/OS authentication was successful
@@ -143,7 +143,7 @@ function modify_app_template {
 }
 
 function load_app_job {
-  # $NOEXEC dcos marathon app add $APP_TEMPLATE
+  $NOEXEC dcos marathon app add $APP_TEMPLATE
   $NOEXEC update_json_field APP_DATA_APP_ID "$APP_DATA_APP_ID" "$APP_METADATA_FILE"
 }
 

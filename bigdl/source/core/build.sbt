@@ -1,6 +1,6 @@
 import sbtassembly.MergeStrategy
 
-name := "bigdlvgg"
+name := "fdp-bigdl-vggcifar"
 
 // global settings for this build
 version in ThisBuild := "1.2.0"
@@ -79,7 +79,7 @@ def sbtdockerSparkAppBase(id: String)(base: String = id) = projectBase(id)(base)
 // 1. $ sbt assembly 
 // 2. $ sbt docker 
 // 3. $ sbt run --master local[4] -f /tmp/cifar-10-batches-bin --download /tmp -b 16
-lazy val bigdlSample = sbtdockerSparkAppBase("bigdlSample")(".")
+lazy val bigdlSample = sbtdockerSparkAppBase("fdp-bigdl-vggcifar")(".")
 
   .settings(commonSettings: _*)
 
