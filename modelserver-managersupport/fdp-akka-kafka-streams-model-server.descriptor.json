@@ -1,5 +1,5 @@
 {
-  "serviceId" : "modelserverchart",
+  "serviceId" : "fdp-akka-kafka-streams-model-server",
   "versions" : [ "0.1.0" ],
   "sections" : [ {
     "name" : "data",

@@ -1,9 +1,10 @@
 {
-  "uid" : "uid",
-  "name" : "modelserverchart",
-  "description" : "A Helm chart for Kubernetes deployment of the akka/kafka streams model server. It installs publisher and either akka or kafka streams implementation, depending on the values",
+  "id" : "id",
+  "name" : "Akka Kafka streams model server sample application",
+  "description" : "Akka Kafka streams model server sample application",
   "group" : "group",
   "version" : "0.1.0",
+  "packageType" : "helmchart",
   "defaultAdminLink" : false,
   "dependencies" : [ ],
   "optionalDeps" : [ ],
