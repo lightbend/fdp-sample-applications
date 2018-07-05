@@ -9,7 +9,7 @@ bats test/bin/*.bats
 
 echo "nwintrusion: VERSION = $VERSION"
 cd ${HERE}/source/core
-for i in ingestPackage anomalyDetection batchKMeans
+for i in fdp-nwintrusion-ingestion fdp-nwintrusion-anomaly fdp-nwintrusion-batchkmeans
 do
   sbt "set version in ThisBuild := \"$VERSION\"" "show version" $i/clean $i/docker $i/dockerPush
 done

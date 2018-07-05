@@ -8,7 +8,7 @@ cd ${HERE}
 bats test/bin/*.bats
 
 cd ${HERE}/source/core
-for i in ingestTaxiRidePackage taxiRideApp
+for i in fdp-flink-ingestion fdp-flink-taxiride
 do
   sbt "set version in ThisBuild := \"$VERSION\"" "show version" $i/clean $i/docker $i/dockerPush
 done
