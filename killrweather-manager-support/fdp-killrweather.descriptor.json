@@ -1,5 +1,5 @@
 {
-  "serviceId" : "killrweatherchart",
+  "serviceId" : "fdp-killrweather",
   "versions" : [ "0.1.0" ],
   "sections" : [ {
     "name" : "data",
