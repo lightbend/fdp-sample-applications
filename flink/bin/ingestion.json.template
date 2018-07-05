@@ -1,13 +1,13 @@
 {
   "id": {INGESTION_DATA_APP_ID},
-  "cmd": "mkdir $MESOS_SANDBOX/data && mv $MESOS_SANDBOX/nycTaxiRides.csv $MESOS_SANDBOX/data && export DIRECTORY_TO_WATCH=$MESOS_SANDBOX/data && ./build/ingestion/bin/ingesttaxiridepackage",
+  "cmd": "mkdir $MESOS_SANDBOX/data && mv $MESOS_SANDBOX/nycTaxiRides.csv $MESOS_SANDBOX/data && export DIRECTORY_TO_WATCH=$MESOS_SANDBOX/data && ./build/ingestion/bin/fdp-flink-ingestion",
   "cpus":1,
   "mem":512,
   "container": {
     "portMappings": [],
     "type": "DOCKER",
     "docker": {
-      "image": "{DOCKER_USERNAME}/ingesttaxiridepackage:{VERSION}",
+      "image": "{DOCKER_USERNAME}/fdp-flink-ingestion:{VERSION}",
       "forcePullImage": true,
       "privileged": false,
       "parameters": []

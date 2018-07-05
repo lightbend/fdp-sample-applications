@@ -7,7 +7,7 @@
     "type": "DOCKER",
     "volumes": [],
     "docker": {
-      "image": "{DOCKER_USERNAME}/taxirideapp:{VERSION}",
+      "image": "{DOCKER_USERNAME}/fdp-flink-taxiride:{VERSION}",
       "portMappings": [],
       "privileged": false,
       "parameters": [],

@@ -1,13 +1,13 @@
 {
   "id": {TRANSFORM_DATA_APP_ID},
-  "cmd": "mkdir $MESOS_SANDBOX/data && mv $MESOS_SANDBOX/kdd_cup_data.csv $MESOS_SANDBOX/data && export DIRECTORY_TO_WATCH=$MESOS_SANDBOX/data && ./build/ingestion/bin/ingestpackage",
+  "cmd": "mkdir $MESOS_SANDBOX/data && mv $MESOS_SANDBOX/kdd_cup_data.csv $MESOS_SANDBOX/data && export DIRECTORY_TO_WATCH=$MESOS_SANDBOX/data && ./build/ingestion/bin/fdp-nwintrusion-ingestion",
   "cpus":1,
   "mem":2048,
   "container": {
     "portMappings": [],
     "type": "DOCKER",
     "docker": {
-      "image": "lightbend/ingestpackage:{VERSION}",
+      "image": "lightbend/fdp-nwintrusion-ingestion:{VERSION}",
       "forcePullImage": true,
       "privileged": false,
       "parameters": []

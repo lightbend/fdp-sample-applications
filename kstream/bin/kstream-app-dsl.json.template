@@ -1,6 +1,6 @@
 {
   "id": "/kstream-app-dsl",
-  "cmd": "mkdir $MESOS_SANDBOX/data && mv $MESOS_SANDBOX/clarknet_access_log_Aug28 $MESOS_SANDBOX/data && export DIRECTORY_TO_WATCH=$MESOS_SANDBOX/data && ./build/dsl/bin/dslpackage",
+  "cmd": "mkdir $MESOS_SANDBOX/data && mv $MESOS_SANDBOX/clarknet_access_log_Aug28 $MESOS_SANDBOX/data && export DIRECTORY_TO_WATCH=$MESOS_SANDBOX/data && ./build/dsl/bin/fdp-kstream-dsl",
   "env": {
     "INTERFACE_DSL": "0.0.0.0",
     "KAFKA_BROKERS": {KAFKA_BROKERS},
@@ -24,7 +24,7 @@
     "portMappings": [],
     "type": "DOCKER",
     "docker": {
-      "image": "lightbend/dslpackage:{VERSION}",
+      "image": "lightbend/fdp-kstream-dsl:{VERSION}",
       "forcePullImage": true,
       "privileged": false,
       "parameters": []

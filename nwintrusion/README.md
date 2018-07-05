@@ -32,9 +32,9 @@ All the applications can be run locally or on the DC/OS cluster using Marathon o
 $ sbt
 > projects
 [info] In file:/Users/bucktrends/lightbend/fdp-sample-apps/nwintrusion/source/core/
-[info] 	   anomalyDetection
-[info] 	   batchKMeans
-[info] 	   ingestPackage
+[info] 	   fdp-nwintrusion-anomaly
+[info] 	   fdp-nwintrusion-batchkmeans
+[info] 	   fdp-nwintrusion-ingestion
 [info] 	   ingestRun
 [info] 	 * root
 > project ingestRun
@@ -87,12 +87,12 @@ All values can be set through environment variables as well. This is done when w
 $ sbt
 > projects
 [info] In file:/Users/bucktrends/lightbend/fdp-sample-apps/nwintrusion/source/core/
-[info] 	   anomalyDetection
-[info] 	   batchKMeans
-[info] 	   ingestPackage
+[info] 	   fdp-nwintrusion-anomaly
+[info] 	   fdp-nwintrusion-batchkmeans
+[info] 	   fdp-nwintrusion-ingestion
 [info] 	   ingestRun
 [info] 	 * root
-> project anomalyDetection
+> project fdp-nwintrusion-anomaly
 > run --master local[*] --read-topic nwout --kafka-broker localhost:9092 --micro-batch-secs 60 --cluster-count 100
 ```
 The `--master` argument is optional and will default to `local[*]`. There is another optional argument `--with-influx` which uses Influx DB and Grafana to store and display anomalies. In case you decide to use this option, you need to set up the influx configuration by changing appropriate settings in the config file `application.conf` within `anomaly` folder of the project based on your local environment. Here's the default settings of the file:
@@ -143,12 +143,12 @@ visualize {
 $ sbt
 > projects
 [info] In file:/Users/bucktrends/lightbend/fdp-sample-apps/nwintrusion/source/core/
-[info] 	   anomalyDetection
-[info] 	   batchKMeans
-[info] 	   ingestPackage
+[info] 	   fdp-nwintrusion-anomaly
+[info] 	   fdp-nwintrusion-batchkmeans
+[info] 	   fdp-nwintrusion-ingestion
 [info] 	   ingestRun
 [info] 	 * root
-> project batchKMeans
+> project fdp-nwintrusion-batchkmeans
 > run --master local[*] --read-topic nwout --kafka-broker localhost:9092 --micro-batch-secs 60 --from-cluster-count 40 --to-cluster-count 100 --increment 10
 ```
 The `--master` argument is optional and will default to `local[*]`.
@@ -164,18 +164,18 @@ In the `nwintrusion/source/core/` directory:
 ```
 $ sbt
 > projects
-[info] 	   anomalyDetection
-[info] 	   batchKMeans
-[info] 	   ingestPackage
+[info] 	   fdp-nwintrusion-anomaly
+[info] 	   fdp-nwintrusion-batchkmeans
+[info] 	   fdp-nwintrusion-ingestion
 [info] 	   ingestRun
 [info] 	 * root
-> project ingestPackage
+> project fdp-nwintrusion-ingestion
 > universal:packageZipTarball
 > ...
 > docker
 ```
 
-This will create a docker image named `lightbend/ingestpackage:X.Y.Z` (for the current version `X.Y.Z`) with the default settings. The name of the docker user comes from the `organization` field in `build.sbt` and can be changed there for alternatives. If the user name is changed, then the value of `$DOCKER_USERNAME` also needs to be changed in `nwintrusion/bin/utils.sh`. The version of the image comes from `<PROJECT_HOME>/version.sh`. Change there if you wish to deploy a different version.
+This will create a docker image named `lightbend/fdp-nwintrusion-ingestion:X.Y.Z` (for the current version `X.Y.Z`) with the default settings. The name of the docker user comes from the `organization` field in `build.sbt` and can be changed there for alternatives. If the user name is changed, then the value of `$DOCKER_USERNAME` also needs to be changed in `nwintrusion/bin/utils.sh`. The version of the image comes from `<PROJECT_HOME>/version.sh`. Change there if you wish to deploy a different version.
 
 Once the docker image is created, you can push it to the repository at DockerHub.
 
@@ -187,15 +187,15 @@ Similarly we can prepare the docker images for the Spark applications. For Spark
 $ sbt
 > projects
 [info] In file:/Users/bucktrends/lightbend/fdp-sample-apps/nwintrusion/source/core/
-[info] 	   anomalyDetection
-[info] 	   batchKMeans
-[info] 	   ingestPackage
+[info] 	   fdp-nwintrusion-anomaly
+[info] 	   fdp-nwintrusion-batchkmeans
+[info] 	   fdp-nwintrusion-ingestion
 [info] 	   ingestRun
 [info] 	 * root
-> project anomalyDetection
+> project fdp-nwintrusion-anomaly
 > docker ## build docker image for DC/OS
 > ...
-> project batchKMeans
+> project fdp-nwintrusion-batchkmeans
 > docker ## build docker image for DC/OS
 ```
 
@@ -203,25 +203,25 @@ $ sbt
 $ sbt -DK8S_OR_DCOS=K8S
 > projects
 [info] In file:/Users/bucktrends/lightbend/fdp-sample-apps/nwintrusion/source/core/
-[info] 	   anomalyDetection
-[info] 	   batchKMeans
-[info] 	   ingestPackage
+[info] 	   fdp-nwintrusion-anomaly
+[info] 	   fdp-nwintrusion-batchkmeans
+[info] 	   fdp-nwintrusion-ingestion
 [info] 	   ingestRun
 [info] 	 * root
-> project anomalyDetection
+> project fdp-nwintrusion-anomaly
 > docker ## build docker image for K8S
 > ...
-> project batchKMeans
+> project fdp-nwintrusion-batchkmeans
 > docker ## build docker image for K8S
 ```
 
-The image built for Kubernetes will be named with a suffix `-k8s`, e.g. for anomaly detection, the image will be named `lightbend/anomalydetection-k8s:X.Y.Z`, while the one for DC/OS will not have the suffix. Here's an example:
+The image built for Kubernetes will be named with a suffix `-k8s`, e.g. for anomaly detection, the image will be named `lightbend/fdp-nwintrusion-anomaly-k8s:X.Y.Z`, while the one for DC/OS will not have the suffix. Here's an example:
 
 ```
 $ docker images
 REPOSITORY                           TAG                        IMAGE ID            CREATED             SIZE
-lightbend/anomalydetection-k8s       X.Y.Z                      982adc4c3ae9        42 minutes ago      401MB
-lightbend/anomalydetection           X.Y.Z                      5b43990ebfe6        7 hours ago         1.48GB
+lightbend/fdp-nwintrusion-anomaly-k8s       X.Y.Z                      982adc4c3ae9        42 minutes ago      401MB
+lightbend/fdp-nwintrusion-anomaly           X.Y.Z                      5b43990ebfe6        7 hours ago         1.48GB
 
 ```
 
@@ -316,8 +316,8 @@ $ bin/spark-submit --master k8s://http://10.0.7.216:9000 \
                    --conf spark.executor.instances=3 \
                    --conf spark.kubernetes.mountDependencies.filesDownloadDir=/etc/hadoop/conf \
                    --conf 'spark.driver.extraJavaOptions=-Dconfig.resource=application.conf' \
-                   --conf spark.kubernetes.container.image=lightbend/anomalydetection-k8s:X.Y.Z \
-                   local:///opt/spark/jars/anomalyDetection-assembly-X.Y.Z.jar \
+                   --conf spark.kubernetes.container.image=lightbend/fdp-nwintrusion-anomaly-k8s:X.Y.Z \
+                   local:///opt/spark/jars/fdp-nwintrusion-anomaly-assembly-X.Y.Z.jar \
                    -t nwout -b kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1025 -m 60 -k 150
 ```
 

@@ -19,10 +19,10 @@ TRANSFORM_DATA_APP_ID="nwin-transform-data"
 ZOOKEEPER_PORT=2181
 DOCKER_USERNAME=lightbend
 
-ANOMALY_DETECTION_DOCKER_IMAGE=anomalydetection
-ANOMALY_DETECTION_JAR=anomalyDetection-assembly
-BATCH_KMEANS_DOCKER_IMAGE=batchkmeans
-BATCH_KMEANS_JAR=batchKMeans-assembly
+ANOMALY_DETECTION_DOCKER_IMAGE=fdp-nwintrusion-anomaly
+ANOMALY_DETECTION_JAR=fdp-nwintrusion-anomaly-assembly
+BATCH_KMEANS_DOCKER_IMAGE=fdp-nwintrusion-batchkmeans
+BATCH_KMEANS_JAR=fdp-nwintrusion-batchkmeans-assembly
 
 KAFKA_BROKERS=
 

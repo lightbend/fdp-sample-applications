@@ -59,7 +59,7 @@ lazy val dslRun = (project in file("./example-dsl"))
   .dependsOn(server)
 
 // packaged run of the dsl example application
-lazy val dslPackage = sbtdockerAppBase("dslPackage")("build/dsl")
+lazy val dslPackage = sbtdockerAppBase("fdp-kstream-dsl")("build/dsl")
   .settings(
     resourceDirectory in Compile := (resourceDirectory in (dslRun, Compile)).value,
     mappings in Universal ++= {
@@ -100,7 +100,7 @@ lazy val procRun = (project in file("./example-proc"))
   .dependsOn(server)
 
 // packaged run of the proc example application
-lazy val procPackage = sbtdockerAppBase("procPackage")("build/proc")
+lazy val procPackage = sbtdockerAppBase("fdp-kstream-processor")("build/proc")
   .settings(
     scalaVersion := Versions.scalaVersion,
     resourceDirectory in Compile := (resourceDirectory in (procRun, Compile)).value,

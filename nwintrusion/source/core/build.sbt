@@ -106,7 +106,7 @@ lazy val ingestRun = (project in file("./ingestion"))
 // packaged run of the data ingestion application
 // 1. $ sbt universal:packageZipTarball
 // 2. $ sbt docker
-lazy val ingestPackage = sbtdockerAppBase("ingestPackage")("build/ingestion")
+lazy val ingestPackage = sbtdockerAppBase("fdp-nwintrusion-ingestion")("build/ingestion")
   .enablePlugins(JavaAppPackaging)
   .settings(
     resourceDirectory in Compile := (resourceDirectory in (ingestRun, Compile)).value,
@@ -141,7 +141,7 @@ lazy val ingestPackage = sbtdockerAppBase("ingestPackage")("build/ingestion")
 // 1. $ sbt assembly 
 // 2. $ sbt docker 
 // 3. $ sbt run ..
-lazy val anomalyDetection = sbtdockerSparkAppBase("anomalyDetection")("./anomaly")
+lazy val anomalyDetection = sbtdockerSparkAppBase("fdp-nwintrusion-anomaly")("./anomaly")
 
   .settings(Common.settings: _*)
   .settings(libraryDependencies ++= Dependencies.anomalyDependencies)
@@ -166,7 +166,7 @@ lazy val anomalyDetection = sbtdockerSparkAppBase("anomalyDetection")("./anomaly
 // 1. $ sbt assembly 
 // 2. $ sbt docker 
 // 3. $ sbt run ..
-lazy val batchKMeans = sbtdockerSparkAppBase("batchKMeans")("./batchkmeans")
+lazy val batchKMeans = sbtdockerSparkAppBase("fdp-nwintrusion-batchkmeans")("./batchkmeans")
 
   .settings(Common.settings: _*)
   .settings(libraryDependencies ++= Dependencies.batchKMeansDependencies)

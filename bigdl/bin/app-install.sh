@@ -11,8 +11,8 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 PROJ_ROOT_DIR="$( cd "$DIR/../source/core" && pwd -P )"
 
 DOCKER_USERNAME=lightbend
-BIGDL_VGG_DOCKER_IMAGE=bigdlvgg
-BIGDL_VGG_JAR=bigdlvgg-assembly
+BIGDL_VGG_DOCKER_IMAGE=fdp-bigdl-vggcifar
+BIGDL_VGG_JAR=fdp-bigdl-vggcifar-assembly
 
 HELP_MESSAGE="Installs the BigDL sample app. Assumes DC/OS authentication was successful
   using the DC/OS CLI."
