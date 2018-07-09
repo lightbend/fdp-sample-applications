@@ -166,12 +166,10 @@ After a successful build, we can see the images in our local _docker registry_:
 $docker images
 
 REPOSITORY                          TAG    IMAGE ID      CREATED         SIZE
-lightbend/model-server-akkastreams  1.1.0  aab5a948b8b8  10 minutes ago  727MB
-lightbend/model-server-kstreams     1.1.0  2d4f047f8ddb  10 minutes ago  708MB
-lightbend/model-server-publisher    1.1.0  a3040c809984  10 minutes ago  606MB
-...
-
-```
+lightbend/fdp-akka-kafka-streams-model-server-kafka-streams-server                                                            1.2.0               a6686af97700        9 days ago          1.99GB
+lightbend/fdp-akka-kafka-streams-model-server-akka-streams-server                                                             1.2.0               50ec77bdc828        9 days ago          2GB
+lightbend/fdp-akka-kafka-streams-model-server-model-publisher                                                                 1.2.0               1ece138c81c8        9 days ago          575MB
+````
 
 ### Publishing to an external Docker repository
 
@@ -336,9 +334,9 @@ docker run -e KAFKA_BROKERS_LIST=10.0.7.196:1025 \
         lightbend/model-server-akkastreams:1.1.0
 ```
 
-## Running a Custom Image on the Server
+## Running a Custom Image on the DC/OS
 
-To run a custom application on the target server:
+To run a custom application on the DC/OS:
  - apply the desired modifications
  - [publish the image to your docker repository](#publishing-to-an-external-docker-repository)
  - update the `json` templates in the `/bin` directory to point to the new image location, and
