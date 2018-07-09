@@ -3,6 +3,7 @@ kind: Pod
 metadata:
   name: kstreamdslchart
 spec:
+  hostNetwork: true
   containers:
   - name: kstreamdsltransformer
     image: {{ .Values.image.repository}}/{{ .Values.image.name}}:{{.Values.image.tag }}

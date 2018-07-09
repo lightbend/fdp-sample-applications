@@ -13,6 +13,10 @@ spec:
     env:          
     - name: "DIRECTORY_TO_WATCH"
       value: "/usr/share"
+    - name: "KAFKA_BROKERS"
+      value: {{ .Values.configuration.kafka.brokerlist}}
+    - name: "ZOOKEEPER_URL"
+      value: {{ .Values.configuration.zk.url}}
   # These container runs during pod initialization
   initContainers:
   - name: install

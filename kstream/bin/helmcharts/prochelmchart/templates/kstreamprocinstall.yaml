@@ -3,6 +3,7 @@ kind: Pod
 metadata:
   name: kstreamprocchart
 spec:
+  hostNetwork: true
   containers:
   - name: kstreamproctransformer
     image: {{ .Values.image.repository}}/{{ .Values.image.name}}:{{.Values.image.tag }}

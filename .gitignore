@@ -32,3 +32,6 @@ kstream/source/core/example-proc/tmp/
 nwintrusion/bin/helmcharts/anomalychart/values.yaml
 nwintrusion/bin/helmcharts/batchkmeanschart/values.yaml
 nwintrusion/bin/helmcharts/transformchart/values.yaml
+kstream/bin/helmcharts/dslhelmchart/values.yaml
+kstream/bin/helmcharts/prochelmchart/values.yaml
+bigdl/bin/helmcharts/vggcifarchart/values.yaml

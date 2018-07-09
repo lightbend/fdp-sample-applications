@@ -11,7 +11,7 @@ data:
 # docker images
 image:
   repository: lightbend
-  name: fdp-ksteam-dsl
+  name: fdp-kstream-dsl
   tag: FDP_VERSION
   pullPolicy: Always
   version: FDP_VERSION
