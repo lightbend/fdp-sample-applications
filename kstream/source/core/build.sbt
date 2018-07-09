@@ -2,7 +2,7 @@ import sbtassembly.MergeStrategy
 
 // global settings for this build
 name in ThisBuild := "fdp-kstream"
-version in ThisBuild := "1.2.0"
+version in ThisBuild := "1.2.1"
 organization in ThisBuild := "lightbend"
 scalaVersion in ThisBuild := Versions.scalaVersion
 
