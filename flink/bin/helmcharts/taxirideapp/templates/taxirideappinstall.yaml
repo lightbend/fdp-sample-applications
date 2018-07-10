@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: taxirideapp
+spec:
+  containers:
+  - name: taxirideapp
+    image: {{ .Values.image.taxiride}}:{{.Values.image.version }}
+    command:
+    - sh
+    - -c
+    - "./bin/flink run -m {{ .Values.configuration.flink.jm_rpc_address}}:{{ .Values.configuration.flink.jm_rpc_port}} --class {{ .Values.taxiride.main}} ./app/jars/{{ .Values.taxiride.jar}} --broker-list {{ .Values.configuration.kafka.brokerlist}} --inTopic {{ .Values.configuration.kafka.intopic}} --outTopic {{ .Values.configuration.kafka.outtopic}}"
+  restartPolicy: Never

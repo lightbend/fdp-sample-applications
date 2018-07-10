@@ -1,0 +1,24 @@
+# Default values for anomaly detection chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# docker image
+image:
+  taxiride: lightbend/fdp-flink-taxiride
+  pullPolicy: Always
+  version: FDP_VERSION
+
+# assembly jars and main classes
+taxiride:
+  jar: fdp-flink-taxiride-assembly-FDP_VERSION.jar
+  main: com.lightbend.fdp.sample.flink.app.TravelTimePrediction
+
+# Configuration parameters for an application
+configuration:
+  kafka:
+    brokerlist : broker.kafka.l4lb.thisdcos.directory:9092
+    intopic : taxiin
+    outtopic : taxiout 
+  flink:
+    jm_rpc_address : ip-10-0-15-137.ec2.internal
+    jm_rpc_port : 7199

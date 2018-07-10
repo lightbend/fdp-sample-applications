@@ -35,3 +35,5 @@ nwintrusion/bin/helmcharts/transformchart/values.yaml
 kstream/bin/helmcharts/dslhelmchart/values.yaml
 kstream/bin/helmcharts/prochelmchart/values.yaml
 bigdl/bin/helmcharts/vggcifarchart/values.yaml
+flink/bin/helmcharts/taxirideapp/values.yaml
+flink/bin/helmcharts/taxirideingestion/values.yaml
