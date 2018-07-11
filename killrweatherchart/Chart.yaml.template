@@ -1,6 +1,7 @@
 apiVersion: v1
+appVersion: FDP_VERSION
 description: killrweather Sample Application
 maintainers:
 - name: Boris Lublinsky
 name: killrweather Sample Application
-version: 0.1.0
+version: FDP_VERSION
