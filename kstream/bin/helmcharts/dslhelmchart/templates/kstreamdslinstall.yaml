@@ -1,10 +1,11 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: transformchart
+  name: kstreamdslchart
 spec:
+  hostNetwork: true
   containers:
-  - name: nwdatatransformer
+  - name: kstreamdsltransformer
     image: {{ .Values.image.repository}}/{{ .Values.image.name}}:{{.Values.image.tag }}
     imagePullPolicy: {{ .Values.image.pullPolicy }}
     volumeMounts:
@@ -15,8 +16,10 @@ spec:
       value: "/usr/share"
     - name: "KAFKA_BROKERS"
       value: {{ .Values.configuration.kafka.brokerlist}}
-    - name: "ZOOKEEPER_URL"
-      value: {{ .Values.configuration.zk.url}}
+    - name: "INTERFACE_DSL"
+      value: {{ .Values.configuration.rest.interface}}
+    - name: "SCHEMA_REGISTRY_URL"
+      value: {{ .Values.configuration.schemaregistry.url}}
   # These container runs during pod initialization
   initContainers:
   - name: install
@@ -24,7 +27,7 @@ spec:
     command:
     - sh
     - -c
-    - wget {{ .Values.data.datadirectory }} -O /data-dir/kdd_cup_data.csv.tgz; tar xvfz /data-dir/kdd_cup_data.csv.tgz -C /data-dir
+    - wget {{ .Values.data.datadirectory }} -O /data-dir/clarknet_access_log_Aug28.tgz; tar xvfz /data-dir/clarknet_access_log_Aug28.tgz -C /data-dir
     volumeMounts:
     - name: datadir
       mountPath: "/data-dir"
@@ -32,3 +35,4 @@ spec:
   volumes:
   - name: datadir
     emptyDir: {}
+

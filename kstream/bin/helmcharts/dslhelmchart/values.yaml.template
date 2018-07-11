@@ -6,12 +6,12 @@ replicaCount: 1
 
 # data.zip location
 data:
-  datadirectory: http://fdp-sample-apps-artifacts.s3.amazonaws.com/kdd_cup_data.csv.tgz
+  datadirectory: http://fdp-sample-apps-artifacts.s3.amazonaws.com/clarknet_access_log_Aug28.tgz
 
 # docker images
 image:
   repository: lightbend
-  name: fdp-nwintrusion-ingestion
+  name: fdp-kstream-dsl
   tag: FDP_VERSION
   pullPolicy: Always
   version: FDP_VERSION
@@ -20,5 +20,7 @@ image:
 configuration:
   kafka:
     brokerlist : broker.kafka.l4lb.thisdcos.directory:9092
-  zk:
-    url : "master.mesos:2181/dcos-service-kafka"
+  rest:
+    interface : "0.0.0.0"
+  schemaregistry:
+    url : ""

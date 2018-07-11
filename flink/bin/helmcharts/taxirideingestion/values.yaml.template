@@ -6,12 +6,12 @@ replicaCount: 1
 
 # data.zip location
 data:
-  datadirectory: http://fdp-sample-apps-artifacts.s3.amazonaws.com/kdd_cup_data.csv.tgz
+  datadirectory: https://s3.eu-central-1.amazonaws.com/fdp-sample-apps-artifacts/nycTaxiRides.csv.tgz
 
 # docker images
 image:
   repository: lightbend
-  name: fdp-nwintrusion-ingestion
+  name: fdp-flink-ingestion
   tag: FDP_VERSION
   pullPolicy: Always
   version: FDP_VERSION

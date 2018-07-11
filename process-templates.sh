@@ -29,7 +29,7 @@ do
   case $d in
     release|target|build-plugin) ;;  # skip
     *)
-      find "$d" -name 'values.yaml.template' | while read f
+      find "$d" -name '*.yaml.template' | while read f
       do
         process_templates "$f"
       done

@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: transformchart
+  name: taxirideingestionchart
 spec:
   containers:
-  - name: nwdatatransformer
+  - name: taxirideingestion
     image: {{ .Values.image.repository}}/{{ .Values.image.name}}:{{.Values.image.tag }}
     imagePullPolicy: {{ .Values.image.pullPolicy }}
     volumeMounts:
@@ -24,7 +24,7 @@ spec:
     command:
     - sh
     - -c
-    - wget {{ .Values.data.datadirectory }} -O /data-dir/kdd_cup_data.csv.tgz; tar xvfz /data-dir/kdd_cup_data.csv.tgz -C /data-dir
+    - wget {{ .Values.data.datadirectory }} -O /data-dir/nycTaxiRides.csv.tgz; tar xvfz /data-dir/nycTaxiRides.csv.tgz -C /data-dir; ls -l /data-dir
     volumeMounts:
     - name: datadir
       mountPath: "/data-dir"
