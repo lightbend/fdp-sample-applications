@@ -10,16 +10,18 @@ ROOT_DIR="${DIR}/.."
 function usage {
   cat<< EOF
   fdp-sample-apps:
-  This script builds does the following:
+  This script does the following:
   1. builds the software
   2. creates an archive of the code
   3. builds the Docker images
   4. pushes the Docker images to Docker Hub
 
-  It also
-  Usage: $SCRIPT [VERSION] [-h | --help]
+  It also accepts options to skip building (just create an archive of the sources) and just
+  print the names of the Docker images (for fdp-release use).
 
-  VERSION                E.g., 0.4.0. Required
+  Usage: $SCRIPT [VERSION] [options]
+
+  VERSION                E.g., 0.4.0. If not provided, the value is read from ./version.sh
 
   -h | --help            This message.
   --print-docker-images  Just print the image name with tag (if any) and exit. (Implies --skip-build)
