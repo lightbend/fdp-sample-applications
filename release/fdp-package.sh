@@ -67,7 +67,7 @@ fi
 
 if $print_docker_image_names
 then
-  $ROOT_DIR/build.sh $VERSION --print-docker-image
+  $ROOT_DIR/build.sh $VERSION --print-docker-images
   exit 0
 fi
 
