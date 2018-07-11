@@ -2,11 +2,16 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: {{ if eq .Values.server.type "akka" }} akkamodelserver {{ else }} kafkamodelserver  {{ end }}
+  labels:
+    app: modelserver
 spec:
   containers:
   - name: {{ if eq .Values.server.type "akka" }} akkamodelserver {{ else }} kafkamodelserver  {{ end }}
     image: {{ if eq .Values.server.type "akka" }} {{ .Values.image.akka }}:{{.Values.image.version }} {{ else }} {{ .Values.image.kafka}}:{{.Values.image.version }} {{ end }}
     imagePullPolicy: {{ .Values.image.pullPolicy }}
+    ports:
+    - name: http
+      containerPort: {{ .Values.configuration.statelistener.port}}
     env:
       - name: KAFKA_BROKERS_LIST
         value: {{ .Values.configuration.kafka.brokerlist}}
@@ -20,3 +25,32 @@ spec:
         value: "{{ .Values.configuration.influx.port}}"
       - name: MODEL_SERVER_PORT
         value: "{{ .Values.configuration.statelistener.port}}"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: modelserver
+spec:
+  selector:
+    app: modelserver
+  ports:
+  - protocol: TCP
+    port: {{ .Values.configuration.statelistener.port}}
+    targetPort: {{ .Values.configuration.statelistener.port}}
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.frontend.rule.type: PathPrefixStrip
+  name: modelserver
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /modelserver
+        backend:
+          serviceName: modelserver
+          servicePort: {{ .Values.configuration.statelistener.port}}
