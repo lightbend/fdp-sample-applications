@@ -6,6 +6,7 @@ spec:
   containers:
   - name: vggcifartraining
     image: {{ .Values.image.vggcifar}}:{{.Values.image.version }}
+    imagePullPolicy: {{ .Values.image.pullPolicy }}
     command:
     - sh
     - -c
@@ -24,6 +25,6 @@ spec:
         --conf spark.executor.instances=3 
         --conf spark.kubernetes.container.image={{ .Values.image.vggcifar}}:{{.Values.image.version }}
         --conf spark.kubernetes.container.image.pullPolicy=Always
-        local:///opt/spark/jars/{{ .Values.vggcifar.jar}}:{{.Values.image.version }}.jar
+        local:///opt/spark/jars/{{ .Values.vggcifar.jar}}
         -f /tmp/cifar-10-batches-bin --download /tmp -b 16"
   restartPolicy: Never
