@@ -37,3 +37,12 @@ kstream/bin/helmcharts/prochelmchart/values.yaml
 bigdl/bin/helmcharts/vggcifarchart/values.yaml
 flink/bin/helmcharts/taxirideapp/values.yaml
 flink/bin/helmcharts/taxirideingestion/values.yaml
+
+nwintrusion/bin/helmcharts/anomalychart/Chart.yaml
+nwintrusion/bin/helmcharts/batchkmeanschart/Chart.yaml
+nwintrusion/bin/helmcharts/transformchart/Chart.yaml
+kstream/bin/helmcharts/dslhelmchart/Chart.yaml
+kstream/bin/helmcharts/prochelmchart/Chart.yaml
+bigdl/bin/helmcharts/vggcifarchart/Chart.yaml
+flink/bin/helmcharts/taxirideapp/Chart.yaml
+flink/bin/helmcharts/taxirideingestion/Chart.yaml

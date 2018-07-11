@@ -3,4 +3,5 @@ description: A Helm chart for Kubernetes deployment of batch kmeans component of
 maintainers:
 - name: Fast Data Team
 name: batchkmeanschart
-version: 0.1.0
+version: FDP_VERSION
+

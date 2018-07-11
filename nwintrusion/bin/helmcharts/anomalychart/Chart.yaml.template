@@ -3,4 +3,5 @@ description: A Helm chart for Kubernetes deployment of anomaly detection compone
 maintainers:
 - name: Fast Data Team
 name: anomalychart
-version: 0.1.0
+version: FDP_VERSION
+

@@ -1,5 +1,6 @@
 apiVersion: v1
-appVersion: "1.0"
+appVersion: FDP_VERSION
 description: A Helm chart for Kubernetes deployment of kstream-dsl application. It ingests data from the data file into Kafka topics and does stateful streaming
-name: kstreamprocchart
-version: 0.1.0
+name: kstreamdslchart
+version: FDP_VERSION
+
