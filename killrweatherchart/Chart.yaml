@@ -1,6 +1,0 @@
-apiVersion: v1
-description: A Helm chart for Kubernetes deployment of killrweather components, including killrweather or killrweather-structured, loader, grpc and HTTP clients.
-maintainers:
-- name: Boris Lublinsky
-name: killrweatherchart
-version: 0.1.0

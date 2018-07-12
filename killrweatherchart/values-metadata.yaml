@@ -90,7 +90,7 @@ components:
       label: "application"
       description: "Pick an application to install (killrweather) or structured"
       type: "string"
-      required
+      required: true
   http:
     __metadata:
       label: "HTTP Client"
@@ -103,3 +103,75 @@ components:
       description: "Install GRPC client (yes/no)"
       type: "string"
       required: true
+configuration:
+  __metadata:
+    label: "Configuration parameters for running application"
+  kafka:
+    __metadata:
+      label: "Kafka related configuration"
+    brokerlist :
+      __metadata:
+        label: "List of brokers to connect to"
+        description: "Coma separated list of brokers to connect to"
+        type: "string"
+        required: true
+  cassandra:
+    __metadata:
+      label: "Cassandra related configuration"
+    hosts :
+      __metadata:
+        label: "List of Cassandra hosts to connect to"
+        description: "Coma separated list of Cassandra hosts to connect to"
+        type: "string"
+        required: true
+  grafana :
+    __metadata:
+      label: "Grafana related configuration"
+    host :
+      __metadata:
+        label: "Grafana host"
+        description: "Grafana host"
+        type: "string"
+        required: true
+    port :
+      __metadata:
+        label: "Grafana port"
+        description: "Grafana port"
+        type: "integer"
+        required: true
+  influx :
+    __metadata:
+      label: "InfluxDB related configuration"
+    host :
+      __metadata:
+        label: "InfluxDB host"
+        description: "InfluxDB host"
+        type: "string"
+        required: true
+    port :
+      __metadata:
+        label: "InfluxDB port"
+        description: "InfluxDB port"
+        type: "integer"
+        required: true
+  loader :
+    __metadata:
+      label: "Loader configuration"
+    publish_interval :
+      __metadata:
+        label: "Data publish interval"
+        description: "Data publish interval, for example 1 sec"
+        type: "string"
+        required: true
+    data_mount :
+     __metadata:
+        label: "Data mount point for publisher data"
+        description: "Data mount point for publisher data"
+        type: "string"
+        required: true
+    batch_size :
+     __metadata:
+        label: "Data publishing batch size"
+        description: "Data publishing batch size"
+        type: "integer"
+        required: true
