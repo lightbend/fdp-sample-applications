@@ -1,0 +1,129 @@
+data:
+  __metadata:
+    label: "Information about data"
+  datadirectory:
+    __metadata:
+      label: "Data.zip location"
+      description: "The location of the data.zip location"
+      type: "string"
+      required: true
+image:
+  __metadata:
+    label: "Information about used images"
+  akka:
+    __metadata:
+      label: "Application image for akka based implementation"
+      description: "Name of the akka application image"
+      type: "string"
+      required: true
+  kafka:
+    __metadata:
+      label: "Application image for kafka based implementation"
+      description: "Name of the kafka application image"
+      type: "string"
+      required: true
+  publisher:
+    __metadata:
+      label: "Publisher image"
+      description: "Name of the loader image"
+      type: "string"
+      required: true
+  pullPolicy:
+    __metadata:
+      label: "Image pull policy"
+      description: "Image pull policy"
+      type: "string"
+      required: true
+  version:
+    __metadata:
+      label: "Image version"
+      description: "Image version should correspond to the FDP version"
+      type: "string"
+      required: true
+configuration:
+  __metadata:
+    label: "Configuration parameters for running application"
+  kafka:
+    __metadata:
+      label: "Kafka related configuration"
+    brokerlist :
+      __metadata:
+        label: "List of brokers to connect to"
+        description: "Coma separated list of brokers to connect to"
+        type: "string"
+        required: true
+  grafana :
+    __metadata:
+      label: "Grafana related configuration"
+    host :
+      __metadata:
+        label: "Grafana host"
+        description: "Grafana host"
+        type: "string"
+        required: true
+    port :
+      __metadata:
+        label: "Grafana port"
+        description: "Grafana port"
+        type: "integer"
+        required: true
+  influx :
+    __metadata:
+      label: "InfluxDB related configuration"
+    host :
+      __metadata:
+        label: "InfluxDB host"
+        description: "InfluxDB host"
+        type: "string"
+        required: true
+    port :
+      __metadata:
+        label: "InfluxDB port"
+        description: "InfluxDB port"
+        type: "integer"
+        required: true
+  statelistener :
+    __metadata:
+      label: "Execution state listener"
+    port :
+      __metadata:
+        label: "Listener port"
+        description: "Listener port"
+        type: "integer"
+        required: true
+  publisher :
+    __metadata:
+      label: "Publisher configuration"
+    data_publish_interval :
+      __metadata:
+        label: "Data publish interval"
+        description: "Data publish interval, for example 1 sec"
+        type: "string"
+        required: true
+    model_publish_interval :
+      __metadata:
+        label: "Model publish interval"
+        description: "Model publish interval, for example 5 minutes"
+        type: "string"
+        required: true
+    data_mount :
+     __metadata:
+        label: "Data mount point for publisher data"
+        description: "Data mount point for publisher data"
+        type: "string"
+        required: true
+    data_file :
+     __metadata:
+        label: "Name of the publisher data file"
+        description: "Name of the publisher data file"
+        type: "string"
+        required: true
+server:
+  __metadata:
+    label: "which server to install - if akka - akka, otherwise kafka"
+  type:
+    __metadata:
+      label: "server type"
+      description: "which server to install - if akka - akka, otherwise kafka"
+      type: "string"
+      required: true

@@ -54,17 +54,4 @@ class KafkaMessageSender(brokers: String /*, zookeeper: String*/ ) {
   def close(): Unit = {
     producer.close
   }
-  /*
-  def createTopic(topic: String, numPartitions: Int = 1, replicationFactor: Int = 1): Try[Unit] = {
-    if (!AdminUtils.topicExists(zkUtils, topic)) {
-      Try {
-        AdminUtils.createTopic(zkUtils, topic, numPartitions, replicationFactor)
-        println(s"Topic $topic with $numPartitions partitions and replication factor $replicationFactor is created")
-      }
-    } else {
-      println(s"Topic $topic already exists")
-      Success(())
-    }
-  }
-*/
 }

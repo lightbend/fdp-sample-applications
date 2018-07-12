@@ -1,0 +1,14 @@
+{
+  "id" : "id",
+  "name" : "Akka Kafka streams model server sample application",
+  "description" : "Akka Kafka streams model server sample application",
+  "group" : "group",
+  "version" : "0.1.0",
+  "packageType" : "helmchart",
+  "defaultAdminLink" : false,
+  "dependencies" : [ ],
+  "optionalDeps" : [ ],
+  "installable" : true,
+  "resourcePath" : "file:////Users/boris/Projects/fdp-akka-kafka-streams-model-server/modelserverchart/",
+  "order" : 0
+}

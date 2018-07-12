@@ -5,7 +5,6 @@ scalaVersion in ThisBuild := Versions.Scala
 version in ThisBuild := "1.2.0"
 organization in ThisBuild := "lightbend"
 
-
 // settings for a native-packager based docker scala project based on sbt-docker plugin
 def sbtdockerScalaAppBase(id: String)(base: String = id) = Project(id, base = file(base))
   .enablePlugins(sbtdocker.DockerPlugin, JavaAppPackaging)
@@ -74,7 +73,7 @@ lazy val model = (project in file("./model"))
   .dependsOn(protobufs)
 
 // Publisher project - pure scala
-lazy val publisher = sbtdockerScalaAppBase("publisher")("./publisher")
+lazy val publisher = sbtdockerScalaAppBase("fdp-akka-kafka-streams-model-server-model-publisher")("./publisher")
   .settings (
     mainClass in Compile := Some("com.lightbend.kafka.DataProvider"),
     libraryDependencies ++= kafkaBaseDependencies ++ testDependencies,
@@ -83,7 +82,7 @@ lazy val publisher = sbtdockerScalaAppBase("publisher")("./publisher")
   .dependsOn(protobufs, configuration)
 
 // Both Kafka and Akka services are using Tensorflow
-lazy val kafkaSvc = sbtdockerTensorflowAppBase("kafkaSvc")("./kafkastreamssvc")
+lazy val kafkaSvc = sbtdockerTensorflowAppBase("fdp-akka-kafka-streams-model-server-kafka-streams-server")("./kafkastreamssvc")
   .settings (
     mainClass in Compile := Some("com.lightbend.modelserver.withstore.ModelServerWithStore"),
     libraryDependencies ++= kafkaDependencies ++ webDependencies,
@@ -91,7 +90,7 @@ lazy val kafkaSvc = sbtdockerTensorflowAppBase("kafkaSvc")("./kafkastreamssvc")
   )
   .dependsOn(model, configuration)
 
-lazy val akkaSvc = sbtdockerTensorflowAppBase("akkaSvc")("./akkastreamssvc")
+lazy val akkaSvc = sbtdockerTensorflowAppBase("fdp-akka-kafka-streams-model-server-akka-streams-server")("./akkastreamssvc")
   .settings (
     mainClass in Compile := Some("com.lightbend.modelServer.modelServer.AkkaModelServer"),
     libraryDependencies ++= kafkaDependencies ++ akkaServerDependencies ++ Seq(curator),
