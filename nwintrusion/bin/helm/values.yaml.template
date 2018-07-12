@@ -1,0 +1,43 @@
+# Default values for anomaly detection chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+
+# data.zip location
+data:
+  datadirectory: http://fdp-sample-apps-artifacts.s3.amazonaws.com/kdd_cup_data.csv.tgz
+
+# docker image
+image:
+  anomaly: lightbend/fdp-nwintrusion-anomaly-k8s
+  kmeans: lightbend/fdp-nwintrusion-batchkmeans-k8s
+  transform: lightbend/fdp-nwintrusion-ingestion
+  pullPolicy: Always
+  version: FDP_VERSION
+
+# assembly jars and main classes
+anomaly:
+  jar: fdp-nwintrusion-anomaly-assembly-FDP_VERSION.jar
+  main: com.lightbend.fdp.sample.nwintrusion.anomaly.SparkClustering
+kmeans:
+  jar: fdp-nwintrusion-batchkmeans-assembly-FDP_VERSION.jar
+  main: com.lightbend.fdp.sample.nwintrusion.batchkmeans.BatchKMeans
+
+# Configuration parameters for an application
+configuration:
+  kafka:
+    brokerlist : broker.kafka.l4lb.thisdcos.directory:9092
+  grafana :
+    host : grafana.marathon.l4lb.thisdcos.directory
+    port : 3000
+    user : admin
+    password : admin
+  influx :
+    host : http://influxdb.marathon.l4lb.thisdcos.directory
+    port : 8086
+    user : root
+    password : root
+    database : anomaly
+    retentionpolicy : default
+  zk:
+    url : master.mesos:2181/dcos-service-kafka

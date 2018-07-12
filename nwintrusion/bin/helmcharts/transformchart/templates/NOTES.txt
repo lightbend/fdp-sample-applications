@@ -1,2 +1,0 @@
-Transformer for .Values.image.name is installed
-
