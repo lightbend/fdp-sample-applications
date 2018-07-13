@@ -7,19 +7,19 @@ data:
   datadirectory: http://s3-eu-west-1.amazonaws.com/fdp-killrweather-data/killrweather/data.zip
 # docker images
 image:
-  app: lightbend/fdp-killrweatherapp-k8s
+  app: lightbend/fdp-killrweather-app-k8s
   appstructured: lightbend/fdp-killrweather-structured-app-k8s
   loader: lightbend/fdp-killrweather-loader
   http: lightbend/fdp-killrweather-httpclient
   grpc: lightbend/fdp-killrweather-grpcclient
   pullPolicy: Always
-  version: FDP_VERSION
+  version: 1.2.1
 # assembly jars and main classes
 app:
-  jar: killrWeatherApp-assembly
+  jar: fdp-killrweather-app-assembly
   main: com.lightbend.killrweather.app.KillrWeather
 structured:
-  jar: killrWeatherApp_structured-assembly
+  jar: fdp-killrweather-structured-app-assembly
   main: com.lightbend.killrweather.app.structured.KillrWeatherStructured
 # components to install
 components:
@@ -28,6 +28,11 @@ components:
   grpc: "no"
 # Configuration parameters for an application
 configuration:
+  checkpointing :
+    pvc : "spark-checkpointing-pvc"
+  streaming:
+    batchInterval : "5 second"
+    checkpointDir : "/usr/checkpoint/"
   kafka:
     brokerlist : broker.kafka.l4lb.thisdcos.directory:9092
   cassandra:

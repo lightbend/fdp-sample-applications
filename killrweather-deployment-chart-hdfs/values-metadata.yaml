@@ -106,6 +106,30 @@ components:
 configuration:
   __metadata:
     label: "Configuration parameters for running application"
+  checkpointing :
+    __metadata:
+      label: "Checkpointing configuration for Spark"
+    pvc :
+      __metadata:
+        label: "PVC name for checkpointing"
+        description: "PVC name for checkpointing."
+        type: "string"
+        required: true
+  streaming :
+    __metadata:
+      label: "Streaming configuration for Spark"
+    batchInterval :
+      __metadata:
+        label: "Spark batch interval"
+        description: "Spark batch interval"
+        type: "string"
+        required: true
+    checkpointDir :
+      __metadata:
+        label: "Checkpointing directory"
+        description: "Checkpointing directory"
+        type: "string"
+        required: true
   kafka:
     __metadata:
       label: "Kafka related configuration"

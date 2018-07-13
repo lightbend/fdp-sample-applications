@@ -1,0 +1,1 @@
+PVC for Spark checkpointing with name {{ .Values.pvc.name}}, size {{ .Values.pvc.size}}, type {{ .Values.pvc.type}} is created

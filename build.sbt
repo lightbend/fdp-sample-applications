@@ -1,9 +1,9 @@
 import Dependencies._
 
 scalaVersion in ThisBuild := Versions.Scala
-version in ThisBuild := "1.2.0"
+version in ThisBuild := "1.2.1"
 organization in ThisBuild := "lightbend"
-val K8S_OR_DCOS = ""//"K8S"
+val K8S_OR_DCOS = "K8S"
 
 
 // settings for a native-packager based docker scala project based on sbt-docker plugin
@@ -41,10 +41,11 @@ def sbtdockerSparkAppBase(id: String)(base: String = id) = Project(id, base = fi
       K8S_OR_DCOS match {
         case "K8S" =>
           new Dockerfile {
-            from ("gcr.io/ynli-k8s/spark:v2.3.0")           // K8
+//            from ("gcr.io/ynli-k8s/spark:v2.3.0")           // K8
+            from ("lightbend/spark:k8s-rc")           // K8
             add(artifact, artifactTargetPath)
-            runRaw("mkdir -p /etc/hadoop/conf")
-            runRaw("export HADOOP_CONF_DIR=/etc/hadoop/conf")
+//            runRaw("mkdir -p /etc/hadoop/conf")
+//            runRaw("export HADOOP_CONF_DIR=/etc/hadoop/conf")
           }
 
         case _ =>
