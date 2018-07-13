@@ -298,100 +298,17 @@ Anomaly detection application stores possible anomalies in an InfluxDB database,
 
 ## Deploying and running on Kubernetes
 
-The first step in running applications on Kubernetes is the step of containerization, which we discussed in the last section. For Spark based applications we need docker images that are different from the ones we deploy on DC/OS. Native applications however can share the same images. This means that there is a difference in the way we deploy Spark applications on Kubernetes from the native ones.
+The first step in running applications on Kubernetes is the step of containerization, which we discussed in the last section. Once the docker images are built we can use Helm Charts to deploy the applications. For Spark applications, the images that have a name suffixed with `-k8s` need to be deployed.
 
-### Deploying Spark applications
-
-We can deploy the Spark applications on Kubernetes and have the others on DC/OS under Marathon. They should be able to communicate with each other since Kubernetes is running on top of DC/OS in the FDP cluster.
-
-The most popular way of deploying Spark applications on Kubernetes is to use `spark-submit`. But we need Spark 2.3.0 for this as Kubernetes support on Spark starts with this version only.
-
-Here's how you can deploy anomaly detection application on Kubernetes, where you should replace the `X.Y.Z` with the current FDP version, e.g., `1.2.3`:
+All helm charts are created in the `bin/helm` folder of the respective application. Here's a sample of how to deploy all components of `nwintrusion` application into Kubernetes using the helm chart:
 
 ```
-$ bin/spark-submit --master k8s://http://10.0.7.216:9000 \
-                   --deploy-mode cluster --files http://api.hdfs.marathon.l4lb.thisdcos.directory/v1/endpoints/hdfs-site.xml,http://api.hdfs.marathon.l4lb.thisdcos.directory/v1/endpoints/core-site.xml \
-                   --name anomaly \
-                   --class com.lightbend.fdp.sample.nwintrusion.anomaly.SparkClustering \
-                   --conf spark.executor.instances=3 \
-                   --conf spark.kubernetes.mountDependencies.filesDownloadDir=/etc/hadoop/conf \
-                   --conf 'spark.driver.extraJavaOptions=-Dconfig.resource=application.conf' \
-                   --conf spark.kubernetes.container.image=lightbend/fdp-nwintrusion-anomaly-k8s:X.Y.Z \
-                   local:///opt/spark/jars/fdp-nwintrusion-anomaly-assembly-X.Y.Z.jar \
-                   -t nwout -b kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1025 -m 60 -k 150
-```
-
-There are several important points to be noted:
-
-1. Master has to point to the k8 API server (I am using API server 0)
-2. Only cluster deploy mode is currently supported.
-3. Files need to load HDFS definition from Marathon
-4. `spark.kubernetes.mountDependencies.filesDownloadDir` sets the location where files are loaded
-5. Reference to the assembly has to be `local` meaning that the data is picked up from the docker image and location is the location in the docker image.
-
-### Deploying and running native applications (data transformation & ingestion)
-
-For non-Spark Java native applications, we don't need separate docker images for Kubernetes and DC/OS. We will use Helm Charts as the standard way of deploying non-Spark Kubernetes applications. In case you are not familiar with Helm Charts, [this document](https://docs.bitnami.com/kubernetes/how-to/create-your-first-helm-chart) gives an introduction of how to deploy applications on Kubernetes using Helm Charts.
-
-Here's how the data ingestion and transformation application can be deployed using Helm Charts. The `bin` folder of the project contains a folder named `transformchart`, which is the actual Helm Chart to be deployed. The core deployment artifact is a template named `transforminstall.yaml`, which lies within `bin/transformchart/templates` folder. Here is how the file looks.
-
-```
-apiVersion: v1
-kind: Pod
-metadata:
-  name: {{ template "transformchart.fullname" . }}
-spec:
-  containers:
-  - name: nwdatatransformer
-    image: {{ .Values.image.repository}}/{{ .Values.image.name}}:{{.Values.image.tag }}
-    imagePullPolicy: {{ .Values.image.pullPolicy }}
-    volumeMounts:
-    - name: datadir
-      mountPath: /usr/share
-    env:
-    - name: "DIRECTORY_TO_WATCH"
-      value: "/usr/share"
-  # These container runs during pod initialization
-  initContainers:
-  - name: install
-    image: busybox
-    command:
-    - sh
-    - -c
-    - wget {{ .Values.data.datadirectory }} -O /data-dir/kdd_cup_data.csv.tgz; tar xvfz /data-dir/kdd_cup_data.csv.tgz -C /data-dir
-    volumeMounts:
-    - name: datadir
-      mountPath: "/data-dir"
-  dnsPolicy: Default
-  volumes:
-  - name: datadir
-    emptyDir: {}
-```
-
-Here are some of the important points regarding the above template:
-
-1. The container where the application runs is named as `nwdatatransformer`, which is actually a symbol and gets the actual value from `bin/transformchart/values.yaml` template. This is the actual docker image that runs the application.
-2. We use an init container to load the data from S3 buckets at the start of the deployment. Note the section `initContainers` which has all the details to downlaod the data. It downloads data to a mount point named `datadir`, which is used by the application as well.
-3. The `datadir` mount point is again mounted by the application container under `/usr/share`, which is the advertised location for ingestion to start. Note we set the environment variable `DIRECTORY_TO_WATCH` to this value in `env` section of `containers`. And this environment variable will be used by the application configuration when it looks for the location to ingest data from. This is an extermely important concept to understand how the data ingestion pipeline if wired with the configuration of the container and the kubernetes deployment system.
-
-Here'show to deploy the helm chart on to your running Kebernetes cluster:
-
-**Step 1:** Dry run for sanity check
-
-```
+$ pwd
+.../nwintrusion
 $ cd bin
-$ helm install --dry-run --debug ./transformchart
+$ helm install --name nwintrusion ./helm
+...
+$ kubectl logs <pod name where the application runs>
 ```
 
-**Step 2:** Actual deployment of the helm chart
-
-```
-$ helm install --name nwtransform ./transformchart
-```
-
-**Step 3:** Check logs
-
-```
-$ kubectl logs nwtransform-transformchart -c install # check logs for init containers
-$ kubectl logs nwtransform-transformchart # check deployment log for chart
-```
+Same technique can be used to deploy all the sample applications in Kubernetes.
