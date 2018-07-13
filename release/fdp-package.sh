@@ -11,21 +11,40 @@ PROJECT=fdp-killrweather
 function usage {
   cat<< EOF
   $PROJECT:
-  This script currently builds the software, including docker images (but doesn't push them).
-  It also creates an archive of the code.
-  Usage: $SCRIPT [VERSION] [-h | --help]
+  This script does the following:
+  1. builds the software
+  2. creates an archive of the code
+  3. builds the Docker images
+  4. pushes the Docker images to Docker Hub
 
-  VERSION       E.g., 0.3.0. Required, but defaults to the value in $ROOT_DIR/version.sh
-  -h | --help   This message.
+  It also accepts options to skip building (just create an archive of the sources) and just
+  print the names of the Docker images (for fdp-release use).
+
+  Usage: $SCRIPT [VERSION] [options]
+
+  VERSION                E.g., 0.4.0. If not provided, the value is read from ./version.sh
+
+  -h | --help            This message.
+  --print-docker-images  Just print the image name with tag (if any) and exit. (Implies --skip-build)
+  --skip-build           Skip the actual build step (for testing the rest of the process)
 EOF
 }
 
+print_docker_image_names=false
+skip_build=false
 while [ $# -ne 0 ]
 do
   case $1 in
     -h|--help)
       usage
       exit 0
+      ;;
+    --skip*)
+      skip_build=true
+      ;;
+    --print-docker-image*)
+      print_docker_image_names=true
+      skip_build=true
       ;;
     -*)
       echo "$0: ERROR: Unrecognized argument $1"
@@ -44,6 +63,12 @@ then
   echo "$0: ERROR: The version argument is required."
   usage
   exit 1
+fi
+
+if $print_docker_image_names
+then
+  $ROOT_DIR/build.sh $VERSION --print-docker-images
+  exit 0
 fi
 
 echo "$0: Process templates for config files to set the version string:"
@@ -91,7 +116,13 @@ zip -r "$OUTPUT_FILE" "$OUTPUT_FILE_ROOT"
 
 rm -rf "$OUTPUT_FILE_ROOT"
 
-echo "$0: Building the Killrweather sample apps and docker images: $ROOT_DIR/build.sh"
+if $skip_build
+then
+  echo "$0: Skipping SBT build, including Docker images"
+  exit 0
+fi
+
+echo "$0: Building $PROJECT and docker images, and pushing the images to DockerHub: $ROOT_DIR/build.sh"
 
 $ROOT_DIR/build.sh $VERSION
 
