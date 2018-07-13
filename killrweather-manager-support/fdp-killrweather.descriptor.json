@@ -1,6 +1,6 @@
 {
   "serviceId" : "fdp-killrweather",
-  "versions" : [ "0.1.0" ],
+  "versions" : [ "1.2.0" ],
   "sections" : [ {
     "name" : "data",
     "label" : "Information about data (data)"
@@ -28,7 +28,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "http://s3-eu-west-1.amazonaws.com/fdp-killrweather-data/killrweather/data.zip",
-    "versions" : [ "0.1.0" ]
+    "versions" : [ "1.2.0" ]
   }, {
     "name" : "image|app",
     "section" : "image",
@@ -36,8 +36,8 @@
     "description" : "Name of the application image",
     "relevance" : "high",
     "type" : "text",
-    "default" : "lightbend/fdp-killrweatherapp-k8s",
-    "versions" : [ "0.1.0" ]
+    "default" : "lightbend/fdp-killrweather-app-k8s",
+    "versions" : [ "1.2.0" ]
   }, {
     "name" : "image|appstructured",
     "section" : "image",
@@ -46,7 +46,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "lightbend/fdp-killrweather-structured-app-k8s",
-    "versions" : [ "0.1.0" ]
+    "versions" : [ "1.2.0" ]
   }, {
     "name" : "image|loader",
     "section" : "image",
@@ -55,7 +55,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "lightbend/fdp-killrweather-loader",
-    "versions" : [ "0.1.0" ]
+    "versions" : [ "1.2.0" ]
   }, {
     "name" : "image|http",
     "section" : "image",
@@ -64,7 +64,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "lightbend/fdp-killrweather-httpclient",
-    "versions" : [ "0.1.0" ]
+    "versions" : [ "1.2.0" ]
   }, {
     "name" : "image|grpc",
     "section" : "image",
@@ -73,7 +73,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "lightbend/fdp-killrweather-grpcclient",
-    "versions" : [ "0.1.0" ]
+    "versions" : [ "1.2.0" ]
   }, {
     "name" : "image|pullPolicy",
     "section" : "image",
@@ -82,7 +82,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "Always",
-    "versions" : [ "0.1.0" ]
+    "versions" : [ "1.2.0" ]
   }, {
     "name" : "image|version",
     "section" : "image",
@@ -91,7 +91,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "1.2.0",
-    "versions" : [ "0.1.0" ]
+    "versions" : [ "1.2.0" ]
   }, {
     "name" : "app|jar",
     "section" : "app",
@@ -99,8 +99,8 @@
     "description" : "Name of the jar used for application",
     "relevance" : "high",
     "type" : "text",
-    "default" : "killrWeatherApp-assembly",
-    "versions" : [ "0.1.0" ]
+    "default" : "fdp-killrweather-app-assembly",
+    "versions" : [ "1.2.0" ]
   }, {
     "name" : "app|main",
     "section" : "app",
@@ -109,7 +109,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "com.lightbend.killrweather.app.KillrWeather",
-    "versions" : [ "0.1.0" ]
+    "versions" : [ "1.2.0" ]
   }, {
     "name" : "structured|jar",
     "section" : "structured",
@@ -117,8 +117,8 @@
     "description" : "Name of the jar used for structured application",
     "relevance" : "high",
     "type" : "text",
-    "default" : "killrWeatherApp_structured-assembly",
-    "versions" : [ "0.1.0" ]
+    "default" : "fdp-killrweather-structured-app-assembly",
+    "versions" : [ "1.2.0" ]
   }, {
     "name" : "structured|main",
     "section" : "structured",
@@ -127,7 +127,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "com.lightbend.killrweather.app.structured.KillrWeatherStructured",
-    "versions" : [ "0.1.0" ]
+    "versions" : [ "1.2.0" ]
   }, {
     "name" : "components|app",
     "section" : "components",
@@ -136,7 +136,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "killrweather",
-    "versions" : [ "0.1.0" ]
+    "versions" : [ "1.2.0" ]
   }, {
     "name" : "components|http",
     "section" : "components",
@@ -145,7 +145,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "no",
-    "versions" : [ "0.1.0" ]
+    "versions" : [ "1.2.0" ]
   }, {
     "name" : "components|grpc",
     "section" : "components",
@@ -154,7 +154,34 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "no",
-    "versions" : [ "0.1.0" ]
+    "versions" : [ "1.2.0" ]
+  }, {
+    "name" : "configuration|checkpointing|pvc",
+    "section" : "configuration",
+    "label" : "PVC name for checkpointing - PVC name for checkpointing. (configuration|checkpointing|pvc)",
+    "description" : "PVC name for checkpointing.",
+    "relevance" : "high",
+    "type" : "text",
+    "default" : "spark-checkpointing-pvc",
+    "versions" : [ "1.2.0" ]
+  }, {
+    "name" : "configuration|streaming|batchInterval",
+    "section" : "configuration",
+    "label" : "Spark batch interval - Spark batch interval (configuration|streaming|batchInterval)",
+    "description" : "Spark batch interval",
+    "relevance" : "high",
+    "type" : "text",
+    "default" : "5 second",
+    "versions" : [ "1.2.0" ]
+  }, {
+    "name" : "configuration|streaming|checkpointDir",
+    "section" : "configuration",
+    "label" : "Checkpointing directory - Checkpointing directory (configuration|streaming|checkpointDir)",
+    "description" : "Checkpointing directory",
+    "relevance" : "high",
+    "type" : "text",
+    "default" : "/usr/checkpoint/",
+    "versions" : [ "1.2.0" ]
   }, {
     "name" : "configuration|kafka|brokerlist",
     "section" : "configuration",
@@ -163,7 +190,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "broker.kafka.l4lb.thisdcos.directory:9092",
-    "versions" : [ "0.1.0" ]
+    "versions" : [ "1.2.0" ]
   }, {
     "name" : "configuration|cassandra|hosts",
     "section" : "configuration",
@@ -172,7 +199,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "node-0-server.cassandra.autoip.dcos.thisdcos.directory, node-1-server.cassandra.autoip.dcos.thisdcos.directory, node-2-server.cassandra.autoip.dcos.thisdcos.directory",
-    "versions" : [ "0.1.0" ]
+    "versions" : [ "1.2.0" ]
   }, {
     "name" : "configuration|grafana|host",
     "section" : "configuration",
@@ -181,7 +208,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "grafana.marathon.l4lb.thisdcos.directory",
-    "versions" : [ "0.1.0" ]
+    "versions" : [ "1.2.0" ]
   }, {
     "name" : "configuration|grafana|port",
     "section" : "configuration",
@@ -190,7 +217,7 @@
     "relevance" : "high",
     "type" : "uint",
     "default" : "3000",
-    "versions" : [ "0.1.0" ]
+    "versions" : [ "1.2.0" ]
   }, {
     "name" : "configuration|influx|host",
     "section" : "configuration",
@@ -199,7 +226,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "http://influxdb.marathon.l4lb.thisdcos.directory",
-    "versions" : [ "0.1.0" ]
+    "versions" : [ "1.2.0" ]
   }, {
     "name" : "configuration|influx|port",
     "section" : "configuration",
@@ -208,7 +235,7 @@
     "relevance" : "high",
     "type" : "uint",
     "default" : "8086",
-    "versions" : [ "0.1.0" ]
+    "versions" : [ "1.2.0" ]
   }, {
     "name" : "configuration|loader|publish_interval",
     "section" : "configuration",
@@ -217,7 +244,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "1 second",
-    "versions" : [ "0.1.0" ]
+    "versions" : [ "1.2.0" ]
   }, {
     "name" : "configuration|loader|data_mount",
     "section" : "configuration",
@@ -226,7 +253,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "/usr/share",
-    "versions" : [ "0.1.0" ]
+    "versions" : [ "1.2.0" ]
   }, {
     "name" : "configuration|loader|batch_size",
     "section" : "configuration",
@@ -235,6 +262,6 @@
     "relevance" : "high",
     "type" : "uint",
     "default" : "10",
-    "versions" : [ "0.1.0" ]
+    "versions" : [ "1.2.0" ]
   } ]
 }

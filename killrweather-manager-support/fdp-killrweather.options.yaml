@@ -19,6 +19,11 @@ components:
   http: '{{ components|http }}'
   grpc: '{{ components|grpc }}'
 configuration:
+  checkpointing:
+    pvc: '{{ configuration|checkpointing|pvc }}'
+  streaming:
+    batchInterval: '{{ configuration|streaming|batchInterval }}'
+    checkpointDir: '{{ configuration|streaming|checkpointDir }}'
   kafka:
     brokerlist: '{{ configuration|kafka|brokerlist }}'
   cassandra:

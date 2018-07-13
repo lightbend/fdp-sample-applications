@@ -9,6 +9,6 @@
   "dependencies" : [ ],
   "optionalDeps" : [ ],
   "installable" : true,
-  "resourcePath" : "file:////Users/boris/Projects/killrweatherLightbend/killrweatherchart",
+  "resourcePath" : "file:////Users/boris/Projects/killrweatherLightbend/killrweather-deployment-chart-hdfs",
   "order" : 0
 }
