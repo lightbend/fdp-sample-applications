@@ -28,10 +28,10 @@ All the applications can be run locally or on the DC/OS cluster using Marathon o
 $ sbt
 > projects
 [info] In file:/Users/bucktrends/lightbend/fdp-sample-apps/flink/source/core/
+[info] 	   fdp-flink-ingestion
+[info] 	   fdp-flink-taxiride
 [info] 	   ingestRun
-[info] 	   ingestTaxiRidePackage
 [info] 	 * root
-[info] 	   taxiRideApp
 > project ingestRun
 > ingest
 ```
@@ -79,11 +79,11 @@ All values can be set through environment variables as well. This is done when w
 $ sbt
 > projects
 [info] In file:/Users/bucktrends/lightbend/fdp-sample-apps/flink/source/core/
+[info] 	   fdp-flink-ingestion
+[info] 	   fdp-flink-taxiride
 [info] 	   ingestRun
-[info] 	   ingestTaxiRidePackage
 [info] 	 * root
-[info] 	   taxiRideApp
-> project taxiRideApp
+> project fdp-flink-taxiride
 > run --broker-list localhost:9092 --inTopic taxiin --outTopic taxiOut
 ```
 
@@ -98,17 +98,17 @@ In the `flink/source/core/` directory:
 ```
 $ sbt
 > projects
+[info] 	   fdp-flink-ingestion
+[info] 	   fdp-flink-taxiride
 [info] 	   ingestRun
-[info] 	   ingestTaxiRidePackage
 [info] 	 * root
-[info] 	   taxiRideApp
-> project ingestTaxiRidePackage
+> project fdp-flink-ingestion
 > universal:packageZipTarball
 > ...
 > docker
 ```
 
-This will create a docker image named `lightbend/ingesttaxiridepackage:X.Y.Z` (for the current version `X.Y.Z`) with the default settings. The name of the docker user comes from the `organization` field in `build.sbt` and can be changed there for alternatives. If the user name is changed, then the value of `$DOCKER_USERNAME` also needs to be changed in `flink/bin/app-install.sh`. The version of the image comes from `<PROJECT_HOME>/version.sh`. Change there if you wish to deploy a different version.
+This will create a docker image named `lightbend/fdp-flink-ingestion:X.Y.Z` (for the current version `X.Y.Z`) with the default settings. The name of the docker user comes from the `organization` field in `build.sbt` and can be changed there for alternatives. If the user name is changed, then the value of `$DOCKER_USERNAME` also needs to be changed in `flink/bin/app-install.sh`. The version of the image comes from `<PROJECT_HOME>/version.sh`. Change there if you wish to deploy a different version.
 
 Once the docker image is created, you can push it to the repository at DockerHub.
 
@@ -117,11 +117,11 @@ Similarly we can prepare the docker image for the Taxi Ride Flink application.
 ```
 $ sbt
 > projects
+[info] 	   fdp-flink-ingestion
+[info] 	   fdp-flink-taxiride
 [info] 	   ingestRun
-[info] 	   ingestTaxiRidePackage
 [info] 	 * root
-[info] 	   taxiRideApp
-> project taxiRideApp
+> project fdp-flink-taxiride
 > docker
 ```
 
@@ -195,3 +195,21 @@ It also has a `--help` option to show available command-line options. For exampl
 ## Output of running the application
 
 The computation results for travel time prediction appears in the Kafka topic `taxiout`. You can run a consumer and check the predicted times as they flow across during processing of the application.
+
+## Deploying and running on Kubernetes
+
+The first step in running applications on Kubernetes is the step of containerization, which we discussed in the last section. Once the docker images are built we can use Helm Charts to deploy the applications. 
+
+All helm charts are created in the `bin/helm` folder of the respective application. Here's a sample of how to deploy all components of `taxiride` application into Kubernetes using the helm chart:
+
+```
+$ pwd
+.../flink
+$ cd bin
+$ helm install --name taxiride ./helm
+...
+$ kubectl logs <pod name where the application runs>
+```
+
+Same technique can be used to deploy all the sample applications in Kubernetes.
+
