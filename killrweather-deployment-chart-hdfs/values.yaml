@@ -13,7 +13,7 @@ image:
   http: lightbend/fdp-killrweather-httpclient
   grpc: lightbend/fdp-killrweather-grpcclient
   pullPolicy: Always
-  version: 1.2.1
+  version: 1.2.0
 # assembly jars and main classes
 app:
   jar: fdp-killrweather-app-assembly
