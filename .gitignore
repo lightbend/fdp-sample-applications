@@ -29,20 +29,12 @@ release/staging/
 deploy.conf
 kstream/source/core/example-dsl/tmp/
 kstream/source/core/example-proc/tmp/
-nwintrusion/bin/helmcharts/anomalychart/values.yaml
-nwintrusion/bin/helmcharts/batchkmeanschart/values.yaml
-nwintrusion/bin/helmcharts/transformchart/values.yaml
-kstream/bin/helmcharts/dslhelmchart/values.yaml
-kstream/bin/helmcharts/prochelmchart/values.yaml
+nwintrusion/bin/helm/values.yaml
+kstream/bin/helm/values.yaml
 bigdl/bin/helmcharts/vggcifarchart/values.yaml
-flink/bin/helmcharts/taxirideapp/values.yaml
-flink/bin/helmcharts/taxirideingestion/values.yaml
+flink/bin/helm/values.yaml
 
-nwintrusion/bin/helmcharts/anomalychart/Chart.yaml
-nwintrusion/bin/helmcharts/batchkmeanschart/Chart.yaml
-nwintrusion/bin/helmcharts/transformchart/Chart.yaml
-kstream/bin/helmcharts/dslhelmchart/Chart.yaml
-kstream/bin/helmcharts/prochelmchart/Chart.yaml
+nwintrusion/bin/helm/Chart.yaml
+kstream/bin/helm/Chart.yaml
 bigdl/bin/helmcharts/vggcifarchart/Chart.yaml
-flink/bin/helmcharts/taxirideapp/Chart.yaml
-flink/bin/helmcharts/taxirideingestion/Chart.yaml
+flink/bin/helm/Chart.yaml

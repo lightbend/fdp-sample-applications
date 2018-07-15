@@ -1,6 +1,0 @@
-apiVersion: v1
-appVersion: FDP_VERSION
-description: A Helm chart for Kubernetes deployment of transform-data application. It ingests data from the data file, does some transformations and loads data into a Kafka Queue.
-name: transformchart
-version: FDP_VERSION
-

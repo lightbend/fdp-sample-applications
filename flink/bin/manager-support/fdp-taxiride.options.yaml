@@ -1,0 +1,21 @@
+data:
+  datadirectory: '{{ data|datadirectory }}'
+image:
+  taxiride: '{{ image|taxiride }}'
+  ingestion: '{{ image|ingestion }}'
+  pullPolicy: '{{ image|pullPolicy }}'
+  version: '{{ image|version }}'
+taxiride:
+  jar: '{{ taxiride|jar }}'
+  main: '{{ taxiride|main }}'
+configuration:
+  kafka:
+    brokerlist: '{{ configuration|kafka|brokerlist }}'
+    intopic: '{{ configuration|kafka|intopic }}'
+    outtopic: '{{ configuration|kafka|outtopic }}'
+  flink:
+    jm_rpc_address: '{{ configuration|flink|jm_rpc_address }}'
+    jm_rpc_port: !!int '{{ configuration|flink|jm_rpc_port }}'
+  zk:
+    url: '{{ configuration|zk|url }}'
+

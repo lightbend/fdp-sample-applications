@@ -1,0 +1,3 @@
+Flink taxiride application components ( {{ .Values.image.ingestion}}, {{ .Values.image.taxiride}} ) are installed
+
+

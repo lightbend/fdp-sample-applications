@@ -1,0 +1,14 @@
+{
+  "uid" : "taxiride",
+  "name" : "Flink Taxiride application",
+  "description" : "Flink Taxiride application",
+  "group" : "group",
+  "version" : "1.2.1",
+  "defaultAdminLink" : false,
+  "dependencies" : [ ],
+  "optionalDeps" : [ ],
+  "installable" : true,
+  "resourcePath" : "file:///Users/debasishghosh/lightbend/fdp-manager/conf/charts/taxiride-1.2.1.tgz",
+  "order" : 0
+}
+

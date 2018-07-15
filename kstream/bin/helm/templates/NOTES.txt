@@ -1,0 +1,1 @@
+KStream application components ( {{ .Values.image.dsl}}, {{ .Values.image.proc}} ) are installed

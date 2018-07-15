@@ -1,7 +1,0 @@
-apiVersion: v1
-description: A Helm chart for Kubernetes deployment of anomaly detection component of network intrusion application
-maintainers:
-- name: Fast Data Team
-name: anomalychart
-version: FDP_VERSION
-
