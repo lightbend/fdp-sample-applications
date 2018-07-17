@@ -1,0 +1,6 @@
+apiVersion: v1
+appVersion: FDP_VERSION
+description: BigDL application for VGG training on Cifar dataset
+name: BigDL application for VGG training on Cifar dataset
+version: FDP_VERSION
+

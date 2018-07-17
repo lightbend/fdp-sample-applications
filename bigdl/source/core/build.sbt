@@ -58,13 +58,10 @@ def sbtdockerSparkAppBase(id: String)(base: String = id) = projectBase(id)(base)
       val artifact: File = assembly.value
       if (System.getProperty("K8S_OR_DCOS") == "K8S") {
         val artifactTargetPath = s"/opt/spark/jars/${artifact.name}"
-        // val artifactTargetPath = s"/usr/spark-2.3.0/jars/${artifact.name}"
 
         new Dockerfile {
-          from ("gcr.io/ynli-k8s/spark:v2.3.0")
-          // from ("gettyimages/spark:2.3.0-hadoop-2.8")
+          from ("lightbend/spark:lb-ubuntu-2.4")
           add(artifact, artifactTargetPath)
-          runRaw("apk --no-cache add ca-certificates wget && wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://raw.githubusercontent.com/sgerrand/alpine-pkg-glibc/master/sgerrand.rsa.pub && apk del libc6-compat && wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.27-r0/glibc-2.27-r0.apk && apk add glibc-2.27-r0.apk")
           runRaw("mkdir -p /etc/hadoop/conf")
           runRaw("export HADOOP_CONF_DIR=/etc/hadoop/conf")
         }
