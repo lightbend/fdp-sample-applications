@@ -1,0 +1,7 @@
+image:
+  vggcifar: '{{ image|vggcifar }}'
+  pullPolicy: '{{ image|pullPolicy }}'
+  version: '{{ image|version }}'
+vggcifar:
+  jar: '{{ vggcifar|jar }}'
+  main: '{{ vggcifar|main }}'
