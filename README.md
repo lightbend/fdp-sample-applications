@@ -51,6 +51,8 @@ It supports several commands:
 * `sbt dockerPush` pushes an image to the dockerHub
 * `sbt dockerBuildAndPush` builds image and pushes it to the dockerHub
 
+
+
 ## Deploying The applications to FDP
 The following templates for deploying application to DC/OS are provided:
 
@@ -60,9 +62,7 @@ The following templates for deploying application to DC/OS are provided:
 * HTTP Clicent: `./killrweather-grpclient/src/main/resources/killrweatherHTTPClientDocker.json.template`
 * Data Loader: `killrweather-loader/src/main/resources/killrweatherloaderDocker.json.template`
 
-If you are looking at this code as distributed with a Fast Data Platform release, you'll also have corresponding JSON files. The only difference is occurrences of the string `FDP_VERSION` has been replaced with the actual version string.
-
-If you are looking at the git repo itself, then run the following script to generate the JSON files from the templates, using an appropriate value for `VERSION`, e.g., `1.2.0`:
+From the git repo itself, then run the following script to generate the JSON files from the templates, using an appropriate value for `VERSION`, e.g., `1.2.0`:
 
 ```bash
 ./process-templates.sh VERSION
