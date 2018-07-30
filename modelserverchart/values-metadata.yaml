@@ -127,3 +127,12 @@ server:
       description: "which server to install - if akka - akka, otherwise kafka"
       type: "string"
       required: true
+ingress:
+  __metadata:
+    label: "which ingress to use for exposing UI"
+  type:
+    __metadata:
+      class: "Ingress class"
+      description: "which Ingress class to use"
+      type: "string"
+      required: true

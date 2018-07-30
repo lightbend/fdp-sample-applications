@@ -43,7 +43,7 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   annotations:
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: {{ .Values.ingress.class}}
     traefik.frontend.rule.type: PathPrefixStrip
   name: modelserver
 spec:

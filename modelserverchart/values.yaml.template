@@ -32,3 +32,6 @@ configuration:
 # Server type. If akka - install akka implementation, otherwise - kafka implementation
 server:
   type: akka
+# INgress class used
+ingress:
+  class: traefik
