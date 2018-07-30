@@ -69,7 +69,7 @@ The Figure below shows Kafka Streams cluster. Akka Streams implementation can be
 
 # Prerequisites
 
-Overall implement relies on Kafka (current version is 11) and requires kafka to be installed.
+Overall implement relies on Kafka (current version is 1.0) and requires kafka to be installed.
 It uses 2 queues:
 * `models_data` - queue used for sending data
 * `models_models` - queue used for sending models
@@ -81,32 +81,6 @@ It also relies on InfluxDB/Grafana for visualization. Both need to be installed 
 For InfluxDB, the database `serving` with retentionPolicy `default` is used. 
 The application checks on startup whether the database exists and create it, if necessary.
 The application also ensures that the Grafana data source and dashboard definitions exist and create them, if necessary.
-
-# Quick Start
-
-You can use the prebuilt docker images for this application on docker hub to run the app.
-
-To run the _Data Publisher_
-```
-./bin/run-dcos-publisher.sh
-```
-
-Then choose between running the _Akka Streams_ or _Kafka Streams_ implementation of the _Model Serving_ 
-
-To run the _Akka Streams_ implementation: 
-```
-./bin/run-dcos-akkastreams-svc.sh
-
-```
-
-To run the _Kafka Streams_ implementation: 
-```
-./bin/run-dcos-kafkastreams-svc.sh
-
-```
-
-To modify and run a customized version of this application, you need to build, package and deploy the application
-following the instructions below.
 
 # Building the code
  
@@ -128,8 +102,9 @@ The build is done via `sbt`
 
     cd KafkaStreamsModelServer
     sbt clean compile
-    # For IntelliJ users, just import a project and use IntelliJ commands
-    make sure that you run sbt clean compile at least once to compile protobufs
+    
+For IntelliJ users, just import a project and use IntelliJ commands
+make sure that you run `sbt clean compile` at least once to compile protobufs
 
 
 # Package, Configure, Deploy, and Run
@@ -189,7 +164,7 @@ sbt docker:publish
 ```
 ## Component Configuration
 
-This application uses a file-based configuration with _environment variables_ overrides.
+This application uses [Lightbend config](https://github.com/lightbend/config) configuration with _environment variables_ overrides.
 A common practice is to use well known endpoint names for the target environment in the configuration file
 and allow for overrides from _environment variables_ to run in different environments or in local mode.
 
@@ -213,7 +188,6 @@ The `publisher` component support the following configuration:
 
 #### Mandatory Parameters
 - `KAFKA_BROKERS_LIST`: a comma-separated list of the kafka brokers to contact in the form `"<host1>:<port1>,<host2>:<port2>,..."` 
-- `ZOOKEEPER_URL`: the URL to the zookeeper service
 
 #### Optional Parameters
 - `DATA_PUBLISH_INTERVAL` (default: `1 second`): The time delay between publishing data records. 
@@ -227,7 +201,7 @@ The _model serving_ service, in both its _kafka streams_ and _akka streams_ impl
 requires the following configuration parameters:
 
  - `KAFKA_BROKERS_LIST`: a comma-separated list of the kafka brokers to contact in the form "<host1>:<port1>,<host2>:<port2>,..."
- - `ZOOKEEPER_URL`: the URL to the zookeeper service
+ - `model_server.port` : port used for a queryable state
  - `GRAFANA_HOST`: the host where the _grafana_ service is running (DNS name or IP address)
  - `GRAFANA_PORT`: the port of the grafana service
  - `INFLUXDB_HOST`: the host where the _influxDB_ service is running (DNS name or IP address)
@@ -247,7 +221,7 @@ Note that when running against services installed on DC/OS, their DNS names are 
 
 ### Publisher: Running Local
 
-To run the _Publisher_ component, we need first to have the IP addresses for the Kafka broker and Zookeeper.
+To run the _Publisher_ component, we need first to have the IP address for the Kafka broker.
 Those dependencies can run in an external cluster or can be installed and executed locally.
 See this guide for a local install: [Kafka Quick Start](https://kafka.apache.org/quickstart) 
 
@@ -260,7 +234,11 @@ Update the values provided there with the corresponding configuration for your l
 
 ```
 kafka.brokers = "localhost:29092"
-zookeeper.hosts= "localhost:32181"
+publisher {
+  data_publish_interval = 1 second
+  model_publish_interval = 5 minutes
+  data_dir = "data"
+  data_file = "winequality_red.csv"
 ``` 
 
 Then use `sbt` to run the process:
@@ -269,7 +247,9 @@ Then use `sbt` to run the process:
 sbt publisher/run
 ```
 
-#### Running On Docker
+Or just run it from Intellij `com.lightbend.kafka.DataProvider`
+
+#### Running using Docker
 
 - Build and publish the local _Docker_ image as described in (Packaging)[#Packaging]
 - Start the docker container for the _Model and Data publisher_ with `docker run`
@@ -280,8 +260,7 @@ See the [Publisher configuration](#publisher-configuration) for all options.
 
 ```
 docker run -e KAFKA_BROKERS_LIST=<kafka-broker> \
-           -e ZOOKEEPER_URL=<zookeeper-url> \
-           lightbend/model-server-publisher:1.1.0
+           lightbend/fdp-akka-kafka-streams-model-server-model-publisher:1.1.0
 ```
 
 ### Running Model Serving
@@ -298,9 +277,17 @@ Update the values provided there with the corresponding configuration for your l
 
 ```
 kafka.brokers = "localhost:29092"
-zookeeper.hosts= "localhost:32181"
-influxdb.host = "http://influxdb.marathon.l4lb.thisdcos.directory"
-...
+model_server.port = 5500
+
+grafana {
+  host = "10.0.4.61"
+  port = 20749
+}
+
+influxdb {
+  host = "10.0.4.61"
+  port = 18559
+}
 ``` 
 
 The use `sbt` to run the process:
@@ -312,6 +299,10 @@ sbt akkastreamssvc/run
 # For kafka streams implementation
 sbt kafkastreamssvc/run
 ```
+
+Or run it directly from Intellij using classes `com.lightbend.modelServer.modelServer.AkkaModelServer` for Akka
+and `com.lightbend.modelserver.withstore.ModelServerWithStore` for Kafka.
+
 
 #### Running on Docker
 
@@ -331,7 +322,7 @@ docker run -e KAFKA_BROKERS_LIST=10.0.7.196:1025 \
         -e GRAFANA_PORT=<grafana-port \ 
         -e INFLUXDB_HOST=<influxdb-host> \
         -e INFLUXDB_PORT=<influxdb-port> \
-        lightbend/model-server-akkastreams:1.1.0
+        lightbend/fdp-akka-kafka-streams-model-server-akka-streams-server:1.1.0
 ```
 
 ## Running a Custom Image on the DC/OS
@@ -339,8 +330,8 @@ docker run -e KAFKA_BROKERS_LIST=10.0.7.196:1025 \
 To run a custom application on the DC/OS:
  - apply the desired modifications
  - [publish the image to your docker repository](#publishing-to-an-external-docker-repository)
- - update the `json` templates in the `/bin` directory to point to the new image location, and
- - execute the `run` scripts as explained in the [Quick Start](#quick-start) section.
+ - copy `json.template` files in the corresponding`source/main/resources` directory to the location for that can be accessed by `DCOS` utility, update values as required and
+ - execute the `DCOS` command to install.
  
 ## Deploying to Kubernetes
 
@@ -351,3 +342,5 @@ It also has 2 deployment yaml files:
 init-pod (implemented using `busybox` image) and responsible for loading data files and mounting them for access
 by the publisher.
 2. `modelserviceinstall.yaml` installs either akka or kafka server (depending on the values configuration). 
+
+The chart assumes that Ingress is created for exposing model serving UI
