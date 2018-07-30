@@ -269,7 +269,8 @@ Here's the default version of the configuration file that the installer uses:
 ## dcos kafka package
 kafka-dcos-package=kafka
 
-## dcos service name
+## dcos service name. Change this if you use a different service name in your
+## Kafka installation on DC/OS cluster
 kafka-dcos-service-name=kafka
 
 ## whether to skip creation of kafka topics - valid values : true | false
