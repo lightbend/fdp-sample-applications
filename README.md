@@ -260,8 +260,9 @@ See the [Publisher configuration](#publisher-configuration) for all options.
 
 ```
 docker run -e KAFKA_BROKERS_LIST=<kafka-broker> \
-           lightbend/fdp-akka-kafka-streams-model-server-model-publisher:1.1.0
+           lightbend/fdp-akka-kafka-streams-model-server-model-publisher:X.Y.Z
 ```
+Where `X.Y.Z` is FDP version.
 
 ### Running Model Serving
 
@@ -322,8 +323,9 @@ docker run -e KAFKA_BROKERS_LIST=10.0.7.196:1025 \
         -e GRAFANA_PORT=<grafana-port \ 
         -e INFLUXDB_HOST=<influxdb-host> \
         -e INFLUXDB_PORT=<influxdb-port> \
-        lightbend/fdp-akka-kafka-streams-model-server-akka-streams-server:1.1.0
+        lightbend/fdp-akka-kafka-streams-model-server-akka-streams-server:X.Y.Z
 ```
+Where `X.Y.Z` is FDP version.
 
 ## Running a Custom Image on the DC/OS
 
