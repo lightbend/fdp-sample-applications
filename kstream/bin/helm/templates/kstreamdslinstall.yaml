@@ -2,12 +2,17 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: kstreamdslchart
+  labels:
+    app: kstreamdsl
 spec:
-  hostNetwork: true
+# hostNetwork: true
   containers:
   - name: kstreamdsltransformer
     image: {{ .Values.image.dsl}}:{{.Values.image.version }}
     imagePullPolicy: {{ .Values.image.pullPolicy }}
+    ports:
+    - name: http
+      containerPort: {{ .Values.configuration.statelistenerDSL.port}}
     volumeMounts:
     - name: datadir
       mountPath: /usr/share
@@ -20,7 +25,9 @@ spec:
       value: {{ .Values.configuration.rest.interface}}
     - name: "SCHEMA_REGISTRY_URL"
       value: {{ .Values.configuration.schemaregistry.url}}
-  # These container runs during pod initialization
+    - name: "PORT0"
+      value: "{{ .Values.configuration.statelistenerDSL.port}}"
+      
   initContainers:
   - name: install
     image: busybox
@@ -36,3 +43,32 @@ spec:
   - name: datadir
     emptyDir: {}
 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kstreamdsl
+spec:
+  selector:
+    app: kstreamdsl
+  ports:
+  - protocol: TCP
+    port: {{ .Values.configuration.statelistenerDSL.port}}
+    targetPort: {{ .Values.configuration.statelistenerDSL.port}}
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: {{ .Values.ingress.class}}
+    traefik.frontend.rule.type: PathPrefixStrip
+  name: kstreamdsl
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /kstreamdsl
+        backend:
+          serviceName: kstreamdsl
+          servicePort: {{ .Values.configuration.statelistenerDSL.port}}

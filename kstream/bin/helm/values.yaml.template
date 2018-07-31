@@ -24,3 +24,11 @@ configuration:
     interface : "0.0.0.0"
   schemaregistry:
     url : ""
+  statelistenerDSL:
+    port: 7171
+  statelistenerPROCEDURE:
+    port: 7172
+
+# Ingress class used
+ingress:
+  class: traefik
