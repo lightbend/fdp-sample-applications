@@ -349,3 +349,26 @@ $ kubectl logs <pod name where the application runs>
 ```
 
 Same technique can be used to deploy all the sample applications in Kubernetes.
+
+### Using the traefik Ingress Controller
+
+`kstream` application publishes a REST end point and allows users to query on various application state information. In Kubernetes this can be done in a way so that the user gets one fixed end point irrespective of the ways the underlying PODs are distributed across the cluster. Even in case of PODs getting restarted on a different node, it would be great to still have the fixed end point. We use the traefik ingress controller for this.
+
+> Ensure that the traefik ingress controller is installed in the cluster. Check that the dashboard is accessible through some end points like http://10.0.13.143:9901/dashboard/
+
+The helm chart for `kstream` application is configured to work with traefik ingress controller. However the query from the REST endpoints need to be changed as follows:
+
+```
+# for kstream DSL
+$ curl http://10.0.13.143:9900/kstreamdsl/weblog/access/check/world.std.com
+
+# for kstream procedure
+$ curl http://10.0.13.143:9900/kstreamproc/weblog/access/check/world.std.com
+```
+
+Note the following:
+
+* The IP address specified is the one from which you can access the dashboard. This is configured when you install traefik in the cluster
+* Every http service will be accessible through this IP address and the port combination
+* The prefixes `/kstreamdsl` and `/kstreamproc` are what distinguishes the services and send them to the appropriate backend controllers. All these prefixes are defined in the helm chart
+
