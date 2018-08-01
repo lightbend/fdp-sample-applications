@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: anomalydetection
+spec:
+  containers:
+  - name: anomalydetection
+    image: {{ .Values.image.anomaly}}:{{.Values.image.version }}
+    command:
+    - sh
+    - -c
+    - "/opt/spark/bin/spark-submit 
+        --master k8s://http://kube-apiserver-0-instance.kubernetes.mesos:9000 
+        --deploy-mode cluster 
+        --files http://api.hdfs.marathon.l4lb.thisdcos.directory/v1/endpoints/hdfs-site.xml,http://api.hdfs.marathon.l4lb.thisdcos.directory/v1/endpoints/core-site.xml
+        --name anomaly --class {{ .Values.anomaly.main }}
+        --conf spark.executor.instances=3 
+        --conf spark.kubernetes.mountDependencies.filesDownloadDir=/etc/hadoop/conf
+        --conf 'spark.driver.extraJavaOptions=-Dconfig.resource=application.conf'
+        --conf 'spark.kubernetes.container.image={{ .Values.image.anomaly}}:{{.Values.image.version }}'
+        --conf 'spark.kubernetes.container.image.pullPolicy=Always'
+        --conf 'spark.kubernetes.driverEnv.KAFKA_BROKERS={{ .Values.configuration.kafka.brokerlist}}'
+        --conf 'spark.kubernetes.driverEnv.GRAFANA_SERVER={{ .Values.configuration.grafana.host}}'
+        --conf 'spark.kubernetes.driverEnv.GRAFANA_PORT={{ .Values.configuration.grafana.port}}'
+        --conf 'spark.kubernetes.driverEnv.GRAFANA_USER={{ .Values.configuration.grafana.user}}'
+        --conf 'spark.kubernetes.driverEnv.GRAFANA_PASSWORD={{ .Values.configuration.grafana.password}}'
+        --conf 'spark.kubernetes.driverEnv.INFLUXDB_SERVER={{ .Values.configuration.influx.host}}'
+        --conf 'spark.kubernetes.driverEnv.INFLUXDB_PORT={{ .Values.configuration.influx.port}}'
+        --conf 'spark.kubernetes.driverEnv.INFLUXDB_USER={{ .Values.configuration.influx.user}}'
+        --conf 'spark.kubernetes.driverEnv.INFLUXDB_PASSWORD={{ .Values.configuration.influx.password}}'
+        --conf 'spark.kubernetes.driverEnv.INFLUXDB_DATABASE={{ .Values.configuration.influx.database}}'
+        --conf 'spark.kubernetes.driverEnv.INFLUXDB_RETENTION_POLICY={{ .Values.configuration.influx.retentionpolicy}}'
+        --conf 'spark.kubernetes.executorEnv.KAFKA_BROKERS={{ .Values.configuration.kafka.brokerlist}}'
+        --conf 'spark.kubernetes.executorEnv.GRAFANA_SERVER={{ .Values.configuration.grafana.host}}'
+        --conf 'spark.kubernetes.executorEnv.GRAFANA_PORT={{ .Values.configuration.grafana.port}}'
+        --conf 'spark.kubernetes.executorEnv.GRAFANA_USER={{ .Values.configuration.grafana.user}}'
+        --conf 'spark.kubernetes.executorEnv.GRAFANA_PASSWORD={{ .Values.configuration.grafana.password}}'
+        --conf 'spark.kubernetes.executorEnv.INFLUXDB_SERVER={{ .Values.configuration.influx.host}}'
+        --conf 'spark.kubernetes.executorEnv.INFLUXDB_PORT={{ .Values.configuration.influx.port}}'
+        --conf 'spark.kubernetes.executorEnv.INFLUXDB_USER={{ .Values.configuration.influx.user}}'
+        --conf 'spark.kubernetes.executorEnv.INFLUXDB_PASSWORD={{ .Values.configuration.influx.password}}'
+        --conf 'spark.kubernetes.executorEnv.INFLUXDB_DATABASE={{ .Values.configuration.influx.database}}'
+        --conf 'spark.kubernetes.executorEnv.INFLUXDB_RETENTION_POLICY={{ .Values.configuration.influx.retentionpolicy}}'
+        local:///opt/spark/jars/{{ .Values.anomaly.jar}}
+        -t nwout -b {{ .Values.configuration.kafka.brokerlist}} -m 60 -k 150"
+  restartPolicy: Never

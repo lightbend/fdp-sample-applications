@@ -83,21 +83,19 @@ In the `kstream/source/core/` directory:
 $ sbt
 > projects
 [info] In file:/Users/bucktrends/lightbend/fdp-sample-apps/kstream/source/core/
-[info] 	   dslPackage
 [info] 	   dslRun
-[info] 	   procPackage
+[info] 	   fdp-kstream-dsl
+[info] 	   fdp-kstream-processor
 [info] 	   procRun
 [info] 	 * root
 [info] 	   server
-> project dslPackage
+> project fdp-kstream-dsl
 > universal:packageZipTarball
 > ...
 > docker
 ```
 
-This will create a docker image named `lightbend/ingestpackage:X.Y.Z` (for the current version `X.Y.Z`) with the default settings. The name of the docker repository comes from the `organization` field in `build.sbt` and can be changed there for alternatives. If the repository name is changed, then the value of `$DOCKER_USERNAME` also needs to be changed in `nwintrusion/bin/utils.sh`. The version of the image comes from `<PROJECT_HOME>/version.sh`. Change there if you wish to deploy a different version.
-
-This will create a docker image named `lightbend/dslpackage:X.Y.Z` (for the current version `X.Y.Z`) with the default settings. The name of the docker repository comes from the `organization` field in `build.sbt` and can be changed there for alternatives. The version of the image comes from `<PROJECT_HOME>/version.sh`. Change there if you wish to deploy a different version.
+This will create a docker image named `lightbend/fdp-kstream-dsl:X.Y.Z` (for the current version `X.Y.Z`) with the default settings. The name of the docker repository comes from the `organization` field in `build.sbt` and can be changed there for alternatives. The version of the image comes from `<PROJECT_HOME>/version.sh`. Change there if you wish to deploy a different version.
 
 Once the docker image is created, you can push it to the repository at DockerHub.
 
@@ -156,7 +154,8 @@ The script `app-install.sh` takes all configuration parameters from a properties
 ## dcos kafka package 
 kafka-dcos-package=kafka
 
-## dcos service name. beta-kafka is installed as kafka by default. default is value of kafka-dcos-package
+## dcos service name. Change this if you use a different service name in your
+## Kafka installation on DC/OS cluster
 kafka-dcos-service-name=kafka
 
 ## whether to skip creation of kafka topics - valid values : true | false
@@ -334,8 +333,19 @@ hdfs dfs -get /topics/avro-topic/partition=0/avro-topic+0+0000292000+0000292999.
 fastavro avro-topic+0+0000292000+0000292999.avro --pretty
 ```
 
-## A note about versioning
+## Deploying and running on Kubernetes
 
-Don't put a `version := ...` setting in your sub-project because versioning is completely
-controlled by [`sbt-dynver`](https://github.com/dwijnand/sbt-dynver) and enforced by the `Enforcer` plugin found in the `build-plugin`
-directory.
+The first step in running applications on Kubernetes is the step of containerization, which we discussed in the last section. Once the docker images are built we can use Helm Charts to deploy the applications. 
+
+All helm charts are created in the `bin/helm` folder of the respective application. Here's a sample of how to deploy all components of `kstream` application into Kubernetes using the helm chart:
+
+```
+$ pwd
+.../kstream
+$ cd bin
+$ helm install --name kstream ./helm
+...
+$ kubectl logs <pod name where the application runs>
+```
+
+Same technique can be used to deploy all the sample applications in Kubernetes.

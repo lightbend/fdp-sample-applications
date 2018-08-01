@@ -13,16 +13,6 @@ normal_properties="${test_support}/normal.app-install.properties"
   [[ "${lines[1]}" =~ "i-dont-exist.properties not found" ]]
 }
 
-@test "fail if ssh-keyfile is not set in configuration properties" {
-  run bin/app-install.sh --config-file $fake_properties --stop-at config_file
-
-  [ $status -eq 1 ]
-
-  [[ "${lines[0]}" =~ "$fake_properties found" ]]
-  [[ "${lines[1]}" =~ "ERROR" ]]
-  [[ "${lines[2]}" =~ "ssh-keyfile not defined .. exiting" ]]
-}
-
 @test "check only jobs in --start_only are starting - start one job only" {
   run bin/app-install.sh --config-file $normal_properties --no-exec --start-only dsl --stop-at start_only
 

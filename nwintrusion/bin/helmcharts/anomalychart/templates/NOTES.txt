@@ -1,1 +1,0 @@
-Anomaly Detection component for .Values.image.anomaly is installed
