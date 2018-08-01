@@ -12,7 +12,7 @@ root_dirs=( ${HERE}/bigdl ${HERE}/nwintrusion ${HERE}/flink ${HERE}/kstream )
 # flag to just print the Docker image names.
 # Note that because VERSION is exported in version.sh, its value will be propagated
 # to the subsequent build.sh script invocations.
-
+print_docker_image_names=false
 while [[ $# -gt 0 ]]
 do
   case $1 in
@@ -21,11 +21,7 @@ do
       exit 0
       ;;
     --print-docker-image*)
-      for d in ${root_dirs[@]}
-      do
-        ( cd "$d/source/core"; sbt -no-colors "set version in ThisBuild := \"$VERSION\"" "show docker::imageNames" ) |  grep -e 'lightbend/[^)]*' --only-matching
-      done
-      exit $?
+      print_docker_image_names=true
       ;;
     -*)
       echo "ERROR: $0: Unrecognized argument $1"
@@ -37,6 +33,15 @@ do
   esac
   shift
 done
+
+if $print_docker_image_names
+then
+  for d in ${root_dirs[@]}
+  do
+    ( cd "$d/source/core"; sbt -no-colors "set version in ThisBuild := \"$VERSION\"" "show docker::imageNames" ) |  grep -e 'lightbend/[^)]*' --only-matching
+  done
+  exit $?
+fi
 
 echo "$0: Using version $VERSION"
 
