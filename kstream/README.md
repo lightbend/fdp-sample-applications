@@ -354,16 +354,16 @@ Same technique can be used to deploy all the sample applications in Kubernetes.
 
 `kstream` application publishes a REST end point and allows users to query on various application state information. In Kubernetes this can be done in a way so that the user gets one fixed end point irrespective of the ways the underlying PODs are distributed across the cluster. Even in case of PODs getting restarted on a different node, it would be great to still have the fixed end point. We use the traefik ingress controller for this.
 
-> Ensure that the traefik ingress controller is installed in the cluster. Check that the dashboard is accessible through some end points like http://10.0.13.143:9901/dashboard/
+> Ensure that the traefik ingress controller is installed in the cluster. Check that the dashboard is accessible through some end points like http://<public agent IP>:9901/dashboard/
 
 The helm chart for `kstream` application is configured to work with traefik ingress controller. However the query from the REST endpoints need to be changed as follows:
 
 ```
 # for kstream DSL
-$ curl http://10.0.13.143:9900/kstreamdsl/weblog/access/check/world.std.com
+$ curl http://<public agent IP>:9900/kstreamdsl/weblog/access/check/world.std.com
 
 # for kstream procedure
-$ curl http://10.0.13.143:9900/kstreamproc/weblog/access/check/world.std.com
+$ curl http://<public agent IP>:9900/kstreamproc/weblog/access/check/world.std.com
 ```
 
 Note the following:

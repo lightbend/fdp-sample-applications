@@ -5,7 +5,6 @@ metadata:
   labels:
     app: kstreamproc
 spec:
-  hostNetwork: true
   containers:
   - name: kstreamproctransformer
     image: {{ .Values.image.proc}}:{{.Values.image.version }}

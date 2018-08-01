@@ -5,7 +5,6 @@ metadata:
   labels:
     app: kstreamdsl
 spec:
-# hostNetwork: true
   containers:
   - name: kstreamdsltransformer
     image: {{ .Values.image.dsl}}:{{.Values.image.version }}
