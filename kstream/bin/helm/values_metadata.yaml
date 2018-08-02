@@ -70,3 +70,12 @@ configuration:
         description: "REST interface host"
         type: "string"
         required: false
+  statelistener :
+    __metadata:
+      label: "Execution state listener"
+    port :
+      __metadata:
+        label: "Listener port"
+        description: "Listener port"
+        type: "integer"
+        required: true
