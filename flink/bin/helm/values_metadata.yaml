@@ -1,0 +1,99 @@
+data:
+  __metadata:
+    label: "Information about data"
+  datadirectory:
+    __metadata:
+      label: "Data.zip location"
+      description: "The location of the data.zip location"
+      type: "string"
+      required: true
+image:
+  __metadata:
+    label: "Information about used images"
+  taxiride:
+    __metadata:
+      label: "Taxiride application image"
+      description: "Name of the taxiride application image"
+      type: "string"
+      required: true
+  ingestion:
+    __metadata:
+      label: "taxiride ingestion image"
+      description: "Name of the taxiride ingestion image"
+      type: "string"
+      required: true
+  pullPolicy:
+    __metadata:
+      label: "Image pull policy"
+      description: "Image pull policy"
+      type: "string"
+      required: true
+  version:
+    __metadata:
+      label: "Image version"
+      description: "Image version should correspond to the FDP version"
+      type: "string"
+      required: true
+taxiride:
+  __metadata:
+    label: "Details for the taxiride application"
+  jar:
+    __metadata:
+      label: "JAR name"
+      description: "Name of the jar used for application"
+      type: "string"
+      required: true
+  main:
+    __metadata:
+      label: "main class"
+      description: "Fully qualified name of the main class used for application"
+      type: "string"
+      required: true
+configuration:
+  __metadata:
+    label: "Configuration parameters for running application"
+  kafka:
+    __metadata:
+      label: "Kafka related configuration"
+    brokerlist :
+      __metadata:
+        label: "List of brokers to connect to"
+        description: "Comma separated list of brokers to connect to"
+        type: "string"
+        required: true
+    intopic :
+      __metadata:
+        label: "Kafka topic where data will be ingested"
+        description: "Kafka topic where data will be ingested"
+        type: "string"
+        required: true
+    outtopic :
+      __metadata:
+        label: "Kafka topic where travel time prediction will be generated"
+        description: "Kafka topic where travel time prediction will be generated"
+        type: "string"
+        required: true
+  flink:
+    __metadata:
+      label: "Flink related configuration"
+    jm_rpc_address :
+      __metadata:
+        label: "Job manager RPC address"
+        description: "Job manager RPC address"
+        type: "string"
+        required: true
+    jm_rpc_port :
+      __metadata:
+        label: "Job manager RPC port"
+        description: "Job manager RPC port"
+        type: "integer"
+        required: true
+  zk:
+    __metadata:
+      label: "Zookeeper related configuration"
+    url :
+      __metadata:
+        label: "Zookeeper URL"
+        description: "Zookeeper URL"
+        type: "string"
+        required: true

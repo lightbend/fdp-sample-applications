@@ -1,0 +1,40 @@
+{
+  "id": "/kstream-app-proc-1",
+  "cmd": "./build/proc/bin/fdp-kstream-processor",
+  "env": {
+    "INTERFACE_PROC": "0.0.0.0",
+    "KAFKA_BROKERS": {KAFKA_BROKERS},
+    "DIRECTORY_TO_WATCH": "",
+    "KAFKA_FROM_TOPIC_PROC": {KAFKA_FROM_TOPIC_PROC},
+    "KAFKA_ERROR_TOPIC_PROC": {KAFKA_ERROR_TOPIC_PROC}
+  },
+  "ports": [
+    0
+  ],
+  "constraints": [["hostname", "UNIQUE"]],
+  "cpus": 1.0,
+  "mem": 8192,
+  "container": {
+    "portMappings": [],
+    "type": "DOCKER",
+    "docker": {
+      "image": "lightbend/fdp-kstream-processor:{VERSION}",
+      "forcePullImage": true,
+      "privileged": false,
+      "parameters": []
+    },
+    "volumes": [
+      {
+        "containerPath": "/mnt/data",
+        "hostPath": "/mnt/sandbox/data",
+        "mode": "RW"
+      }
+    ]
+  },
+  "disk": 20480,
+  "instances": 1,
+  "fetch": [
+    { "uri": "https://downloads.mesosphere.com/java/jre-8u112-linux-x64.tar.gz" }
+  ]
+}
+

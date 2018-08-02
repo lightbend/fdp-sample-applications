@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: vggcifartraining
+spec:
+  containers:
+  - name: vggcifartraining
+    image: {{ .Values.image.vggcifar}}:{{.Values.image.version }}
+    imagePullPolicy: {{ .Values.image.pullPolicy }}
+    command:
+    - sh
+    - -c
+    - "/opt/spark/bin/spark-submit 
+        --master k8s://http://kube-apiserver-0-instance.kubernetes.mesos:9000 
+        --deploy-mode cluster 
+        --name vggcifar --class {{ .Values.vggcifar.main }}
+        --conf spark.cores.max=2 
+        --conf spark.executor.cores=2 
+        --conf spark.executorEnv.OMP_NUM_THREADS=1 
+        --conf spark.executorEnv.KMP_BLOCKTIME=0 
+        --conf OMP_WAIT_POLICY=passive 
+        --conf DL_ENGINE_TYPE=mklblas 
+        --conf spark.executor.memory=8G 
+        --driver-memory 4G
+        --conf spark.executor.instances=3 
+        --conf spark.kubernetes.container.image={{ .Values.image.vggcifar}}:{{.Values.image.version }}
+        --conf spark.kubernetes.container.image.pullPolicy=Always
+        local:///opt/spark/jars/{{ .Values.vggcifar.jar}}
+        -f /tmp/cifar-10-batches-bin --download /tmp -b 16"
+  restartPolicy: Never

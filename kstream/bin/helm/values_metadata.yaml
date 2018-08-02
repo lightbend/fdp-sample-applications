@@ -1,0 +1,81 @@
+data:
+  __metadata:
+    label: "Information about data"
+  datadirectorydsl:
+    __metadata:
+      label: "Data.zip location for DSL component"
+      description: "The location of the data.zip location for DSL component"
+      type: "string"
+      required: true
+  datadirectoryproc:
+    __metadata:
+      label: "Data.zip location for Processor component"
+      description: "The location of the data.zip location for Processor component"
+      type: "string"
+      required: true
+image:
+  __metadata:
+    label: "Information about used images"
+  dsl:
+    __metadata:
+      label: "DSL Component image"
+      description: "Name of the DSL component component image"
+      type: "string"
+      required: true
+  proc:
+    __metadata:
+      label: "Processor Component image"
+      description: "Name of the Processor component component image"
+      type: "string"
+      required: true
+  pullPolicy:
+    __metadata:
+      label: "Image pull policy"
+      description: "Image pull policy"
+      type: "string"
+      required: true
+  version:
+    __metadata:
+      label: "Image version"
+      description: "Image version should correspond to the FDP version"
+      type: "string"
+      required: true
+configuration:
+  __metadata:
+    label: "Configuration parameters for running application"
+  kafka:
+    __metadata:
+      label: "Kafka related configuration"
+    brokerlist :
+      __metadata:
+        label: "List of brokers to connect to"
+        description: "Coma separated list of brokers to connect to"
+        type: "string"
+        required: true
+  rest:
+    __metadata:
+      label: "REST endpoint"
+    interface :
+      __metadata:
+        label: "REST interface host"
+        description: "REST interface host"
+        type: "string"
+        required: true
+  schemaregistry:
+    __metadata:
+      label: "Confluent Kafka Schema Registry"
+    url :
+      __metadata:
+        label: "Confluent Kafka Schema Registry URL"
+        description: "REST interface host"
+        type: "string"
+        required: false
+  statelistener :
+    __metadata:
+      label: "Execution state listener"
+    port :
+      __metadata:
+        label: "Listener port"
+        description: "Listener port"
+        type: "integer"
+        required: true
