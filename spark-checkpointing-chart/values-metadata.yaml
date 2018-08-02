@@ -1,0 +1,21 @@
+pvc:
+  __metadata:
+    label: "Information about pvc"
+  name:
+    __metadata:
+      label: "PVC name"
+      description: "PVC name"
+      type: "string"
+      required: true
+  size:
+    __metadata:
+      label: "PVC size"
+      description: "PVC size"
+      type: "string"
+      required: true
+  type:
+    __metadata:
+      label: "PVC storage class"
+      description: "PVC storage class"
+      type: "string"
+      required: true

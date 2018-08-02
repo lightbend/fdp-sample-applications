@@ -1,0 +1,1 @@
+Killrweather{{ if eq .Values.components.app "killrweather" }}{{else}}_structured{{ end }} and supporting applications (loader{{ if eq .Values.components.http "yes" }}, httpclient{{ end }}{{ if eq .Values.components.grpc "yes" }}, grpcclient{{ end }}) are installed
