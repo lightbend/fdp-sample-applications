@@ -1,0 +1,7 @@
+apiVersion: v1
+appVersion: FDP_VERSION
+description: Akka Kafka streams model server sample application
+maintainers:
+- name: Boris Lublinsky
+name: Akka Kafka streams model server sample application
+version: FDP_VERSION

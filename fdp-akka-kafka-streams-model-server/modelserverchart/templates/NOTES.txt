@@ -1,0 +1,1 @@
+Model server for {{if eq .Values.server.type "akka" }} akka {{ else }} kafka {{ end }} is installed
