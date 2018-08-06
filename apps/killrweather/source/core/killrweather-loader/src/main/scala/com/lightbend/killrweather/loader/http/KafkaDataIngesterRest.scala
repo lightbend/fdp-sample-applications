@@ -13,7 +13,7 @@ object KafkaDataIngesterRest {
   val timeInterval: Long = 100 * 1 // 1 sec
   val batchSize = 10
 
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
 
 
     val host = sys.props.getOrElse("rest.ingester.client.host", "killrweatherhttpclient.marathon.mesos")

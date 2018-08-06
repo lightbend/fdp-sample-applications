@@ -9,4 +9,4 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.3.4")
 addSbtPlugin("se.marcuslonnberg" % "sbt-docker" % "1.5.0")
 
 // Common settings plugin as a project
-lazy val root = project.in( file(".") ).dependsOn(RootProject(file("../sbt-common-settings").toURI))
+lazy val root = project.in( file(".") ).dependsOn(RootProject(file("../../../sbt-common-settings").toURI))

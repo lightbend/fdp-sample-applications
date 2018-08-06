@@ -22,7 +22,7 @@ import scala.concurrent.duration.Duration.{ Inf => InfiniteDuration }
  */
 object DataProvider {
 
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
 
     val config = ConfigFactory.load()
     val kafkaBrokers = config.getString("kafka.brokers")
