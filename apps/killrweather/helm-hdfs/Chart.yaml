@@ -1,7 +1,0 @@
-apiVersion: v1
-appVersion: 1.2.0
-description: killrweather Sample Application
-maintainers:
-- name: Fast Data Team
-name: killrweather Sample Application
-version: 1.2.0
