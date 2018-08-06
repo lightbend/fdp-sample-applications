@@ -10,7 +10,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 ## project root directory
 PROJ_ROOT_DIR="$( cd "$DIR/../source/core" && pwd -P )"
 
-. "$DIR/../../version.sh"
+. "$DIR/../../../version.sh"
 . "$DIR/../../bin/common.sh"
 
 ZOOKEEPER_PORT=2181

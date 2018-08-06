@@ -12,7 +12,7 @@ object KafkaDataIngesterGRPC {
   val timeInterval: Long = 1.second.toMillis
   val batchSize = 10
 
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
 
     val settings = WeatherSettings("WeatherGRPCClient", args)
 

@@ -12,7 +12,7 @@ import scala.collection.mutable.ListBuffer
 
 object KafkaDataIngester {
 
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
 
     val killrSettings = WeatherSettings("KillrWeather", args)
     import killrSettings._

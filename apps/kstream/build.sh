@@ -10,5 +10,4 @@ do
   sbt "set version in ThisBuild := \"$VERSION\"" "show version" $i/clean $i/docker $i/dockerPush
 done
 
-# Use this one to verify that the version is set correctly!
-# sbt "set version in ThisBuild := \"$VERSION\"" "show version"
+echo "$PWD: built package and docker image(s). Pushed the docker image(s)."

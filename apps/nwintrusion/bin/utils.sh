@@ -1,6 +1,6 @@
 # Utilities and definitions shared by several scripts.
 
-. "$DIR/../../version.sh"
+. "$DIR/../../../version.sh"
 . "$DIR/../../bin/common.sh"
 
 KAFKA_DCOS_PACKAGE="kafka"
