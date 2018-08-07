@@ -20,19 +20,19 @@ The applications are organized in various folders with each of them containing d
 
 ## Installation
 
-Each of the applications contain the detailed instructions of how to build and install eah application locally or on the DC/OS cluster or on a Kubernetes cluster. 
+Each of the applications contain the detailed instructions of how to build and install each application locally or on the DC/OS cluster or on a Kubernetes cluster. 
 
 Here's how to install all of them from a centralized command line script into a DC/OS cluster. The script assumes the following:
 
-* A DC/OS cluster is up 'n running
+* A DC/OS cluster is up and running
 * The user is authenticated to the cluster (`dcos auth login`)
 * The cluster has sufficient resources to host the applications
 * The following components are installed and running on the cluster:
   * Kafka
   * Spark
-  * Cassandra
-  * InfluxDB
-  * Grafana
+  * Cassandra (required only for killrweather app)
+  * InfluxDB (required only for killrweather and network instrusion apps)
+  * Grafana (required only for killrweather and network instrusion apps)
 
 ### Configuration file
 
