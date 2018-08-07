@@ -1,4 +1,4 @@
-# Training VGG network on cifar-10 data
+# Training VGG network on CIFAR-10 data
 
 > **Disclaimer:** This sample application is provided as-is, without warranty. It is intended to illustrate techniques for implementing various scenarios using Fast Data Platform, but it has not gone through a robust validation process, nor does it use all the techniques commonly employed for highly-resilient, production applications. Please use it with appropriate caution.
 
@@ -20,9 +20,9 @@ $ sbt
 > run --master local[4] -f /tmp/cifar-10-batches-bin --download /tmp -b 16
 ```
 
-This will run the application for training the cifar-10 dataset on a VGG network on the local machine. 
+This will run the application for training the CIFAR-10 dataset on a VGG network on the local machine.
 
-The `--master` argument is optional and is required only for the local run of the application. 
+The `--master` argument is optional and is required only for the local run of the application.
 
 ## Deploying and running on DC/OS cluster
 
@@ -55,9 +55,9 @@ $ ./app-install.sh --help
   Installs the BigDL sample app. Assumes DC/OS authentication was successful
   using the DC/OS CLI.
 
-  Usage: app-install.sh   [options] 
+  Usage: app-install.sh   [options]
 
-  eg: ./app-install.sh 
+  eg: ./app-install.sh
 
   Options:
 
