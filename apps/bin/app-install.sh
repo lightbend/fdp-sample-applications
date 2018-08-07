@@ -14,17 +14,29 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 DEF_CONFIG_FILE="$RELDIR/config.json"
 CONFIG_FILE=$DEF_CONFIG_FILE
 
+DEF_APP_LIST=(
+  nwintrusion
+  weblogs
+  taxiride
+  vggcifar
+  modelserver
+  killrweather)
+APP_LIST=()
+
 # Used by show_help
 HELP_MESSAGE="
   Installs the sample applications of Lightbend Fast Data Platform.
-  Assumes DC/OS authentication was successful using the DC/OS CLI.
-  The 'jq' JSON parser command must be installed!"
-HELP_EXAMPLE_OPTIONS="--config-file ~/config.json"
+  Assumes DC/OS authentication was successful using the DC/OS CLI."
+HELP_EXAMPLE_OPTIONS="--config-file ~/config.json --app killrweather"
 
 # The ')' must be on the line AFTER the EOF!
 HELP_OPTIONS=$(cat <<EOF
-  -f | --config-file json-file     Configuration file used to launch applications
-                              Default: $RELDIR/config.json
+  -f | --config-file file     Configuration file used to launch applications.
+                              Default: $RELDIR/config.json.
+  -a | --app app              Run this application. This option can be repeated.
+                              Here is the list of apps. See the README for details:
+$(for a in ${DEF_APP_LIST[@]}; do echo "                                $a"; done)
+                              Default: all of them.
 EOF
 )
 
@@ -33,26 +45,30 @@ function parse_arguments {
   while :; do
     case "$1" in
       -f|--config-file)
-      shift
-      CONFIG_FILE=$1
-      ;;
+        shift
+        CONFIG_FILE=$1
+        ;;
+      -a|--app)
+        shift
+        APP_LIST+=($1)
+        ;;
       -h|--help)   # Call a "show_help" function to display a synopsis, then exit.
-      show_help
-      exit 0
-      ;;
+        show_help
+        exit 0
+        ;;
       -n|--no-exec)   # Don't actually run the installation commands; just print (for debugging)
-      NOEXEC="echo running: "
-      ;;
+        NOEXEC="info running: "
+        ;;
       --)              # End of all options.
-      shift
-      break
-      ;;
+        shift
+        break
+        ;;
       '')              # End of all options.
-      break
-      ;;
+        break
+        ;;
       *)
-      error "The option is not valid: $1"
-      ;;
+        error "The option is not valid: $1"
+        ;;
     esac
     shift
   done
@@ -71,12 +87,15 @@ function install_application_components {
 
   local components=$(get_components $application)
 
+  info
+  info "*** Running application $application ($app_description)"
+
   # need to invoke the respective app-install script from the application's bin folder
   PROJ_BIN_DIR="$( cd "$DIR/../$app_folder/bin" && pwd -P )"
 
   if [ ! -z "$components" ]
   then
-    echo "Components found in config [ $components ] .."
+    info "Components found in config [ $components ] .."
 
     # for each project for each component we invoke the script with --start-only component
     # e.g. for network intrusion application we invoke as:
@@ -90,7 +109,7 @@ function install_application_components {
     # invoke installation script with selected components
     $NOEXEC $PROJ_BIN_DIR/app-install.sh $suffix_no_quotes
   else
-    echo "No component found to install for $app_description application .. installing all available .."
+    info "No component found to install for $app_description application .. installing all available .."
 
     # invoke installation script
     $NOEXEC $PROJ_BIN_DIR/app-install.sh
@@ -105,12 +124,15 @@ function install_model_server {
 
   local components=$(get_components $application)
 
+  info
+  info "*** Running application $application ($app_description)"
+
   # need to invoke the respective app-install script from the application's bin folder
   local proj_bin_dir="$( cd "$DIR/../$app_folder/bin" && pwd -P )"
 
   if [ ! -z "$components" ]
   then
-    echo "Components found in config [ $components ] .."
+    info "Components found in config [ $components ] .."
 
     IFS=', ' read -r -a array <<< "$components"
 
@@ -121,7 +143,7 @@ function install_model_server {
       invoke_model_server_service $no_quote $proj_bin_dir
     done
   else
-    echo "No component found to install for $app_description application .. installing all available .."
+    info "No component found to install for $app_description application .. installing all available .."
 
     for element in akka-stream-svc kafka-stream-svc publisher
     do
@@ -175,16 +197,19 @@ function install_killrweather {
 
   local components=$(get_components $application)
 
+  info
+  info "*** Running application $application ($app_description)"
+
   # need to invoke the respective app-install script from the application's bin folder
   local proj_bin_dir="$( cd "$DIR/../$app_folder/bin" && pwd -P )"
 
   # process templates
-  echo Running process_templates to generate json from template files ..
+  info Running process_templates to generate json from template files ..
   $proj_bin_dir/../process-templates.sh $VERSION
 
   if [ ! -z "$components" ]
   then
-    echo "Components found in config [ $components ] .."
+    info "Components found in config [ $components ] .."
 
     IFS=', ' read -r -a array <<< "$components"
 
@@ -195,7 +220,7 @@ function install_killrweather {
       invoke_killrweather_service $no_quote $proj_bin_dir
     done
   else
-    echo "No component found to install for $app_description application .. installing all available .."
+    info "No component found to install for $app_description application .. installing all available .."
 
     for element in data-loader http-client grpc-client app structured-app
     do
@@ -236,27 +261,49 @@ function main {
 
   require_jq
 
-  [[ -f "$CONFIG_FILE" ]] || error "Config file $CONFIG_FILE not found. Try copying $DEF_CONFIG_FILE.template to $CONFIG_FILE."
+  # If the config file doesn't exist, but it's the default file, then copy over the template
+  # and use that. Otherwise, it's an error if the file doesn't exist.
+  if [[ ! -f "$CONFIG_FILE" ]]
+  then
+    if [[ $DEF_CONFIG_FILE = $CONFIG_FILE ]]
+    then
+      warn "$DEF_CONFIG_FILE not found. Copying $DEF_CONFIG_FILE.template to $CONFIG_FILE"
+      cp $DEF_CONFIG_FILE.template $CONFIG_FILE
+    else
+      error "Config file $CONFIG_FILE not found. Try copying $DEF_CONFIG_FILE.template to $CONFIG_FILE."
+    fi
+  fi
 
-  echo "Checking config file for components of Network Intrusion application ..."
+  [[ ${#APP_LIST[@]} -eq 0 ]] && APP_LIST=( ${DEF_APP_LIST[@]} )
 
-  # install nwintrusion
-  install_application_components nwintrusion nwintrusion "Network Intrusion"
+  info "Checking config file $CONFIG_FILE for the desired applications and running them..."
 
-  # install kstream
-  install_application_components kstream kstream "Kafka Streams"
-
-  # install flink taxiride
-  install_application_components taxiride flink "NYC Taxi Ride"
-
-  # install bigdl vggcifar
-  install_application_components vggcifar bigdl "BigDL VGG training on Cifar10"
-
-  # install model server
-  install_model_server modelserver akka-kafka-streams-model-server "Akka / Kafka Streams Model Server"
-
-  # install killrweather
-  install_killrweather killrweather killrweather "Killrweather"
+  for app in ${APP_LIST[@]}
+  do
+    case $app in
+      nwintrusion)
+        install_application_components nwintrusion nwintrusion "Network Intrusion"
+        ;;
+      weblogs)
+        install_application_components kstream kstream "Kafka Streams Web Logs Analysis"
+        ;;
+      taxiride)
+        install_application_components taxiride flink "NYC Taxi Ride with Flink"
+        ;;
+      vggcifar)
+        install_application_components vggcifar bigdl "BigDL VGG training on CIFAR-10"
+        ;;
+      modelserver)
+        install_model_server modelserver akka-kafka-streams-model-server "Akka / Kafka Streams Model Server"
+        ;;
+      killrweather)
+        install_killrweather killrweather killrweather "Killrweather"
+        ;;
+      *)
+        warn "Unknown application $app. Skipping..."
+        ;;
+    esac
+  done
 }
 
 main "$@"

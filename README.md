@@ -22,9 +22,9 @@ The applications are organized in folders with each of them containing details o
 
 ## Installation
 
-Each application contains detailed instructions on how to build and install the application locally or on a DC/OS cluster or Kubernetes cluster (experimental support).
+Each application contains detailed instructions on how to build and install the application locally or on a DC/OS cluster or Kubernetes cluster (forthcoming; under development now). See the individual READMEs and `bin` directories for each application for details.
 
-Here's how to install all of them from a centralized command line script into a DC/OS cluster. The script assumes the following:
+Here's how to install any or all of them from a centralized command line script into a DC/OS cluster, using a script `apps/bin/app-install.sh`. This script assumes the following prerequisites:
 
 * A DC/OS cluster is up and running
 * The user is authenticated to the cluster (`dcos auth login`)
@@ -38,9 +38,11 @@ Here's how to install all of them from a centralized command line script into a 
 
 ### Configuration file
 
-The installation is driven through a JSON configuration file that defines the components that we want to install. The default file name is `bin/config.json.template`, which has the full set of components offered by the platform.
+The installation is driven through a JSON configuration file that defines the components that you want to install. A template for this file is provided, `apps/bin/config.json.template`, which has the full set of applications and the set of components for each application.
 
-As a user you can customize this file to install a subset. Copy the file to `bin/config.json` and make the changes desired.
+By default, the script will copy this file to `apps/bin/config.json` and use that copy. Or you can create your own copy first and edit it, such as removing the applications you don't want. You can also use a different file path, combined with the `--config-file` script argument.
+
+Instead of editing the JSON file, you can also use the command-line option `--app app-name` to pick an app to run. Repeat these arguments to run several apps.
 
 Here's part of the JSON template file for the network intrusion sample app. It shows that each entry consists of an application name along with the set of "components" available for installation for that particular application. Those "components" are actually deployed as Docker images:
 
@@ -74,11 +76,20 @@ $ apps/bin/app-install.sh --help
 
   Usage: apps/bin/app-install.sh  [options]
 
-  eg: apps/bin/app-install.sh --config-file ~/config.json
+  eg: apps/bin/app-install.sh --config-file ~/config.json --app killrweather
 
   Options:
-  -f | --config-file file     Configuration file used to launch applications
-                              Default: apps/bin/config.json
+  -f | --config-file file     Configuration file used to launch applications.
+                              Default: apps/bin/config.json.
+  -a | --app app              Run this application. This option can be repeated.
+                              Here is the list of apps. See the README for details:
+                                nwintrusion
+                                weblogs
+                                taxiride
+                                vggcifar
+                                modelserver
+                                killrweather
+                              Default: all of them.
   -n | --no-exec              Do not actually run commands, just print them (for debugging).
   -h | --help                 Prints this message.
 ```
