@@ -1,0 +1,48 @@
+[
+  {
+    "app": "nwintrusion",
+    "components": [
+      "transform-data",
+      "batch-k-means",
+      "anomaly-detection"
+    ]
+  },
+  {
+    "app": "kstream",
+    "components": [
+      "dsl",
+      "processor"
+    ]
+  },
+  {
+    "app": "taxiride",
+    "components": [
+      "ingestion",
+      "app"
+    ]
+  },
+  {
+    "app": "vggcifar",
+    "components": [
+    ]
+  },
+  {
+    "app": "killrweather",
+    "components": [
+      "data-loader",
+      "http-client",
+      "grpc-client",
+      "app",
+      "structured-app"
+    ]
+  },
+  {
+    "app": "modelserver",
+    "components": [
+      "akka-stream-svc",
+      "kafka-stream-svc",
+      "publisher"
+    ]
+  }
+]
+

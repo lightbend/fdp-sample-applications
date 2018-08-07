@@ -18,3 +18,100 @@ The applications are organized in various folders with each of them containing d
 
 * [Kafka Streams UseCases](apps/kstream/README.md): This example uses Kafka Streams APIs to process weblogs. It shows the power of both the higher level DSLs as well as the lower level Processor based APIs.
 
+## Installation
+
+Each of the applications contain the detailed instructions of how to build and install eah application locally or on the DC/OS cluster or on a Kubernetes cluster. 
+
+Here's how to install all of them from a centralized command line script into a DC/OS cluster. The script assumes the following:
+
+* A DC/OS cluster is up 'n running
+* The user is authenticated to the cluster (`dcos auth login`)
+* The cluster has sufficient resources to host the applications
+* The following components are installed and running on the cluster:
+  * Kafka
+  * Spark
+  * Cassandra
+  * InfluxDB
+  * Grafana
+
+### Configuration file
+
+The installation is driven through a configuration in json which contains the components that the user wants to install. The default file name is `config.json.template` whch has the full set of components offered by the platform. 
+
+As a user you can customize to install a subset. Make the changes as required and copy the file to `config.json`. 
+
+Here's the json template, where each entry consists of an application name along with the set of components available for installation for that particular application:
+
+```json
+[
+  {
+    "app": "nwintrusion",
+    "components": [
+      "transform-data",
+      "batch-k-means",
+      "anomaly-detection"
+    ]
+  },
+  {
+    "app": "kstream",
+    "components": [
+      "dsl",
+      "processor"
+    ]
+  },
+  {
+    "app": "taxiride",
+    "components": [
+      "ingestion",
+      "app"
+    ]
+  },
+  {
+    "app": "vggcifar",
+    "components": [
+    ]
+  },
+  {
+    "app": "killrweather",
+    "components": [
+      "data-loader",
+      "http-client",
+      "grpc-client",
+      "app",
+      "structured-app"
+    ]
+  },
+  {
+    "app": "modelserver",
+    "components": [
+      "akka-stream-svc",
+      "kafka-stream-svc",
+      "publisher"
+    ]
+  }
+]
+```
+
+> For any application if the number of components is empty, then *all* components are installed.
+
+
+### Installation script
+
+The installation script is located in `fdp-sample-applications/apps/bin` folder.
+
+```
+$ ./app-install.sh --help
+
+  Installs the sample applications of Lightbend Fast Data Platform. Assumes DC/OS authentication was successful
+  using the DC/OS CLI.
+
+  Usage: app-install.sh   [options] 
+
+  eg: ./app-install.sh 
+
+  Options:
+  --config-file               Configuration file used to launch applications
+                              Default: ./config.json
+  -n | --no-exec              Do not actually run commands, just print them (for debugging).
+  -h | --help                 Prints this message.
+```
