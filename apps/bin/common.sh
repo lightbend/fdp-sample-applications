@@ -11,11 +11,12 @@ NOEXEC=
 function show_help {
   cat<< EOF
 
+  $0
   $HELP_MESSAGE
 
-  Usage: $SCRIPT  $ARGS [options] $OPTIONAL_ARGS
+  Usage: $0 $ARGS [options] $OPTIONAL_ARGS
 
-  eg: ./$SCRIPT $HELP_EXAMPLE_OPTIONS
+  eg: $0 $HELP_EXAMPLE_OPTIONS
 
   Options:
 $HELP_OPTIONS
@@ -35,7 +36,7 @@ function error {
   echo "ERROR: " >&2
   for s in "$@"
   do
-    echo "  $s" >&2
+    echo "ERROR:  $s" >&2
     shift
   done
   echo >&2
@@ -48,10 +49,14 @@ function warn {
   echo "WARN: " >&2
   for s in "$@"
   do
-    echo "  $s" >&2
+    echo "WARN:  $s" >&2
     shift
   done
   echo >&2
+}
+
+function info {
+  echo "INFO:  $@" >&2
 }
 
 function header {

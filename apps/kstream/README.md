@@ -1,8 +1,8 @@
-# Kafka Streams Sample Applications for Weblog Processing
+# Kafka Streams Sample Applications for Web Log Processing
 
 > **Disclaimer:** This sample application is provided as-is, without warranty. It is intended to illustrate techniques for implementing various scenarios using Fast Data Platform, but it has not gone through a robust validation process, nor does it use all the techniques commonly employed for highly-resilient, production applications. Please use it with appropriate caution.
 
-This project consists of 2 applications that demonstrate the use of Kafka Streams.  Both apps ingest sample web log data from the [Clarknet dataset](http://ita.ee.lbl.gov/html/contrib/ClarkNet-HTTP.html), which is described below.
+This project consists of two applications that demonstrate the use of Kafka Streams.  Both apps ingest sample web log data from the [Clarknet dataset](http://ita.ee.lbl.gov/html/contrib/ClarkNet-HTTP.html), which is described below.
 
 > These two traces contain two week's worth of all HTTP requests to the ClarkNet WWW server. ClarkNet is a full Internet access provider for the Metro Baltimore-Washington DC area.
 
@@ -151,7 +151,7 @@ This will install both the modules as applications running under Marathon in the
 The script `app-install.sh` takes all configuration parameters from a properties file.  The default file is `app-install.properties` which resides in the same directory, but you can specify the file with the `--config-file` argument.  It is recommended that you keep a set of configuration files for personal development, testing, and production.  Simply copy the default file over and modify as needed.
 
 ```
-## dcos kafka package 
+## dcos kafka package
 kafka-dcos-package=kafka
 
 ## dcos service name. Change this if you use a different service name in your
@@ -335,7 +335,7 @@ fastavro avro-topic+0+0000292000+0000292999.avro --pretty
 
 ## Deploying and running on Kubernetes
 
-The first step in running applications on Kubernetes is the step of containerization, which we discussed in the last section. Once the docker images are built we can use Helm Charts to deploy the applications. 
+The first step in running applications on Kubernetes is the step of containerization, which we discussed in the last section. Once the docker images are built we can use Helm Charts to deploy the applications.
 
 All helm charts are created in the `bin/helm` folder of the respective application. Here's a sample of how to deploy all components of `kstream` application into Kubernetes using the helm chart:
 
