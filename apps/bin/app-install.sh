@@ -5,20 +5,26 @@ set -e
 SCRIPT=$(basename "${BASH_SOURCE[0]}")
 
 ## run directory
+RELDIR=$(dirname ${BASH_SOURCE[0]})
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 
 . "$DIR/../../version.sh"
 . "$DIR/common.sh"
 
+DEF_CONFIG_FILE="$RELDIR/config.json"
+CONFIG_FILE=$DEF_CONFIG_FILE
+
 # Used by show_help
-HELP_MESSAGE="Installs the sample applications of Lightbend Fast Data Platform. Assumes DC/OS authentication was successful
-  using the DC/OS CLI."
-HELP_EXAMPLE_OPTIONS=
+HELP_MESSAGE="
+  Installs the sample applications of Lightbend Fast Data Platform.
+  Assumes DC/OS authentication was successful using the DC/OS CLI.
+  The 'jq' JSON parser command must be installed!"
+HELP_EXAMPLE_OPTIONS="--config-file ~/config.json"
 
 # The ')' must be on the line AFTER the EOF!
 HELP_OPTIONS=$(cat <<EOF
-  --config-file               Configuration file used to launch applications
-                              Default: ./config.json
+  -f | --config-file json-file     Configuration file used to launch applications
+                              Default: $RELDIR/config.json
 EOF
 )
 
@@ -26,9 +32,9 @@ function parse_arguments {
 
   while :; do
     case "$1" in
-      --config-file)
+      -f|--config-file)
       shift
-      config_file=$1
+      CONFIG_FILE=$1
       ;;
       -h|--help)   # Call a "show_help" function to display a synopsis, then exit.
       show_help
@@ -53,7 +59,7 @@ function parse_arguments {
 }
 
 function get_components {
-  local components=$( jq --arg app_name "$1" '.[] | select(.app == $app_name) | .components[]' config.json )
+  local components=$( jq --arg app_name "$1" '.[] | select(.app == $app_name) | .components[]' "$CONFIG_FILE" )
   echo $components
 }
 
@@ -87,7 +93,7 @@ function install_application_components {
     echo "No component found to install for $app_description application .. installing all available .."
 
     # invoke installation script
-    $NOEXEC $PROJ_BIN_DIR/app-install.sh 
+    $NOEXEC $PROJ_BIN_DIR/app-install.sh
   fi
 }
 
@@ -129,15 +135,15 @@ function invoke_model_server_service {
 
   case "$1" in
     "akka-stream-svc")
-      $NOEXEC $proj_bin_dir/run-dcos-akkastreams-svc.sh 
+      $NOEXEC $proj_bin_dir/run-dcos-akkastreams-svc.sh
       ;;
 
     "kafka-stream-svc")
-      $NOEXEC $proj_bin_dir/run-dcos-kafkastreams-svc.sh 
+      $NOEXEC $proj_bin_dir/run-dcos-kafkastreams-svc.sh
       ;;
 
     "publisher")
-      $NOEXEC $proj_bin_dir/run-dcos-publisher.sh 
+      $NOEXEC $proj_bin_dir/run-dcos-publisher.sh
       ;;
   esac
 }
@@ -191,7 +197,7 @@ function install_killrweather {
   else
     echo "No component found to install for $app_description application .. installing all available .."
 
-    for element in data-loader http-client grpc-client app structured-app  
+    for element in data-loader http-client grpc-client app structured-app
     do
       invoke_killrweather_service $element $proj_bin_dir
     done
@@ -228,13 +234,11 @@ function main {
 
   parse_arguments "$@"
 
-  if [ ! -f $config_file ]
-  then
-    error "$config_file not found.."
-    exit -1
-  fi
+  require_jq
 
-  echo "Checking config file for components of Network Intrusion application .."
+  [[ -f "$CONFIG_FILE" ]] || error "Config file $CONFIG_FILE not found. Try copying $DEF_CONFIG_FILE.template to $CONFIG_FILE."
+
+  echo "Checking config file for components of Network Intrusion application ..."
 
   # install nwintrusion
   install_application_components nwintrusion nwintrusion "Network Intrusion"

@@ -11,11 +11,12 @@ NOEXEC=
 function show_help {
   cat<< EOF
 
+  $0
   $HELP_MESSAGE
 
-  Usage: $SCRIPT  $ARGS [options] $OPTIONAL_ARGS
+  Usage: $0 $ARGS [options] $OPTIONAL_ARGS
 
-  eg: ./$SCRIPT $HELP_EXAMPLE_OPTIONS
+  eg: $0 $HELP_EXAMPLE_OPTIONS
 
   Options:
 $HELP_OPTIONS
