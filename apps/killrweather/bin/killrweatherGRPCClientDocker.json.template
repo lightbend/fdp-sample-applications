@@ -3,7 +3,7 @@
   "container": {
     "docker": {
       "image": "lightbend/fdp-killrweather-grpcclient:FDP_VERSION",
-      "forcePull": true,
+      "forcePull": true
     }
   },
   "instances": 1,
