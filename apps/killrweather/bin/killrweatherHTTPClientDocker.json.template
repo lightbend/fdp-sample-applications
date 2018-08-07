@@ -1,0 +1,15 @@
+{
+  "id": "/killrweatherhttpclient",
+  "container": {
+    "docker": {
+      "image": "lightbend/fdp-killrweather-httpclient:FDP_VERSION",
+      "forcePull": true,
+    }
+  },
+  "instances": 1,
+  "cpus": 2,
+  "mem": 4096,
+  "environment": {
+    "KAFKA_BROKERS": "broker.kafka.l4lb.thisdcos.directory:9092"
+  }
+}

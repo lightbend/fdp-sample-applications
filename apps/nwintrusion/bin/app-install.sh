@@ -85,7 +85,6 @@ function modify_transform_data_template {
     "KAFKA_TO_TOPIC"
     "KAFKA_ERROR_TOPIC"
     "KAFKA_ZOOKEEPER_URL"
-    "VERSION"
     )
 
   for elem in "${arr[@]}"
@@ -93,6 +92,9 @@ function modify_transform_data_template {
     eval value="\$$elem"
     $NOEXEC sed -i -- "s~{$elem}~\"$value\"~g" $TRANSFORM_DATA_TEMPLATE
   done
+
+  # VERSION needs to be handled separately as we should not have it with quotes
+  $NOEXEC sed -i -- "s~{VERSION}~$VERSION~g" $TRANSFORM_DATA_TEMPLATE
 }
 
 function parse_arguments {
