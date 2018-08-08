@@ -290,7 +290,6 @@ function modify_dsl_json_template {
     "KAFKA_WINDOWED_SUMMARY_PAYLOAD_TOPIC_DSL"
     "KAFKA_ERROR_TOPIC_DSL"
     "SCHEMA_REGISTRY_URL"
-    "VERSION"
     )
 
   for elem in "${arr[@]}"
@@ -298,6 +297,9 @@ function modify_dsl_json_template {
     eval value="\$$elem"
     $NOEXEC sed -i -- "s~{$elem}~\"$value\"~g" "$KSTREAM_DSL_JSON"
   done
+
+  # VERSION needs to be handled separately as we should not have it with quotes
+  $NOEXEC sed -i -- "s~{VERSION}~$VERSION~g" $KSTREAM_DSL_JSON
 }
 
 function modify_proc_json_template {
@@ -307,7 +309,6 @@ function modify_proc_json_template {
     "KAFKA_BROKERS"
     "KAFKA_FROM_TOPIC_PROC"
     "KAFKA_ERROR_TOPIC_PROC"
-    "VERSION"
     )
 
   for elem in "${arr[@]}"
@@ -315,6 +316,9 @@ function modify_proc_json_template {
     eval value="\$$elem"
     $NOEXEC sed -i -- "s~{$elem}~\"${value//\"}\"~g" "$KSTREAM_PROC_JSON"
   done
+
+  # VERSION needs to be handled separately as we should not have it with quotes
+  $NOEXEC sed -i -- "s~{VERSION}~$VERSION~g" $KSTREAM_PROC_JSON
 }
 
 function load_marathon_job {

@@ -10,7 +10,7 @@
       "image": {
         "kind": "DOCKER",
         "id": "lightbend/fdp-killrweather-loader:FDP_VERSION",
-        "forcePull": true
+        "forcePullImage": true
       },
       "volumeMounts": [
         {

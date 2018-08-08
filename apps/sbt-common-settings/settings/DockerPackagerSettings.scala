@@ -30,7 +30,7 @@ object DockerProjectSpecificPackagerPlugin extends AutoPlugin {
   
         new Dockerfile {
           from(dockerBaseImage)
-          entryPoint(s"$targetDir/bin/${executableScriptName}")
+          entryPoint(s"$targetDir/bin/${executableScriptName.value}")
           copy(applDir.value, targetDir)
         }
       },
