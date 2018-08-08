@@ -18,7 +18,7 @@ lazy val killrWeatherCore = (project in file("./killrweather-core"))
   .settings(libraryDependencies ++= core)
 
 // Spark streaming project
-lazy val killrWeatherApp = DockerProjectSpecificAssemblyPlugin.sbtdockerAssemblySparkBase("fdp-killrweather-app", assembly, dockerSparkBaseImage = "lightbend/spark:k8s-rc")("./killrweather-app")
+lazy val killrWeatherApp = DockerProjectSpecificAssemblyPlugin.sbtdockerAssemblySparkBase("fdp-killrweather-app", assembly)("./killrweather-app")
   .settings(libraryDependencies ++= app)
   .settings (mainClass in Compile := Some("com.lightbend.killrweather.app.KillrWeather"))
   .settings(dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core"  % "2.6.7",
@@ -37,7 +37,7 @@ lazy val killrWeatherApp = DockerProjectSpecificAssemblyPlugin.sbtdockerAssembly
   .dependsOn(killrWeatherCore, protobufs)
 
 // Spark structured streaming project
-lazy val killrWeatherApp_structured = DockerProjectSpecificAssemblyPlugin.sbtdockerAssemblySparkBase("fdp-killrweather-structured-app", assembly, dockerSparkBaseImage = "lightbend/spark:k8s-rc")("./killrweather-app_structured")
+lazy val killrWeatherApp_structured = DockerProjectSpecificAssemblyPlugin.sbtdockerAssemblySparkBase("fdp-killrweather-structured-app", assembly)("./killrweather-app_structured")
   .settings(libraryDependencies ++= appStructured)
   .settings (mainClass in Compile := Some("com.lightbend.killrweather.app.structured.KillrWeatherStructured"))
   .settings(dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core"  % "2.6.7",
