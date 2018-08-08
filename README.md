@@ -36,6 +36,8 @@ Here's how to install any or all of them from a centralized command line script 
   * InfluxDB (required only for KillrWeather and network intrusion apps)
   * Grafana (required only for KillrWeather and network intrusion apps)
 
+> **Note:** In order to run some of the Spark based applications on DC/OS e.g. Network Intrusion that uses DC/OS Spark CLI (`dcos spark run`) you need to have this [Lightbend distribution of Spark](lightbend/spark:2.3.1-2.2.1-2-hadoop-2.6.5-01).
+
 ### Configuration file
 
 The installation is driven through a JSON configuration file that defines the components that you want to install. A template for this file is provided, `apps/bin/config.json.template`, which has the full set of applications and the set of components for each application.

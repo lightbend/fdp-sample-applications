@@ -107,7 +107,7 @@ function modify_ingestion_data_template {
 }
 
 function load_ingestion_data_job {
-  # $NOEXEC dcos marathon app add $INGESTION_TEMPLATE
+  $NOEXEC dcos marathon app add $INGESTION_TEMPLATE
   $NOEXEC update_json_field INGESTION_DATA_APP_ID "$INGESTION_DATA_APP_ID" "$APP_METADATA_FILE"
 }
 
