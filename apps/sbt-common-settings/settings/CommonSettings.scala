@@ -2,7 +2,7 @@ import sbt.Keys._
 import sbt._
 
 object CommonSettings extends AutoPlugin {
-  val version = "1.2.1"
+  val version = "1.3.0"
   val organization = "lightbend"
   
   override def projectSettings = Seq(
