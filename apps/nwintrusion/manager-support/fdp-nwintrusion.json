@@ -1,0 +1,14 @@
+{
+  "uid" : "nwintrusion",
+  "name" : "Network intrusion application",
+  "description" : "Network intrusion application",
+  "group" : "group",
+  "version" : "1.2.1",
+  "defaultAdminLink" : false,
+  "dependencies" : [ ],
+  "optionalDeps" : [ ],
+  "installable" : true,
+  "resourcePath" : "file:///Users/debasishghosh/lightbend/fdp-manager/conf/charts/nwintrusion-1.2.1.tgz",
+  "order" : 0
+}
+

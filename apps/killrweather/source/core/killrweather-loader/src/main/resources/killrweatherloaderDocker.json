@@ -1,0 +1,66 @@
+{
+  "id": "/killrweatherdataloader",
+  "containers": [
+    {
+      "name": "loaderexecutor",
+      "resources": {
+        "cpus": 0.2,
+        "mem": 1024
+      },
+      "image": {
+        "kind": "DOCKER",
+        "id": "lightbend/fdp-killrweather-loader:1.3.0",
+        "forcePull": true
+      },
+      "volumeMounts": [
+        {
+          "name": "data",
+          "mountPath": "/usr/share"
+        }
+      ]
+    },
+    {
+      "name": "initializer",
+      "resources": {
+        "cpus": 0.1,
+        "mem": 1048,
+        "disk": 0
+      },
+      "image": {
+        "kind": "DOCKER",
+        "id": "busybox"
+      },
+      "volumeMounts": [
+        {
+          "name": "data",
+          "mountPath": "/usr/share"
+        }
+      ],
+      "exec": {
+        "command": {
+          "shell": "wget http://s3-eu-west-1.amazonaws.com/fdp-killrweather-data/killrweather/data.zip -O /usr/share/data.zip; unzip /usr/share/data.zip -d /usr/share/"
+        }
+      }
+    }
+  ],
+  "volumes": [
+    {
+      "name": "data"
+    }
+  ],
+  "networks": [
+    {
+      "mode": "host"
+    }
+  ],
+  "scaling": {
+    "instances": 1,
+    "kind": "fixed"
+  },
+  "env": {
+    "KAFKA_BROKERS": "broker.kafka.l4lb.thisdcos.directory:9092",
+    "PUBLISH_INTERVAL" : "1 second",
+    "DATA_DIRECTORY" : "/usr/share/data/load/"
+    "DATA_BATCH_SIZE" : "10"
+  }
+}

@@ -1,0 +1,136 @@
+{
+  "serviceId" : "Flink Taxiride application",
+  "versions" : [ "1.2.1" ],
+  "sections" : [ {
+    "name" : "data",
+    "label" : "data"
+  }, {
+    "name" : "image",
+    "label" : "image"
+  }, {
+    "name" : "taxiride",
+    "label" : "taxiride"
+  }, {
+    "name" : "configuration",
+    "label" : "configuration"
+  } ],
+  "variables" : [ {
+    "name" : "data|datadirectory",
+    "section" : "data",
+    "label" : "data|datadirectory",
+    "description" : "",
+    "relevance" : "high",
+    "type" : "text",
+    "default" : "https://s3.eu-central-1.amazonaws.com/fdp-sample-apps-artifacts/nycTaxiRides.csv.tgz",
+    "versions" : [ "1.2.1" ]
+  }, {
+    "name" : "image|taxiride",
+    "section" : "image",
+    "label" : "image|taxiride",
+    "description" : "",
+    "relevance" : "high",
+    "type" : "text",
+    "default" : "lightbend/fdp-flink-taxiride",
+    "versions" : [ "1.2.1" ]
+  }, {
+    "name" : "image|ingestion",
+    "section" : "image",
+    "label" : "image|ingestion",
+    "description" : "",
+    "relevance" : "high",
+    "type" : "text",
+    "default" : "lightbend/fdp-flink-ingestion",
+    "versions" : [ "1.2.1" ]
+  }, {
+    "name" : "image|pullPolicy",
+    "section" : "image",
+    "label" : "image|pullPolicy",
+    "description" : "",
+    "relevance" : "high",
+    "type" : "text",
+    "default" : "Always",
+    "versions" : [ "1.2.1" ]
+  }, {
+    "name" : "image|version",
+    "section" : "image",
+    "label" : "image|version",
+    "description" : "",
+    "relevance" : "high",
+    "type" : "text",
+    "default" : "1.2.1",
+    "versions" : [ "1.2.1" ]
+  }, {
+    "name" : "taxiride|jar",
+    "section" : "taxiride",
+    "label" : "taxiride|jar",
+    "description" : "",
+    "relevance" : "high",
+    "type" : "text",
+    "default" : "fdp-flink-taxiride-assembly-1.2.1.jar",
+    "versions" : [ "1.2.1" ]
+  }, {
+    "name" : "taxiride|main",
+    "section" : "taxiride",
+    "label" : "taxiride|main",
+    "description" : "",
+    "relevance" : "high",
+    "type" : "text",
+    "default" : "com.lightbend.fdp.sample.flink.app.TravelTimePrediction",
+    "versions" : [ "1.2.1" ]
+  }, {
+    "name" : "configuration|kafka|brokerlist",
+    "section" : "configuration",
+    "label" : "configuration|kafka|brokerlist",
+    "description" : "",
+    "relevance" : "high",
+    "type" : "text",
+    "default" : "broker.kafka.l4lb.thisdcos.directory:9092",
+    "versions" : [ "1.2.1" ]
+  }, {
+    "name" : "configuration|kafka|intopic",
+    "section" : "configuration",
+    "label" : "configuration|kafka|intopic",
+    "description" : "",
+    "relevance" : "high",
+    "type" : "text",
+    "default" : "taxiin",
+    "versions" : [ "1.2.1" ]
+  }, {
+    "name" : "configuration|kafka|outtopic",
+    "section" : "configuration",
+    "label" : "configuration|kafka|outtopic",
+    "description" : "",
+    "relevance" : "high",
+    "type" : "text",
+    "default" : "taxiout",
+    "versions" : [ "1.2.1" ]
+  }, {
+    "name" : "configuration|flink|jm_rpc_address",
+    "section" : "configuration",
+    "label" : "configuration|flink|jm_rpc_address",
+    "description" : "",
+    "relevance" : "high",
+    "type" : "text",
+    "default" : "ip-10-0-15-137.ec2.internal",
+    "versions" : [ "1.2.1" ]
+  }, {
+    "name" : "configuration|flink|jm_rpc_port",
+    "section" : "configuration",
+    "label" : "configuration|flink|jm_rpc_port",
+    "description" : "",
+    "relevance" : "high",
+    "type" : "uint",
+    "default" : "7199",
+    "versions" : [ "1.2.1" ]
+  }, {
+    "name" : "configuration|zk|url",
+    "section" : "configuration",
+    "label" : "configuration|zk|url",
+    "description" : "",
+    "relevance" : "high",
+    "type" : "text",
+    "default" : "master.mesos:2181/dcos-service-kafka",
+    "versions" : [ "1.2.1" ]
+  } ]
+}
+
