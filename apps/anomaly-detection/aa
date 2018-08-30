@@ -1,0 +1,5 @@
+git add bin/training-pod.json
+git add configuration/src/main/scala/com/lightbend/intel/configuration/IntelSettings.scala
+git add training_model_publish/src/main/resources/application.conf
+git add training_model_publish/src/main/scala/com/lightbend/intel/training/publish/ModelPublisher.scala
+git add training_model_publish/src/main/scala/com/lightbend/intel/training/publish/ModelUtils.scala

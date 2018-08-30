@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+option java_package = "com.lightbend.speculative";
+
+// Description of the model serving request.
+message ServingRequest {
+    string uuid = 1;
+    bytes data = 2;
+}

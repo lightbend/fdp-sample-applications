@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option java_package = "com.lightbend.speculative";
+
+// Description of the model serving response.
+message ServingResponse {
+    string uuid = 1;
+    bytes data = 2;
+    double confidence = 3;
+    repeated ServingQualifier qualifiers = 4;
+}
+
+// Description of the model serving qualifier.
+message ServingQualifier{
+    string key = 1;
+    string value = 2;
+}
