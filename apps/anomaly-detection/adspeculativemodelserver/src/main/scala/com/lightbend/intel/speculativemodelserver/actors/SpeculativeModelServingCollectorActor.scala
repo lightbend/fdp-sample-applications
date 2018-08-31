@@ -7,6 +7,7 @@ import com.lightbend.ad.model.ServingResult
 import com.lightbend.ad.model.speculative.{ServingResponse, SpeculativeExecutionStats}
 import com.lightbend.ad.speculativemodelserver.persistence.FilePersistence
 import com.lightbend.ad.speculativemodelserver.processor.VotingDesider
+import com.lightbend.intel.speculativemodelserver.processor.CurrentProcessingResults
 import com.lightbend.speculative.speculativedescriptor.SpeculativeDescriptor
 
 import scala.collection.mutable.ListBuffer
@@ -26,7 +27,7 @@ class SpeculativeModelServingCollectorActor(dataType : String, tmout : Long) ext
 
   var state = SpeculativeExecutionStats(dataType, decider.getClass.getName, timeout.length)
 
-  val currentProcessing = collection.mutable.Map[String, CurrentProcessing]()
+  val currentProcessing = collection.mutable.Map[String, CurrentProcessingResults]()
 
   override def preStart : Unit = {
     timeout = FilePersistence.restoreDataState(dataType) match {
@@ -40,7 +41,7 @@ class SpeculativeModelServingCollectorActor(dataType : String, tmout : Long) ext
     case start : StartSpeculative =>
       // Set up the state
       implicit val ec = context.dispatcher
-      currentProcessing += (start.GUID -> CurrentProcessing(start.models, start.start, start.reply, new ListBuffer[ServingResponse]())) // Add to watch list
+      currentProcessing += (start.GUID -> CurrentProcessingResults(start.models, start.start, start.reply, new ListBuffer[ServingResponse]())) // Add to watch list
       // Schedule timeout
       val _ = context.system.scheduler.scheduleOnce(timeout, self, start.GUID)
     // Result of indivirual model serving
@@ -48,7 +49,7 @@ class SpeculativeModelServingCollectorActor(dataType : String, tmout : Long) ext
       currentProcessing.get(servingResponse.GUID) match {
       case Some(processingResults) =>
         // We are still waiting for this GUID
-        val current = CurrentProcessing(processingResults.models, processingResults.start, processingResults.reply, processingResults.results += servingResponse)
+        val current = CurrentProcessingResults(processingResults.models, processingResults.start, processingResults.reply, processingResults.results += servingResponse)
         current.results.size match {
           case size if (size >= current.models) => processResult(servingResponse.GUID, current)  // We are done
           case _ => val _ = currentProcessing += (servingResponse.GUID -> current)               // Keep going
@@ -72,9 +73,9 @@ class SpeculativeModelServingCollectorActor(dataType : String, tmout : Long) ext
   }
 
   // Complete speculative execution
-  private def processResult(GUID : String, results: CurrentProcessing) : Unit = {
+  private def processResult(GUID : String, results: CurrentProcessingResults) : Unit = {
     // Run it through decider
-    val servingResult = decider.decideResult(results.results.toList).asInstanceOf[ServingResult]
+    val servingResult = decider.decideResult(results).asInstanceOf[ServingResult]
     // Send the reply
     results.reply ! servingResult
     // Update state
@@ -91,6 +92,5 @@ object SpeculativeModelServingCollectorActor{
 
 case class StartSpeculative(GUID : String, start : Long, reply: ActorRef, models : Int)
 
-case class CurrentProcessing(models : Int, start : Long, reply: ActorRef, results : ListBuffer[ServingResponse])
 
 case class GetSpeculativeServerState(dataType : String)
