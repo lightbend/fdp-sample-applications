@@ -1,0 +1,58 @@
+site_name: Analytics Zoo
+theme: null
+extra_css: [extra.css]
+theme_dir: mkdocs_windmill 
+repo_name: 'Fork on GitHub '
+repo_url: 'https://github.com/intel-analytics/analytics-zoo'
+extra:
+    version: latest
+    article_nav_top: false
+    article_nav_bottom: false
+
+pages:
+- Overview: index.md 
+- Releases: 
+  - Download: release-download.md 
+  - Documentation: release-docs.md
+- User Guide:
+  - Python:
+    - Install: PythonUserGuide/install.md
+    - Run: PythonUserGuide/run.md
+    - Examples: PythonUserGuide/examples.md
+    - FAQ: PythonUserGuide/python-faq.md
+  - Scala: 
+    - Install: ScalaUserGuide/install.md
+    - Run: ScalaUserGuide/run.md
+    - Examples: ScalaUserGuide/examples.md
+- Programming Guide: 
+  - Pipeline APIs:
+    - DataFrame and ML Pipeline: ProgrammingGuide/nnframes.md
+    - Autograd: ProgrammingGuide/autograd.md
+    - Transfer Learning: ProgrammingGuide/transferlearning.md
+  - Feature Engineering:
+    - Working with Images: ProgrammingGuide/workingwithimages.md
+  - Built-in Models:
+    - Object Detection API: ProgrammingGuide/object-detection.md
+    - Image Classification API: ProgrammingGuide/image-classification.md
+    - Text Classification API: ProgrammingGuide/text-classification.md
+    - Recommendation API: ProgrammingGuide/recommendation.md
+  - Reference Use Cases:
+    - Use Cases: ProgrammingGuide/usercases-overview.md
+    - Anomaly Detection: ProgrammingGuide/anomaly-detection.md
+- API Guide:
+  - Pipeline APIs:
+    - NNFrames: APIGuide/PipelineAPI/nnframes.md
+    - Autograd:
+      - Math: APIGuide/PipelineAPI/math.md
+      - Variable: APIGuide/PipelineAPI/variable.md
+    - Net: APIGuide/PipelineAPI/net.md
+  - Feature Engineering:
+    - Image: APIGuide/FeatureEngineering/image.md
+    - Preprocessing: APIGuide/FeatureEngineering/preprocessing.md
+  - Models:
+    - Object Detection: APIGuide/Models/object-detection.md
+    - Image Classification: APIGuide/Models/image-classification.md
+    - Text Classification: APIGuide/Models/text-classification.md
+    - Recommendation: APIGuide/Models/recommendation.md
+- Powered by: powered-by.md
+- FAQ and Known Issues: known-issues.md

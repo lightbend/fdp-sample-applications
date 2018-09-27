@@ -20,6 +20,8 @@ The applications are organized in folders with each of them containing details o
 
 * [Processing Web Logs with Kafka Streams](apps/kstream/README.md): This example uses Kafka Streams APIs to process weblogs. It shows the power of both the higher level DSLs as well as the lower level Processor based APIs.
 
+* [Anomaly Detection Model training and serving using Deep Learning](apps/anomaly-detection/README.md): This example demonstrates a deep learning based application running anomaly detection. It is a complete application consisting of many modules and includes the full lifecycle of data generation, ingestion, training, publishing and model serving.
+
 ## Installation
 
 Each application contains detailed instructions on how to build and install the application locally or on a DC/OS cluster or Kubernetes cluster (forthcoming; under development now). See the individual READMEs and `bin` directories for each application for details.
@@ -35,6 +37,8 @@ Here's how to install any or all of them from a centralized command line script 
   * Cassandra (required only for KillrWeather app)
   * InfluxDB (required only for KillrWeather and network intrusion apps)
   * Grafana (required only for KillrWeather and network intrusion apps)
+
+> **Note:** The following procedures are NOT applicable for the deep learning based anomaly detection application. This is a complex application and the respective installation procedures are documented in the [README](apps/anomaly-detection/README.md) document of the project.
 
 > **Note:** In order to run some of the Spark based applications on DC/OS e.g. Network Intrusion that uses DC/OS Spark CLI (`dcos spark run`) you need to have **ver 2.3.1-2.2.1-2-hadoop-2.6.5-01** from [Lightbend distribution of Spark](https://hub.docker.com/r/lightbend/spark/tags/).
 

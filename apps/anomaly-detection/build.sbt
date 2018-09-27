@@ -3,7 +3,7 @@ name := "AnomalyDetection"
 import Dependencies._
 
 scalaVersion in ThisBuild := Versions.Scala
-version in ThisBuild := "1.3.1"
+version in ThisBuild := "1.3.0"
 organization in ThisBuild := "lightbend"
 
 

@@ -33,6 +33,10 @@ do
       do
         process_templates "$f"
       done
+      find "$d" -name 'training-pod.json.template' | while read f
+      do
+        process_templates "$f"
+      done
       ;;
   esac
 done
