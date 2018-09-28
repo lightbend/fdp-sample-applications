@@ -39,30 +39,30 @@ This can be done using `sbt`. The steps are as follows:
 
 ```
 $ pwd
-.../fdp-sample-applications/apps/anomaly-detection
+.../fdp-sample-applications/apps/anomaly-detection/source/core
 $ sbt
 sbt:AnomalyDetection> projects
 [info] In file: .../fdp-sample-applications/apps/anomaly-detection/
-[info] 	   admodelserver
-[info] 	   adpublisher
-[info] 	   adspeculativemodelserver
+[info] 	   fdp-ad-model-server
+[info] 	   fdp-ad-data-publisher
+[info] 	   fdp-ad-speculative-model-server
 [info] 	 * anomalyDetection
 [info] 	   configuration
 [info] 	   influxSupport
 [info] 	   kafkaSupport
 [info] 	   model
 [info] 	   protobufs
-[info] 	   trainingdataingestion
-[info] 	   trainingmodelpublish
-sbt:AnomalyDetection> project trainingdataingestion
-[info] Set current project to trainingdataingestion (in build file: ..)
+[info] 	   fdp-ad-training-data-ingestion
+[info] 	   fdp-ad-trainingmodel-publish
+sbt:AnomalyDetection> project fdp-ad-training-data-ingestion
+[info] Set current project to fdp-ad-training-data-ingestion (in build file: ..)
 sbt:AnomalyDetection> docker
 ...
 sbt:AnomalyDetection> dockerPush
 
 ``` 
 
-This will push the docker image to the repository sepcified in the build file. You need to change it for your own repository name.
+This will push the docker image to the repository specified in the build file. You need to change it for your own repository name.
 
 ### Preparing docker image for Model Training
 
@@ -78,20 +78,20 @@ $ pwd
 .../fdp-sample-applications/apps/anomaly-detection
 $ sbt
 sbt:AnomalyDetection> projects
-[info] In file: .../fdp-sample-applications/apps/anomaly-detection/
-[info] 	   admodelserver
-[info] 	   adpublisher
-[info] 	   adspeculativemodelserver
+[info] In file: .../fdp-sample-applications/apps/anomaly-detection/source/core
+[info] 	   fdp-ad-model-server
+[info] 	   fdp-ad-data-publisher
+[info] 	   fdp-ad-speculative-model-server
 [info] 	 * anomalyDetection
 [info] 	   configuration
 [info] 	   influxSupport
 [info] 	   kafkaSupport
 [info] 	   model
 [info] 	   protobufs
-[info] 	   trainingdataingestion
-[info] 	   trainingmodelpublish
-sbt:AnomalyDetection> project trainingmodelpublish
-[info] Set current project to trainingmodelpublish (in build file: ..)
+[info] 	   fdp-ad-training-data-ingestion
+[info] 	   fdp-ad-trainingmodel-publish
+sbt:AnomalyDetection> project fdp-ad-training-model-publish
+[info] Set current project to fdp-ad-training-model-publish (in build file: ..)
 sbt:AnomalyDetection> docker
 ...
 sbt:AnomalyDetection> dockerPush
