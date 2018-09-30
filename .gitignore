@@ -17,8 +17,7 @@ project/plugins/project/
 .idea
 *.iml
 .idea_modules
-*.json
-*.json--
+
 
 *.swp
 .scala_dependencies

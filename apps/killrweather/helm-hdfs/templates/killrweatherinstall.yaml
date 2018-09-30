@@ -28,7 +28,7 @@ spec:
         --conf spark.kubernetes.driverEnv.KAFKA_BROKERS={{ .Values.configuration.kafka.brokerlist}}
         --conf spark.kubernetes.driverEnv.CASSANDRA_HOSTS={{ .Values.configuration.cassandra.hosts}}
         --conf spark.kubernetes.driverEnv.SPARK_BATCH_INTERVAL={{ .Values.configuration.streaming.batchInterval}}
-        --conf spark.kubernetes.driverEnv.CHECKPOINT_DIRECTORY=file://{{ .Values.configuration.streaming.checkpointDir}}
+        --conf spark.kubernetes.driverEnv.CHECKPOINT_DIRECTORY={{ .Values.configuration.streaming.checkpointDir}}
         --conf spark.kubernetes.driverEnv.GRAFANA_HOST={{ .Values.configuration.grafana.host}}
         --conf spark.kubernetes.driverEnv.GRAFANA_PORT={{ .Values.configuration.grafana.port}}
         --conf spark.kubernetes.driverEnv.INFLUXDB_HOST={{ .Values.configuration.influx.host}}
@@ -36,7 +36,7 @@ spec:
         --conf 'spark.executorEnv.KAFKA_BROKERS={{ .Values.configuration.kafka.brokerlist}}'
         --conf 'spark.executorEnv.CASSANDRA_HOSTS={{ .Values.configuration.cassandra.hosts}}'
         --conf 'spark.executorEnv.SPARK_BATCH_INTERVAL={{ .Values.configuration.streaming.batchInterval}}'
-        --conf 'spark.executorEnv.CHECKPOINT_DIRECTORY=file://{{ .Values.configuration.streaming.checkpointDir}}'
+        --conf 'spark.executorEnv.CHECKPOINT_DIRECTORY={{ .Values.configuration.streaming.checkpointDir}}'
         --conf 'spark.executorEnv.GRAFANA_HOST={{ .Values.configuration.grafana.host}}'
         --conf 'spark.executorEnv.GRAFANA_PORT={{ .Values.configuration.grafana.port}}'
         --conf 'spark.executorEnv.INFLUXDB_HOST={{ .Values.configuration.influx.host}}'
@@ -78,7 +78,7 @@ spec:
         --conf spark.kubernetes.driverEnv.KAFKA_BROKERS={{ .Values.configuration.kafka.brokerlist}}
         --conf spark.kubernetes.driverEnv.CASSANDRA_HOSTS={{ .Values.configuration.cassandra.hosts}}
         --conf spark.kubernetes.driverEnv.SPARK_BATCH_INTERVAL={{ .Values.configuration.streaming.batchInterval}}
-        --conf spark.kubernetes.driverEnv.CHECKPOINT_DIRECTORY=file://{{ .Values.configuration.streaming.checkpointDir}}
+        --conf spark.kubernetes.driverEnv.CHECKPOINT_DIRECTORY={{ .Values.configuration.streaming.checkpointDir}}
         --conf spark.kubernetes.driverEnv.GRAFANA_HOST={{ .Values.configuration.grafana.host}}
         --conf spark.kubernetes.driverEnv.GRAFANA_PORT={{ .Values.configuration.grafana.port}}
         --conf spark.kubernetes.driverEnv.INFLUXDB_HOST={{ .Values.configuration.influx.host}}
@@ -86,7 +86,7 @@ spec:
         --conf 'spark.executorEnv.KAFKA_BROKERS={{ .Values.configuration.kafka.brokerlist}}'
         --conf 'spark.executorEnv.CASSANDRA_HOSTS={{ .Values.configuration.cassandra.hosts}}'
         --conf 'spark.executorEnv.SPARK_BATCH_INTERVAL={{ .Values.configuration.streaming.batchInterval}}'
-        --conf 'spark.executorEnv.CHECKPOINT_DIRECTORY=file://{{ .Values.configuration.streaming.checkpointDir}}'
+        --conf 'spark.executorEnv.CHECKPOINT_DIRECTORY=//{{ .Values.configuration.streaming.checkpointDir}}'
         --conf 'spark.executorEnv.GRAFANA_HOST={{ .Values.configuration.grafana.host}}'
         --conf 'spark.executorEnv.GRAFANA_PORT={{ .Values.configuration.grafana.port}}'
         --conf 'spark.executorEnv.INFLUXDB_HOST={{ .Values.configuration.influx.host}}'

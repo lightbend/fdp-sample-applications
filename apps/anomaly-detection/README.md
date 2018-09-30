@@ -9,17 +9,20 @@ The application consists of the following modules:
 * **Data ingester:** Ingests data from InfluxDB and prepares them in CSV format for model training
 * **Model training:** Trains a deep learning model 
 * **Model publisher:** Publishes the trained model and some useful statictics to Kafka to be used by the model server
-* **Model serving:** Serving models in real time and updating them as new models will become available. Its based on the [minibook](https://www.lightbend.com/blog/serving-machine-learning-models-free-oreilly-ebook-from-lightbend) 
+* **Model serving:** Serving models in real time and updating them as new models will become available. Its based on the [minibook](https://www.lightbend.com/blog/serving-machine-learning-models-free-oreilly-ebook-from-lightbend). This module is here for demonstration purposes only. It is absolete and not in use any more.
 * **Speculative model serving:** Serving models, leveraging speculative execution and voting decision making, in real time and updating them as new models will become available. Based on this [blog post](https://developer.lightbend.com/blog/2018-05-24-speculative-model-serving/index.html)
 
 
 # Installation
 
-## Installing Data Publisher
+## Installing Data Publisher and Speculative model server
 
+This two modules are installed as 2 pods on Kubernetes using enclosed [Helm Chart](/apps/anomaly-detection/adchart).
+Make sure you update [values](/apps/anomaly-detection/adchart/values.yaml) to make sure
+it adheres to your environment. Definitions for values can be found [here](/apps/anomaly-detection/adchart/values-metadata.yaml). 
 
-## Installing Data Collector
-
+Alternatively, if you want to install these modules on DC/OS use this [json configuration](/apps/anomaly-detection/source/core/adpublisher/src/main/resources/adpublisher.json) 
+for publisher and  [this one](/apps/anomaly-detection/source/core/adspeculativemodelserver/src/main/resources/adspeculativemodelserver.json) for speculative model server.
 
 ## Installing all Training Modules
 

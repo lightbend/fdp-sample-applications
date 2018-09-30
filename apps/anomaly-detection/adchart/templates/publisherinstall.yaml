@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: modelserverpublisher
+spec:
+  containers:
+  - name: modelserverpublisher
+    image: {{ .Values.image.publisher}}:{{.Values.image.version }}
+    imagePullPolicy: {{ .Values.image.pullPolicy }}
+    env:
+      - name: KAFKA_BROKERS_LIST
+        value: {{ .Values.configuration.kafka.brokerlist}}
+      - name: DATA_PUBLISH_INTERVAL
+        value: {{ .Values.configuration.publisher.data_publish_interval}}

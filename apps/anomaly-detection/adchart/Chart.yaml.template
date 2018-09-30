@@ -1,0 +1,7 @@
+apiVersion: v1
+appVersion: FDP_VERSION
+description: Anomaly detection sample application
+maintainers:
+- name: Boris Lublinsky
+name: Anomaly detection sample application
+version: FDP_VERSION
