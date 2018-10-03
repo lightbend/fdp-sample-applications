@@ -9,8 +9,10 @@ The application consists of the following modules:
 * **Data ingester:** Ingests data from InfluxDB and prepares them in CSV format for model training
 * **Model training:** Trains a deep learning model 
 * **Model publisher:** Publishes the trained model and some useful statictics to Kafka to be used by the model server
-* **Model serving:** Serving models in real time and updating them as new models will become available. Its based on the [minibook](https://www.lightbend.com/blog/serving-machine-learning-models-free-oreilly-ebook-from-lightbend). This module is here for demonstration purposes only. It is absolete and not in use any more.
-* **Speculative model serving:** Serving models, leveraging speculative execution and voting decision making, in real time and updating them as new models will become available. Based on this [blog post](https://developer.lightbend.com/blog/2018-05-24-speculative-model-serving/index.html)
+* **Model serving:** Serving models in real time and updating them as new models will become available. Its based on the 
+[minibook](https://www.lightbend.com/blog/serving-machine-learning-models-free-oreilly-ebook-from-lightbend). This module is here for demonstration purposes only. It is absolete and not in use any more.
+* **Speculative model serving:** Serving models, leveraging speculative execution and voting decision making, 
+in real time and updating them as new models will become available. Based on this [blog post](https://developer.lightbend.com/blog/2018-05-24-speculative-model-serving/index.html)
 
 
 # Installation
