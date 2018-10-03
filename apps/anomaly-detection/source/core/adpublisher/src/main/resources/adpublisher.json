@@ -1,0 +1,14 @@
+{
+  "id": "/adpublisher",
+  "container": {
+    "docker": {
+      "image": "lightbend/adpublisher:1.3.0",
+      "forcePull": true
+    }
+  },
+  "instances": 1,
+  "cpus": 0.2,
+  "mem": 1024,
+  "disk": 512,
+  "gpus": 0
+}
