@@ -37,6 +37,9 @@ HELP_OPTIONS=$(cat <<EOF
                               Here is the list of apps. See the README for details:
 $(for a in ${DEF_APP_LIST[@]}; do echo "                                $a"; done)
                               Default: all of them.
+                              For apps with more than one process, edit apps/bin/config.json
+                              to specify which ones to install, when there are choices, such
+                              as for KillrWeather. See the app READMEs for details.
 EOF
 )
 

@@ -92,6 +92,9 @@ $ apps/bin/app-install.sh --help
                                 modelserver
                                 killrweather
                               Default: all of them.
+                              For apps with more than one process, edit apps/bin/config.json
+                              to specify which ones to install, when there are choices, such
+                              as for KillrWeather. See the app READMEs for details.
   -n | --no-exec              Do not actually run commands, just print them (for debugging).
   -h | --help                 Prints this message.
 ```
