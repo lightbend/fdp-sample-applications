@@ -1,17 +1,17 @@
 # Anomaly Detection using Deep Learning
 
-This application demonstrates a full lifecycle of anomaly detection using supervised learning developed using deep learning and leveraging [Intel BigDL](https://software.intel.com/en-us/articles/bigdl-distributed-deep-learning-on-apache-spark) as the implementation framework. 
+This application demonstrates a full lifecycle of anomaly detection using supervised learning developed using deep learning and leveraging [Intel BigDL](https://software.intel.com/en-us/articles/bigdl-distributed-deep-learning-on-apache-spark) as the implementation framework.
 
 The application consists of the following modules:
 
 * **Data publisher:** Generates simulated CPU signal data based on a probability distribution and publishes to Kafka
 * **Data collector:** Collects data from Kafka and stores them in InfluxDB for use by machine learning and visualization
 * **Data ingester:** Ingests data from InfluxDB and prepares them in CSV format for model training
-* **Model training:** Trains a deep learning model 
+* **Model training:** Trains a deep learning model
 * **Model publisher:** Publishes the trained model and some useful statictics to Kafka to be used by the model server
-* **Model serving:** Serving models in real time and updating them as new models will become available. Its based on the 
+* **Model serving:** Serving models in real time and updating them as new models will become available. It's based on the
 [minibook](https://www.lightbend.com/blog/serving-machine-learning-models-free-oreilly-ebook-from-lightbend). This module is here for demonstration purposes only. It is absolete and not in use any more.
-* **Speculative model serving:** Serving models, leveraging speculative execution and voting decision making, 
+* **Speculative model serving:** Serving models, leveraging speculative execution and voting decision making,
 in real time and updating them as new models will become available. Based on this [blog post](https://developer.lightbend.com/blog/2018-05-24-speculative-model-serving/index.html)
 
 
@@ -21,9 +21,9 @@ in real time and updating them as new models will become available. Based on thi
 
 This two modules are installed as 2 pods on Kubernetes using enclosed [Helm Chart](/apps/anomaly-detection/adchart).
 Make sure you update [values](/apps/anomaly-detection/adchart/values.yaml) to make sure
-it adheres to your environment. Definitions for values can be found [here](/apps/anomaly-detection/adchart/values-metadata.yaml). 
+it adheres to your environment. Definitions for values can be found [here](/apps/anomaly-detection/adchart/values-metadata.yaml).
 
-Alternatively, if you want to install these modules on DC/OS use this [json configuration](/apps/anomaly-detection/source/core/adpublisher/src/main/resources/adpublisher.json) 
+Alternatively, if you want to install these modules on DC/OS use this [json configuration](/apps/anomaly-detection/source/core/adpublisher/src/main/resources/adpublisher.json)
 for publisher and  [this one](/apps/anomaly-detection/source/core/adspeculativemodelserver/src/main/resources/adspeculativemodelserver.json) for speculative model server.
 
 ## Installing all Training Modules
@@ -65,7 +65,7 @@ sbt:AnomalyDetection> docker
 ...
 sbt:AnomalyDetection> dockerPush
 
-``` 
+```
 
 This will push the docker image to the repository specified in the build file. You need to change it for your own repository name.
 
@@ -101,7 +101,7 @@ sbt:AnomalyDetection> docker
 ...
 sbt:AnomalyDetection> dockerPush
 
-``` 
+```
 
 This will push the docker image to the repository sepcified in the build file. You need to change it for your own repository name.
 
