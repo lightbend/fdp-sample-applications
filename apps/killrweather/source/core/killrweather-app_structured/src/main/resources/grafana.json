@@ -44,6 +44,116 @@
       "height": "250px",
       "panels": [
         {
+          "colors": [
+            "rgba(50, 172, 45, 0.97)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(245, 54, 54, 0.9)"
+          ],
+          "composites": [],
+          "content": "graph LR\n\nA[Kafka Publisher]  --> E(Kafka)\nE  --> B[Spark Streaming App]\nC[gRPC Listener] --> E\nD[HTTP Listener]  --> E\nB-->F(InfluxDb)\nF-->G[Grafana]\nB-->N(Cassandra)\nN-->Z[Zeppelin]\nH[HTTP Publisher]  --HTTP --> D\nK[gRPC Publisher]  --gRPC --> C",
+          "datasource": null,
+          "decimals": 2,
+          "format": "none",
+          "graphId": "diagram_2",
+          "gridPos": {
+            "h": 9,
+            "w": 12,
+            "x": 0,
+            "y": 0
+          },
+          "id": 6,
+          "span": 12,
+          "init": {
+            "arrowMarkerAbsolute": true,
+            "cloneCssStyles": false,
+            "flowchart": {
+              "htmlLabels": true,
+              "useMaxWidth": true
+            },
+            "gantt": {
+              "barGap": 4,
+              "barHeight": 20,
+              "fontFamily": "\"Open-Sans\", \"sans-serif\"",
+              "fontSize": 11,
+              "gridLineStartPadding": 35,
+              "leftPadding": 75,
+              "numberSectionStyles": 3,
+              "titleTopMargin": 25,
+              "topPadding": 50
+            },
+            "logLevel": 3,
+            "sequenceDiagram": {
+              "actorMargin": 50,
+              "bottomMarginAdj": 1,
+              "boxMargin": 10,
+              "boxTextMargin": 5,
+              "diagramMarginX": 50,
+              "diagramMarginY": 10,
+              "height": 65,
+              "messageMargin": 35,
+              "mirrorActors": true,
+              "noteMargin": 10,
+              "useMaxWidth": true,
+              "width": 150
+            },
+            "startOnLoad": false
+          },
+          "legend": {
+            "avg": true,
+            "current": true,
+            "gradient": {
+              "enabled": true,
+              "show": true
+            },
+            "max": true,
+            "min": true,
+            "show": true,
+            "total": true
+          },
+          "links": [],
+          "mappingType": 1,
+          "maxDataPoints": 100,
+          "maxWidth": false,
+          "mermaidServiceUrl": "",
+          "metricCharacterReplacements": [],
+          "mode": "content",
+          "nullPointMode": "connected",
+          "seriesOverrides": [],
+          "targets": [
+            {
+              "$$hashKey": "object:151",
+              "refId": "A"
+            }
+          ],
+          "thresholds": "0,10",
+          "title": "Application Diagram",
+          "type": "jdbranham-diagram-panel",
+          "valueMaps": [
+            {
+              "op": "=",
+              "text": "N/A",
+              "value": "null"
+            }
+          ],
+          "valueName": "avg",
+          "valueOptions": [
+            "avg",
+            "min",
+            "max",
+            "total",
+            "current"
+          ]
+        }
+      ],
+      "showTitle": true,
+      "title": "Implementation diagram"
+    },
+    {
+      "collapse": false,
+      "editable": true,
+      "height": "250px",
+      "panels": [
+        {
           "aliasColors": {
 
           },
@@ -59,6 +169,7 @@
             "threshold2Color": "rgba(234, 112, 112, 0.22)"
           },
           "id": 1,
+          "span": 4,
           "isNew": true,
           "legend": {
             "avg": false,
@@ -78,7 +189,6 @@
           "points": false,
           "renderer": "flot",
           "seriesOverrides": [],
-          "span": 4,
           "stack": false,
           "steppedLine": false,
           "targets": [

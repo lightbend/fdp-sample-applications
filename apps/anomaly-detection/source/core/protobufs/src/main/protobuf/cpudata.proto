@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option java_package = "com.lightbend.model";
+
+// Description of the cpu message.
+message CPUData {
+    double utilization = 1;     // CPU utilization
+    int32 class = 2;            // Class - 0 normal; 1 abnormal. For training only
+    string dataType = 3;        // Data type for this record
+}
+
+// Description of the model serving message.
+message ServingResultMessage {
+    int32 served = 1;            // Served - 0 normal; 1 abnormal. For training only
+}

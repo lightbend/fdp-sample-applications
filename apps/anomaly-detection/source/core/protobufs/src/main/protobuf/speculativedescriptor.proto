@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+option java_package = "com.lightbend.speculative";
+
+
+// Description of the speculative server.
+message SpeculativeDescriptor {
+    // data type
+    string datatype = 1;
+    // timeout.
+    int64 tmout = 2;
+}
