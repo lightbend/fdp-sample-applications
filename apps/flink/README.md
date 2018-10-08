@@ -2,7 +2,7 @@
 
 > **Disclaimer:** This sample application is provided as-is, without warranty. It is intended to illustrate techniques for implementing various scenarios using Fast Data Platform, but it has not gone through a robust validation process, nor does it use all the techniques commonly employed for highly-resilient, production applications. Please use it with appropriate caution.
 
-The sample application is adapted from the publicly-available [Flink training](http://dataartisans.github.io/flink-training/) from [dataArtisans](http://data-artisans.com/). It uses a public dataset of taxi rides in New York City. The details of the dataset can be found [here](http://dataartisans.github.io/flink-training/exercises/taxiData.html). In summary, the application does the following:
+The sample application is adapted from the publicly-available [Flink training](http://dataartisans.github.io/flink-training/) from [dataArtisans](http://data-artisans.com/). It uses a public dataset of taxi rides in New York City. The details of the dataset can be found [here](http://dataartisans.github.io/flink-training/exercises/taxiData.html). This application will use [this](http://training.data-artisans.com/trainingData/nycTaxiRides.gz) data file. In summary, the application does the following:
 
 1. Load the dataset through a Marathon application
 2. Read the dataset from a Kafka topic (`taxiin`)
@@ -84,7 +84,7 @@ $ sbt
 [info] 	   ingestRun
 [info] 	 * root
 > project fdp-flink-taxiride
-> run --broker-list localhost:9092 --inTopic taxiin --outTopic taxiOut
+> run --broker-list localhost:9092 --inTopic taxiin --outTopic taxiout
 ```
 
 ## Deploying and running on DC/OS cluster
