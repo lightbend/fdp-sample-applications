@@ -92,7 +92,7 @@ public class TaxiRide implements Comparable<TaxiRide> {
 	public static TaxiRide fromString(String line) {
 
 		String[] tokens = line.split(",");
-		if (tokens.length != 9) {
+		if (tokens.length < 9) {
 			throw new RuntimeException("Invalid record: " + line);
 		}
 
