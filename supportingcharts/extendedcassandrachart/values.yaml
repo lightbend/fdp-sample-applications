@@ -1,0 +1,125 @@
+# Number of nodes
+cassandraReplicaCount: 3
+# Number of maximum dead nodes
+cassandraMaxUnavailableNodes: 3
+
+# Cassandra settings
+cassandraImageName: "quay.io/mysocialapp/cassandra"
+cassandraImageVersion: "3.11.1-9"
+cassandraDC: "DC1"
+cassandraConfig:
+  concurrentWrites: 128
+  concurrentReads: 128
+  concurrentCompactors: 2
+  batchSizeWarnThresholdInKb: 64
+  batchSizeFailThresholdInKb: 640
+  compactionThroughputMbPerSec: 150
+  heapNewSize: 256M
+  hintedHandoffThrottleInKb: 4096
+  maxHintsDeliveryThreads: 4
+  memtableAllocationType: "offheap_objects"
+  memtableFlushWriter: 4
+  memtableCleanupThreshold: 0.2
+  rowCacheSizeInMb: 128
+  rowCacheSavePeriod: 14400
+cassandraJvmOptions: "-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=2 -Djava.rmi.server.hostname=0.0.0.0"
+cassandraResources:
+  limits:
+    memory: 10000Mi
+  requests:
+    memory: 2400Mi
+  ## cassandra data Persistent Volume Storage Class
+  ## If defined, storageClassName: <storageClass>
+  accessMode: ReadWriteOnce
+  size: 20Gi
+
+
+# Backups
+cassandraBackup:
+  enableBackups: false
+  backupSchedule: "0 3 * * *"
+  backupImageVersion: v0.1
+  awsAccessKeyId: "xxx"
+  awsSecretAccessKey: "yyy"
+  awsPassphrase: "zzz"
+  awsBucket: "bucket_name"
+  #duplicityOptions: "--archive-dir /var/lib/cassandra/.duplicity --allow-source-mismatch --s3-european-buckets --s3-use-new-style --copy-links --num-retries 3 --s3-use-multiprocessing --s3-multipart-chunk-size 100 --volsize 1024 full . s3://s3.amazonaws.com/cassandra-backups/$CLUSTER_DOMAIN/$CASSANDRA_CLUSTER_NAME/$(hostname)"
+  awsDestinationPath: "s3://s3-eu-west-1.amazonaws.com/${AWS_BUCKET}/$CLUSTER_DOMAIN/$CASSANDRA_CLUSTER_NAME/$(hostname)"
+  restoreFolder: "/var/lib/cassandra/restore"
+
+# Cassandra Exporter
+cassandraExporter:
+  enableExporter: true
+  replicaCount: 1
+  imageVersion: latest
+  resources:
+    limits:
+      cpu: 1
+      memory: 1536Mi
+    requests:
+      cpu: 500m
+      memory: 1024Mi
+  config:
+    host: 127.0.0.1:7199
+    listenPort: 8081
+    jvmOpts: ""
+
+# Prometheus scraping
+cassandraPrometheusScrap:
+  enableScrap: false
+
+# Alertmanager
+cassandraAlertmanager:
+  enableAlerts: false
+  alertLabels:
+    sloInterrupt:
+      serviceLevel: objective
+      severity: interrupt
+      team: infra
+      type: functional
+    sloPage:
+      serviceLevel: objective
+      severity: page
+      team: infra
+      type: functional
+
+# Cassandra Reaper Client register
+cassandraReaperRegister:
+  enableReaperRegister: true
+  reaperServerServiceName: cassandra-reaper.svc
+
+# Cassandra Reaper Server
+cassandraReaper:
+  enableReaper: true
+  replicaCount: 1
+  imageVersion: latest
+  nodeSelector:
+    node-role.kubernetes.io/node: "true"
+  contactPoints: cassandra-0.cassandra
+  jmxAuth:
+    username: reaperUser
+    password: reaperPass
+  # clusterName:
+  # keyspace: reaper_db
+  envVariables:
+    JAVA_OPTS: "-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=2 -XX:+AlwaysPreTouch"
+    REAPER_CASS_KEYSPACE: reaper_db
+    REAPER_REPAIR_PARALELLISM: DATACENTER_AWARE
+    REAPER_REPAIR_INTENSITY: 0.5
+    REAPER_AUTO_SCHEDULING_ENABLED: true
+    REAPER_SCHEDULE_DAYS_BETWEEN: 2
+    REAPER_REPAIR_RUN_THREADS: 16
+    REAPER_HANGING_REPAIR_TIMEOUT_MINS: 30
+    REAPER_REPAIR_MANAGER_SCHEDULING_INTERVAL_SECONDS: 10
+    REAPER_SEGMENT_COUNT: 200
+    REAPER_LOGGING_ROOT_LEVEL: INFO
+    REAPER_SERVER_ADMIN_PORT: 8081
+    REAPER_SERVER_APP_PORT: 8080
+    REAPER_METRICS_ENABLED: true
+  resources:
+    limits:
+      cpu: 500m
+      memory: 500Mi
+    requests:
+      cpu: 500m
+      memory: 500Mi

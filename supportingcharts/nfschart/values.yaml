@@ -1,0 +1,11 @@
+namespace: sample
+createNamespace: false
+serviceAccountName: default
+
+localStorage: 6Gi
+pvcStorage: 5Gi
+pvStorage: 5Gi
+
+pvName: nfs-persistent-volume
+pvcName: nfs-persistent-volume-claim
+nfsServerServiceName: nfs-server

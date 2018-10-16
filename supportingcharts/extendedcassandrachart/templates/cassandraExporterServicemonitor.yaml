@@ -1,0 +1,21 @@
+{{- if .Values.cassandraPrometheusScrap.enableScrap }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: cassandra-{{ .Release.Namespace }}
+  namespace: observability
+  labels:
+    app: cassandra
+    prometheus: observability
+spec:
+  selector:
+    matchLabels:
+      app: cassandra
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  endpoints:
+  - port: metrics
+    interval: 60s
+    scrapeTimeout: 59s
+{{- end }}

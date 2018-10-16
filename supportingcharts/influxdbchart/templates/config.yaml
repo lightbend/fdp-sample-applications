@@ -1,0 +1,65 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "name" . }}
+  labels:
+    app: {{ template "name" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+data:
+  influxdb.conf: |+
+    reporting-disabled = {{ .Values.config.reporting_disabled | default false }}
+    bind-address = ":{{ .Values.config.bind_address }}"
+    [meta]
+      dir = "{{ .Values.config.storage_directory }}/meta"
+      retention-autocreate = {{ .Values.config.meta.retention_autocreate }}
+      logging-enabled = {{ .Values.config.meta.logging_enabled }}
+    [data]
+      dir = "{{ .Values.config.storage_directory }}/data"
+      wal-dir = "{{ .Values.config.storage_directory }}/wal"
+      query-log-enabled = {{ .Values.config.data.query_log_enabled }}
+      cache-max-memory-size = {{ .Values.config.data.cache_max_memory_size | int64 }}
+      cache-snapshot-memory-size = {{ .Values.config.data.cache_snapshot_memory_size | int64 }}
+      cache-snapshot-write-cold-duration = "{{ .Values.config.data.cache_snapshot_write_cold_duration }}"
+      compact-full-write-cold-duration = "{{ .Values.config.data.compact_full_write_cold_duration }}"
+      max-series-per-database = {{ .Values.config.data.max_series_per_database | int64 }}
+      max-values-per-tag = {{ .Values.config.data.max_values_per_tag | int64 }}
+      trace-logging-enabled = {{ .Values.config.data.trace_logging_enabled }}
+    [coordinator]
+      write-timeout = "{{ .Values.config.coordinator.write_timeout }}"
+      max-concurrent-queries = {{ .Values.config.coordinator.max_concurrent_queries | int64 }}
+      query-timeout = "{{ .Values.config.coordinator.query_timeout }}"
+      log-queries-after = "{{ .Values.config.coordinator.log_queries_after }}"
+      max-select-point = {{ .Values.config.coordinator.max_select_point | int64 }}
+      max-select-series = {{ .Values.config.coordinator.max_select_series | int64 }}
+      max-select-buckets = {{ .Values.config.coordinator.max_select_buckets | int64 }}
+    [retention]
+      enabled = {{ .Values.config.retention.enabled }}
+      check-interval = "{{ .Values.config.retention.check_interval }}"
+    [shard-precreation]
+      enabled = {{ .Values.config.shard_precreation.enabled }}
+      check-interval = "{{ .Values.config.shard_precreation.check_interval }}"
+      advance-period = "{{ .Values.config.shard_precreation.advance_period }}"
+    [monitor]
+      store-enabled = {{ .Values.config.monitor.store_enabled }}
+      store-database = "{{ .Values.config.monitor.store_database }}"
+      store-interval = "{{ .Values.config.monitor.store_interval }}"
+    [subscriber]
+      enabled = {{ .Values.config.subscriber.enabled }}
+      http-timeout = "{{ .Values.config.subscriber.http_timeout }}"
+      insecure-skip-verify = {{ .Values.config.subscriber.insecure_skip_verify }}
+      ca-certs = "{{ .Values.config.subscriber.ca_certs }}"
+      write-concurrency = {{ .Values.config.subscriber.write_concurrency | int64 }}
+      write-buffer-size = {{ .Values.config.subscriber.write_buffer_size | int64 }}
+    [http]
+      bind-address = ":{{ .Values.config.http.bind_address }}"
+      auth-enabled = {{ .Values.config.http.auth_enabled }}
+      log-enabled = {{ .Values.config.http.log_enabled }}
+      write-tracing = {{ .Values.config.http.write_tracing }}
+      pprof-enabled = {{ .Values.config.http.pprof_enabled }}
+      max-row-limit = {{ .Values.config.http.max_row_limit | int64 }}
+      max-connection-limit = {{ .Values.config.http.max_connection_limit | int64 }}
+      realm = "{{ .Values.config.http.realm }}"
+      unix-socket-enabled = {{ .Values.config.http.unix_socket_enabled }}
+      bind-socket = "{{ .Values.config.http.bind_socket }}"

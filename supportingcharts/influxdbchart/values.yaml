@@ -1,0 +1,82 @@
+## influxdb image version
+## ref: https://hub.docker.com/r/library/influxdb/tags/
+image:
+  repo: "influxdb"
+  tag: "1.6-alpine"
+  pullPolicy: IfNotPresent
+
+## Persist data to a persitent volume
+##
+persistence:
+  enabled: true
+  ## If defined, volume.beta.kubernetes.io/storage-class: <storageClass>
+  ## Default: volume.alpha.kubernetes.io/storage-class: default
+  ##
+  accessMode: ReadWriteOnce
+  size: 8Gi
+
+## Configure resource requests and limits
+## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+resources:
+  requests:
+    memory: 256Mi
+    cpu: 0.1
+  limits:
+    memory: 16Gi
+    cpu: 8
+
+## Change InfluxDB configuration paramaters below:
+## Defaults are indicated
+## ref: https://docs.influxdata.com/influxdb/v1.1/administration/config/
+config:
+  reporting_disabled: false
+  storage_directory: /var/lib/influxdb
+  meta:
+    retention_autocreate: true
+    logging_enabled: true
+  data:
+    query_log_enabled: true
+    cache_max_memory_size: 1073741824
+    cache_snapshot_memory_size: 26214400
+    cache_snapshot_write_cold_duration: 10m0s
+    compact_full_write_cold_duration: 4h0m0s
+    max_series_per_database: 1000000
+    max_values_per_tag: 100000
+    trace_logging_enabled: false
+  coordinator:
+    write_timeout: 10s
+    max_concurrent_queries: 0
+    query_timeout: 0s
+    log_queries_after: 0s
+    max_select_point: 0
+    max_select_series: 0
+    max_select_buckets: 0
+  retention:
+    enabled: true
+    check_interval: 30m0s
+  shard_precreation:
+    enabled: true
+    check_interval: 10m0s
+    advance_period: 30m0s
+  monitor:
+    store_enabled: true
+    store_database: _internal
+    store_interval: 10s
+  subscriber:
+    enabled: true
+    http_timeout: 30s
+    insecure_skip_verify: false
+    ca_certs: ""
+    write_concurrency: 40
+    write_buffer_size: 1000
+  http:
+    bind_address: 8086
+    auth_enabled: false
+    log_enabled: true
+    write_tracing: false
+    pprof_enabled: true
+    max_row_limit: 10000
+    max_connection_limit: 0
+    realm: InfluxDB
+    unix_socket_enabled: false
+    bind_socket: /var/run/influxdb.sock
