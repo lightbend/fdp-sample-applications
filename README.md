@@ -1,6 +1,6 @@
 # FDP Sample Applications
 
-This repository contains the sample applications for [Lightbend Fast Data Platform](https://www.lightbend.com/products/fast-data-platform), version 1.3.0 and later. For information about these applications, see the [Fast Data Platform documentation](https://developer.lightbend.com/docs/fast-data-platform/current/), specifically the [Sample Applications](https://developer.lightbend.com/docs/fast-data-platform/current//user-guide/sample-apps/index.html) chapter. In order to run these applications as is, you must install them in a Fast Data Platform cluster. The [documentation](https://developer.lightbend.com/docs/fast-data-platform/current/) provides more details.
+This repository contains the sample applications for [Lightbend Fast Data Platform](https://www.lightbend.com/products/fast-data-platform), version 1.3.0 and later. For information about these applications, see the [Fast Data Platform documentation](https://developer.lightbend.com/docs/fast-data-platform/current/), specifically the [Sample Applications](https://developer.lightbend.com/docs/fast-data-platform/current/user-guide/sample-apps/index.html) chapter. In order to run these applications as is, you must install them in a Fast Data Platform cluster. The [documentation](https://developer.lightbend.com/docs/fast-data-platform/current/) provides more details.
 
 > **Disclaimer:** These sample applications are provided as-is, without warranty. They are intended to illustrate techniques for implementing various scenarios using Fast Data Platform, but they have not gone through a robust validation process, nor do they use all the techniques commonly employed for highly-resilient, production applications. Please use them with appropriate caution.
 
@@ -24,7 +24,7 @@ The applications are organized in folders with each of them containing details o
 
 ## Installation
 
-Each application contains detailed instructions on how to build and install the application locally or on a DC/OS cluster or Kubernetes cluster (forthcoming; under development now). See the individual READMEs and `bin` directories for each application for details.
+Each application contains detailed instructions on how to build and install the application locally or on a DC/OS, OpenShift, or Kubernetes cluster. See the individual READMEs and `bin` directories for each application for details.
 
 Here's how to install any or all of them from a centralized command line script into a DC/OS cluster, using a script `apps/bin/app-install.sh`. This script assumes the following prerequisites:
 
