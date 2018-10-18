@@ -189,7 +189,8 @@ Let’s describe installation on every component
    
 #### Kafka installation
 If you want to use a separate kafka cluster for sample apps, follow these instructions, otherwise connect to the existing kafka cluster.
-#####Install Strimzi - Kafka operator
+
+##### Install Strimzi - Kafka operator
 
 Installation is based on the following [documentation](https://github.com/lightbend/fdp-docs/blob/develop/src/main/paradox/management-guide/k8s/index.md). To install the operator (if not installed) run the following commands:
 
