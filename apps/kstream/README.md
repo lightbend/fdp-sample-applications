@@ -352,7 +352,7 @@ Same technique can be used to deploy all the sample applications in Kubernetes o
 
 ### Using the traefik Ingress Controller
 
-`kstream` application publishes a REST end point and allows users to query on various application state information. In Kubernetes or OpenShift this can be done in a way so that the user gets one fixed end point irrespective of the ways the underlying PODs are distributed across the cluster. Even in case of PODs getting restarted on a different node, it would be great to still have the fixed end point. We use the traefik ingress controller for this.
+The `kstream` application publishes a REST end point and allows users to query on various application state information. To expose the service on "vanilla" Kubernetes use Ingress. On OpenShift, use Route. Exposing the service gives the user one fixed end point, irrespective of the ways the underlying PODs are distributed across the cluster. Even in case of PODs getting restarted on a different node, it would be great to still have the fixed end point. We use the traefik ingress controller for this.
 
 > Ensure that the traefik ingress controller is installed in the cluster. Check that the dashboard is accessible through some end points like http://<public agent IP>:9901/dashboard/
 
