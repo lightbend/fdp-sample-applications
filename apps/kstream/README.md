@@ -333,11 +333,11 @@ hdfs dfs -get /topics/avro-topic/partition=0/avro-topic+0+0000292000+0000292999.
 fastavro avro-topic+0+0000292000+0000292999.avro --pretty
 ```
 
-## Deploying and running on Kubernetes
+## Deploying and running on Kubernetes or OpenShift
 
-The first step in running applications on Kubernetes is the step of containerization, which we discussed in the last section. Once the docker images are built we can use Helm Charts to deploy the applications.
+The first step in running applications on Kubernetes or OpenShift is the step of containerization, which we discussed in the last section. Once the docker images are built we can use Helm Charts to deploy the applications.
 
-All helm charts are created in the `bin/helm` folder of the respective application. Here's a sample of how to deploy all components of `kstream` application into Kubernetes using the helm chart:
+All helm charts are created in the `bin/helm` folder of the respective application. Here's a sample of how to deploy all components of `kstream` application into Kubernetes or OpenShift using the helm chart:
 
 ```
 $ pwd
@@ -348,11 +348,11 @@ $ helm install --name kstream ./helm
 $ kubectl logs <pod name where the application runs>
 ```
 
-Same technique can be used to deploy all the sample applications in Kubernetes.
+Same technique can be used to deploy all the sample applications in Kubernetes or OpenShift.
 
 ### Using the traefik Ingress Controller
 
-`kstream` application publishes a REST end point and allows users to query on various application state information. In Kubernetes this can be done in a way so that the user gets one fixed end point irrespective of the ways the underlying PODs are distributed across the cluster. Even in case of PODs getting restarted on a different node, it would be great to still have the fixed end point. We use the traefik ingress controller for this.
+`kstream` application publishes a REST end point and allows users to query on various application state information. In Kubernetes or OpenShift this can be done in a way so that the user gets one fixed end point irrespective of the ways the underlying PODs are distributed across the cluster. Even in case of PODs getting restarted on a different node, it would be great to still have the fixed end point. We use the traefik ingress controller for this.
 
 > Ensure that the traefik ingress controller is installed in the cluster. Check that the dashboard is accessible through some end points like http://<public agent IP>:9901/dashboard/
 

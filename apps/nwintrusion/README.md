@@ -20,9 +20,9 @@ The application uses the dataset from [KDD Cup 1999](https://kdd.ics.uci.edu/dat
 
 ## Running the applications Locally
 
-All the applications can be run locally or on the DC/OS cluster using Marathon or Kubernetes.
+All the applications can be run locally, on the DC/OS cluster using Marathon, on Kubernetes or on OpenShift.
 
-> **Note:** Kubernetes support is currently experimental and the approach can change in the future versions.
+> **Note:** Kubernetes or OpenShift support is currently experimental and the approach can change in the future versions.
 
 `sbt` will be used to run applications on your local machine. The following examples demonstrate how to run the individual components from the `sbt` console.
 
@@ -179,9 +179,9 @@ This will create a docker image named `lightbend/fdp-nwintrusion-ingestion:X.Y.Z
 
 Once the docker image is created, you can push it to the repository at DockerHub.
 
-Similarly we can prepare the docker images for the Spark applications. For Spark applications we need to build separate docker images for DC/OS as well as Kubernetes. The images for the 2 will be different.
+Similarly we can prepare the docker images for the Spark applications. For Spark applications we need to build separate docker images for DC/OS as well as Kubernetes or OpenShift. The images for the 2 will be different.
 
-**In order to build docker images for Kubernetes you need to set the system property named `K8S_OR_DCOS` to `K8S` or else the image will be built for DC/OS.**
+**In order to build docker images for Kubernetes or OpenShift you need to set the system property named `K8S_OR_DCOS` to `K8S` or else the image will be built for DC/OS.**
 
 ```
 $ sbt
@@ -215,7 +215,7 @@ $ sbt -DK8S_OR_DCOS=K8S
 > docker ## build docker image for K8S
 ```
 
-The image built for Kubernetes will be named with a suffix `-k8s`, e.g. for anomaly detection, the image will be named `lightbend/fdp-nwintrusion-anomaly-k8s:X.Y.Z`, while the one for DC/OS will not have the suffix. Here's an example:
+The image built for Kubernetes or OpenShift will be named with a suffix `-k8s`, e.g. for anomaly detection, the image will be named `lightbend/fdp-nwintrusion-anomaly-k8s:X.Y.Z`, while the one for DC/OS will not have the suffix. Here's an example:
 
 ```
 $ docker images
@@ -297,11 +297,11 @@ Anomaly detection application stores possible anomalies in an InfluxDB database,
 
 **N.B.** In case you plan to re-deploy the anomaly detection application, you will need to manually remove the data source and dashboard from Grafana.
 
-## Deploying and running on Kubernetes
+## Deploying and running on Kubernetes or OpenShift
 
-The first step in running applications on Kubernetes is the step of containerization, which we discussed in the last section. Once the docker images are built we can use Helm Charts to deploy the applications. For Spark applications, the images that have a name suffixed with `-k8s` need to be deployed.
+The first step in running applications on Kubernetes or OpenShift is the step of containerization, which we discussed in the last section. Once the docker images are built we can use Helm Charts to deploy the applications. For Spark applications, the images that have a name suffixed with `-k8s` need to be deployed.
 
-All helm charts are created in the `bin/helm` folder of the respective application. Here's a sample of how to deploy all components of `nwintrusion` application into Kubernetes using the helm chart:
+All helm charts are created in the `bin/helm` folder of the respective application. Here's a sample of how to deploy all components of `nwintrusion` application into Kubernetes or OpenShift using the helm chart:
 
 ```
 $ pwd
@@ -312,4 +312,4 @@ $ helm install --name nwintrusion ./helm
 $ kubectl logs <pod name where the application runs>
 ```
 
-Same technique can be used to deploy all the sample applications in Kubernetes.
+Same technique can be used to deploy all the sample applications in Kubernetes or OpenShift.

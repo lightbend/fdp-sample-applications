@@ -19,7 +19,7 @@ in real time and updating them as new models will become available. Based on thi
 
 ## Installing Data Publisher and Speculative model server
 
-This two modules are installed as 2 pods on Kubernetes using enclosed [Helm Chart](/apps/anomaly-detection/adchart).
+This two modules are installed as 2 pods on Kubernetes or OpenShift using enclosed [Helm Chart](/apps/anomaly-detection/adchart).
 Make sure you update [values](/apps/anomaly-detection/adchart/values.yaml) to make sure
 it adheres to your environment. Definitions for values can be found [here](/apps/anomaly-detection/adchart/values-metadata.yaml).
 

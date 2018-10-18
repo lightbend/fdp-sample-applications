@@ -18,7 +18,7 @@ The main components of running the Flink sample application are:
 
 ## Running the applications Locally
 
-All the applications can be run locally or on the DC/OS cluster using Marathon or Kubernetes.
+All the applications can be run locally, on the DC/OS cluster using Marathon, on Kubernetes, or on OpenShift.
 
 `sbt` will be used to run applications on your local machine. The following examples demonstrate how to run the individual components from the `sbt` console.
 
@@ -112,7 +112,7 @@ This will create a docker image named `lightbend/fdp-flink-ingestion:X.Y.Z` (for
 
 Once the docker image is created, you can push it to the repository at DockerHub.
 
-Similarly we can prepare the docker image for the Taxi Ride Flink application. 
+Similarly we can prepare the docker image for the Taxi Ride Flink application.
 
 ```
 $ sbt
@@ -138,9 +138,9 @@ $ ./app-install.sh --help
   Installs the NYC Taxi Ride sample app. Assumes DC/OS authentication was successful
   using the DC/OS CLI.
 
-  Usage: app-install.sh   [options] 
+  Usage: app-install.sh   [options]
 
-  eg: ./app-install.sh 
+  eg: ./app-install.sh
 
   Options:
   --config-file               Configuration file used to lauch applications
@@ -197,11 +197,11 @@ It also has a `--help` option to show available command-line options. For exampl
 
 The computation results for travel time prediction appears in the Kafka topic `taxiout`. You can run a consumer and check the predicted times as they flow across during processing of the application.
 
-## Deploying and running on Kubernetes
+## Deploying and running on Kubernetes or OpenShift
 
-The first step in running applications on Kubernetes is the step of containerization, which we discussed in the last section. Once the docker images are built we can use Helm Charts to deploy the applications. 
+The first step in running applications on Kubernetes or OpenShift is the step of containerization, which we discussed in the last section. Once the docker images are built we can use Helm Charts to deploy the applications.
 
-All helm charts are created in the `bin/helm` folder of the respective application. Here's a sample of how to deploy all components of `taxiride` application into Kubernetes using the helm chart:
+All helm charts are created in the `bin/helm` folder of the respective application. Here's a sample of how to deploy all components of `taxiride` application into Kubernetes or OpenShift using the helm chart:
 
 ```
 $ pwd
@@ -212,5 +212,5 @@ $ helm install --name taxiride ./helm
 $ kubectl logs <pod name where the application runs>
 ```
 
-Same technique can be used to deploy all the sample applications in Kubernetes.
+Same technique can be used to deploy all the sample applications in Kubernetes or OpenShift.
 
