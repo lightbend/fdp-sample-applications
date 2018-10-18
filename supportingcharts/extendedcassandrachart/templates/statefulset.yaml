@@ -1,0 +1,187 @@
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: {{ template "kubernetes.name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ template "kubernetes.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  serviceName: {{ template "kubernetes.name" . }}
+  updateStrategy:
+    type: "RollingUpdate"
+  replicas: {{ .Values.cassandraReplicaCount }}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape : "true"
+        prometheus.io/port : "{{ .Values.cassandraExporter.config.listenPort }}"
+      labels:
+        app: {{ template "kubernetes.name" . }}
+        chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+        release: {{ .Release.Name }}
+        heritage: {{ .Release.Service }}
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - {{ template "kubernetes.name" . }}
+            topologyKey: kubernetes.io/hostname
+      subdomain: {{ template "kubernetes.name" . }}
+      terminationGracePeriodSeconds: 1800
+      containers:
+        - name: cassandra
+          image: {{ .Values.cassandraImageName | default "quay.io/mysocialapp/cassandra" }}:{{ .Values.cassandraImageVersion }}
+          command: ['/bin/sh', '-c', '/usr/local/apache-cassandra/scripts/run_override.sh']
+          env:
+            {{ if not .Values.cassandraResources }}
+            - name: MAX_HEAP_SIZE
+              value: {{ .Values.cassandraConfig.maxHeap }}
+            {{ end }}
+            - name: HEAP_NEWSIZE
+              value: {{ .Values.cassandraConfig.heapNewSize }}
+            - name: CASSANDRA_NUM_TOKENS
+              value: "256"
+            - name: CASSANDRA_CLUSTER_NAME
+              value: "{{ .Release.Namespace }}"
+            - name: CASSANDRA_RACK
+              value: "Rack1"
+            - name: CASSANDRA_DC
+              value: "{{ .Values.cassandraDC }}"
+            - name: CASSANDRA_LISTEN_ADDRESS
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: CASSANDRA_BROADCAST_RPC_ADDRESS
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: CASSANDRA_BROADCAST_ADDRESS
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: CASSANDRA_CONCURRENT_WRITES
+              value: "{{ default 32 .Values.cassandraConfig.concurrentWrites }}"
+            - name: CASSANDRA_CONCURRENT_READS
+              value: "{{ default 32 .Values.cassandraConfig.concurrentReads }}"
+            - name: CASSANDRA_CONCURRENT_COMPACTORS
+              value: "{{ default 4 .Values.cassandraConfig.concurrentCompactors }}"
+            - name: CASSANDRA_YAML_batch_size_warn_threshold_in_kb
+              value: "{{ default 5 .Values.cassandraConfig.batchSizeWarnThresholdInKb }}"
+            - name: CASSANDRA_YAML_batch_size_fail_threshold_in_kb
+              value: "{{ default 50 .Values.cassandraConfig.batchSizeFailThresholdInKb }}"
+            - name: CASSANDRA_COMPACTION_THROUGHPUT_MB_PER_SEC
+              value: "{{ default 16 .Values.cassandraConfig.compactionThroughputMbPerSec }}"
+            - name: CASSANDRA_YAML_hinted_handoff_throttle_in_kb
+              value: "{{ default 1024 .Values.cassandraConfig.hintedHandoffThrottleInKb }}"
+            - name: CASSANDRA_YAML_max_hints_delivery_threads
+              value: "{{ default 2 .Values.cassandraConfig.maxHintsDeliveryThreads }}"
+            - name: CASSANDRA_MEMTABLE_ALLOCATION_TYPE
+              value: {{ default "heap_buffers" .Values.cassandraConfig.memtableAllocationType }}
+            - name: CASSANDRA_MEMTABLE_FLUSH_WRITERS
+              value: "{{ default 1 .Values.cassandraConfig.memtableFlushWriter }}"
+            - name: CASSANDRA_MEMTABLE_CLEANUP_THRESHOLD
+              value: "{{ default 0.1 .Values.cassandraConfig.memtableCleanupThreshold }}"
+            - name: CASSANDRA_YAML_row_cache_size_in_mb
+              value: "{{ default 0 .Values.cassandraConfig.rowCacheSizeInMb }}"
+            - name: CASSANDRA_YAML_row_cache_save_period
+              value: "{{ default 0 .Values.cassandraConfig.rowCacheSavePeriod }}"
+          securityContext:
+            capabilities:
+              add:
+                - IPC_LOCK
+                - SYS_RESOURCE
+          lifecycle:
+            postStart:
+              exec:
+                command: ["/usr/local/apache-cassandra/scripts/postStart.sh"]
+            preStop:
+              exec:
+                command: ["/usr/local/apache-cassandra/scripts/preStop.sh"]
+          readinessProbe:
+            exec:
+              command:
+              - /bin/bash
+              - -c
+              - /ready-probe.sh
+            initialDelaySeconds: 180
+            timeoutSeconds: 30
+          ports:
+            - containerPort: 7000
+              name: intra-node
+            - containerPort: 7001
+              name: tls-intra-node
+            - containerPort: 7199
+              name: jmx
+            - containerPort: 9042
+              name: cql
+          resources:
+{{ toYaml .Values.cassandraResources | indent 12 }}
+          volumeMounts:
+            - name: cassandra-data
+              mountPath: /var/lib/cassandra
+            - name: {{ template "kubernetes.name" . }}
+              mountPath: /usr/local/apache-cassandra/scripts
+        {{- if .Values.cassandraExporter.enableExporter }}
+        - name: cassandra-exporter
+          image: "solsson/kafka-prometheus-jmx-exporter:{{ .Values.cassandraExporter.imageVersion }}"
+          command:
+          - sh
+          args:
+          - -c
+          - java -jar jmx_prometheus_httpserver.jar {{ .Values.cassandraExporter.config.listenPort }} /usr/local/apache-cassandra/scripts/exporter_config.yml
+          ports:
+          - name: metrics
+            containerPort: {{ .Values.cassandraExporter.config.listenPort }}
+            protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: {{ .Values.cassandraExporter.config.listenPort }}
+            initialDelaySeconds: 100
+            periodSeconds: 10
+            timeoutSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: {{ .Values.cassandraExporter.config.listenPort }}
+            initialDelaySeconds: 100
+            periodSeconds: 10
+            timeoutSeconds: 15
+          resources:
+{{ toYaml .Values.cassandraExporter.resources | indent 12 }}
+          volumeMounts:
+            - name: {{ template "kubernetes.name" . }}
+              mountPath: /usr/local/apache-cassandra/scripts
+         {{- end }}
+      volumes:
+        - name: {{ template "kubernetes.name" . }}
+          configMap:
+            name: {{ template "kubernetes.name" . }}
+            defaultMode: 0775
+        - name: cassandra-data
+          volumeClaimTemplates:
+            metadata:
+              name: cassandra-data
+              labels:
+                 app: {{ template "kubernetes.name" . }}
+                 chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+                 release: {{ .Release.Name }}
+                 heritage: {{ .Release.Service }}
+            spec:
+              accessModes:
+                - {{ .Values.cassandraResources.accessMode | quote }}
+              resources:
+                requests:
+                  storage: {{ .Values.cassandraResources.size | quote }}

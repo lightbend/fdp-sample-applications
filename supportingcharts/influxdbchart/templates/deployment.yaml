@@ -1,0 +1,60 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "name" . }}
+  labels:
+    app: {{ template "name" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: {{ template "name" . }}
+    spec:
+      containers:
+      - name: {{ template "name" . }}
+        image: "{{ .Values.image.repo }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+        ports:
+        - name: api
+          containerPort: {{ .Values.config.http.bind_address}}
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: api
+          initialDelaySeconds: 30
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: api
+          initialDelaySeconds: 5
+          timeoutSeconds: 1
+        volumeMounts:
+        - name: data
+          mountPath: {{ .Values.config.storage_directory }}
+        - name: config
+          mountPath: /etc/influxdb
+      volumes:
+      - name: config
+        configMap:
+          name: {{ template "name" . }}
+      - name: data
+        volumeClaimTemplates:
+          metadata:
+            name: cassandra-data
+            labels:
+              chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+              release: {{ .Release.Name }}
+              heritage: {{ .Release.Service }}
+          spec:
+            accessModes:
+              - {{ .Values.persistence.accessMode | quote }}
+            resources:
+              requests:
+                storage: {{ .Values.persistence.size | quote }}
