@@ -80,3 +80,14 @@ If you want to remove the application, do the following from `$PROJECT_HOME/bigd
 ```bash
 ./app-remove.sh
 ```
+
+## Deploying to Kubernetes and OpenShift
+
+For Kubernetes and OpenShift the project provides `vggcifarchart` chart. See [this](https://docs.bitnami.com/kubernetes/how-to/create-your-first-helm-chart/#values) for Helm intro.
+
+This chart has `chart.yaml` and `values.yaml` defining the content and values used in the chart.
+It also has 1 deployment yaml file, `vggcifar.yaml`.
+
+## Running a Custom Image on Kubernetes or OpenShift
+
+Edit the `helm/values.yaml.template` and change the image locations or simply override the values when invoking `helm install ...`
