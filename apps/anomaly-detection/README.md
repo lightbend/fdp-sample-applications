@@ -17,17 +17,24 @@ in real time and updating them as new models will become available. Based on thi
 
 # Installation
 
+Current version of the application is supported only on DC/OS.
+
 ## Installing Data Publisher and Speculative model server
 
-This two modules are installed as 2 pods on Kubernetes or OpenShift using enclosed [Helm Chart](/apps/anomaly-detection/adchart).
+These two modules can be installed either on DC/OS or Kubernetes on DC/OS.
+
+For installation on DC/OS use this [json configuration](/apps/anomaly-detection/source/core/adpublisher/src/main/resources/adpublisher.json)
+for publisher and  [this one](/apps/anomaly-detection/source/core/adspeculativemodelserver/src/main/resources/adspeculativemodelserver.json) for speculative model server.
+
+
+On kubernetes on DC/OS these two modules are installed as 2 pods on Kubernetes or OpenShift using enclosed [Helm Chart](/apps/anomaly-detection/adchart).
 Make sure you update [values](/apps/anomaly-detection/adchart/values.yaml) to make sure
 it adheres to your environment. Definitions for values can be found [here](/apps/anomaly-detection/adchart/values-metadata.yaml).
 
-Alternatively, if you want to install these modules on DC/OS use this [json configuration](/apps/anomaly-detection/source/core/adpublisher/src/main/resources/adpublisher.json)
-for publisher and  [this one](/apps/anomaly-detection/source/core/adspeculativemodelserver/src/main/resources/adspeculativemodelserver.json) for speculative model server.
 
 ## Installing all Training Modules
 
+Current version of the training modules is supported only on DC/OS
 The three training modules that need to be installed are:
 
 * Data ingester (pre-training)
