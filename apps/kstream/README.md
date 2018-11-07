@@ -350,10 +350,17 @@ $ kubectl logs <pod name where the application runs>
 
 Same technique can be used to deploy all the sample applications in Kubernetes or OpenShift.
 
-### Using the traefik Ingress Controller
+### Exposing REST APIs on kubernetes/Openshift
 
-The `kstream` application publishes a REST end point and allows users to query on various application state information. To expose the service on "vanilla" Kubernetes use Ingress. On OpenShift, use Route. Exposing the service gives the user one fixed end point, irrespective of the ways the underlying PODs are distributed across the cluster. Even in case of PODs getting restarted on a different node, it would be great to still have the fixed end point. We use the traefik ingress controller for this.
+The `kstream` application publishes a REST end point and allows users to query on various application 
+state information. To expose the service on "vanilla" Kubernetes use Ingress. On OpenShift, use Route. 
+Exposing the service gives the user one fixed end point, irrespective of the ways the underlying PODs are distributed across the cluster. 
+Even in case of PODs getting restarted on a different node, it would be great to still have the fixed end point. 
 
+#### Using the traefik Ingress Controller for kubernetes on DC/OS
+
+For kubernetes on DC/OS the application was tested with traefik ingress controller.
+In oreder to use it:
 > Ensure that the traefik ingress controller is installed in the cluster. Check that the dashboard is accessible through some end points like http://<public agent IP>:9901/dashboard/
 
 The helm chart for `kstream` application is configured to work with traefik ingress controller. However the query from the REST endpoints need to be changed as follows:

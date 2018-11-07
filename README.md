@@ -34,6 +34,9 @@ The following components must be installed and running on the cluster in advance
 * InfluxDB (required only for KillrWeather and network intrusion apps)
 * Grafana (required only for KillrWeather and network intrusion apps)
 
+For DC/OS this components can be installed from the the DC/OS catalog, for kubernetes/Openshift use the following 
+[helm charts](/supportingcharts) and [documentation](/supportingcharts/README.md). 
+
 ### Kubernetes and OpenShift
 
 For both platforms, [Helm](https://helm.sh/) is used to install the sample apps. Make sure the following prerequisites are installed first:
