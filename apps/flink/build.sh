@@ -10,7 +10,7 @@ bats test/bin/*.bats
 cd ${HERE}/source/core
 for i in fdp-flink-ingestion fdp-flink-taxiride
 do
-  sbt "set version in ThisBuild := \"$VERSION\"" "show version" $i/clean $i/docker $i/dockerPush
+  sbt -no-colors "set version in ThisBuild := \"$VERSION\"" "show version" $i/clean $i/docker $i/dockerPush
 done
 
 echo "$PWD: built package and docker image(s). Pushed the docker image(s)."
