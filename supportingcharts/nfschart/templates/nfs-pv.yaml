@@ -9,5 +9,5 @@ spec:
   accessModes:
     - ReadWriteMany
   nfs:
-    server: {{ .Values.nfsServerServiceName }}.{{ .Values.namespace }}.svc.cluster.local
+    server: {{ template "name" . }}.{{ .Values.namespace }}.svc.cluster.local
     path: "/"

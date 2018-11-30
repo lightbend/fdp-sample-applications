@@ -1,41 +1,4 @@
-apiVersion: v1
-kind: Service
-metadata:
-  name: {{ template "cassandra.name" . }}
-  labels:
-    app: {{ template "cassandra.name" . }}
-    chart: {{ template "cassandra.chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
-spec:
-  clusterIP: None
-  type: {{ .Values.service.type }}
-  ports:
-  - name: intra
-    port: 7000
-    targetPort: 7000
-  - name: tls
-    port: 7001
-    targetPort: 7001
-  - name: jmx
-    port: 7199
-    targetPort: 7199
-  - name: cql
-    port: {{ default 9042 .Values.config.ports.cql }}
-    targetPort: {{ default 9042 .Values.config.ports.cql }}
-  - name: thrift
-    port: {{ default 9160 .Values.config.ports.thrift }}
-    targetPort: {{ default 9160 .Values.config.ports.thrift }}
-  {{- if .Values.config.ports.agent }}
-  - name: agent
-    port: {{ .Values.config.ports.agent }}
-    targetPort: {{ .Values.config.ports.agent }}
-  {{- end }}
-  selector:
-    app: {{ template "cassandra.name" . }}
-    release: {{ .Release.Name }}
----
-apiVersion: apps/v1beta1
+apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: {{ template "cassandra.name" . }}
@@ -45,6 +8,10 @@ metadata:
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:
+  selector:
+    matchLabels:
+      app: {{ template "cassandra.name" . }}
+      release: {{ .Release.Name }}
   serviceName: {{ template "cassandra.name" . }}
   replicas: {{ .Values.config.cluster_size }}
   podManagementPolicy: {{ .Values.podManagementPolicy }}
@@ -58,20 +25,12 @@ spec:
 {{- if .Values.podLabels }}
 {{ toYaml .Values.podLabels | indent 8 }}
 {{- end }}
+{{- if .Values.podAnnotations }}
+      annotations:
+{{ toYaml .Values.podAnnotations | indent 8 }}
+{{- end }}
     spec:
-      # NOTE:
-      # This is to ensure that only one pod is running on a given node
-      # follows recommendation from https://kubernetes.io/docs/tutorials/stateful-application/zookeeper/
-      affinity:
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            - labelSelector:
-                matchExpressions:
-                  - key: "app"
-                    operator: In
-                    values:
-                    - {{ template "cassandra.name" . }}
-              topologyKey: "kubernetes.io/hostname"
+#      serviceAccountName: cassandra-service-account
 {{- if .Values.selector }}
 {{ toYaml .Values.selector | indent 6 }}
 {{- end }}
@@ -85,6 +44,30 @@ spec:
 {{ toYaml .Values.affinity | indent 8 }}
 {{- end }}
       containers:
+{{- if .Values.exporter.enabled }}
+      - name: cassandra-exporter
+        image: "{{ .Values.exporter.image.repo }}:{{ .Values.exporter.image.tag }}"
+        env:
+          - name: CASSANDRA_EXPORTER_CONFIG_listenPort
+            value: {{ .Values.exporter.port | quote }}
+          - name: JVM_OPTS
+            value: {{ .Values.exporter.jvmOpts | quote }}
+        ports:
+          - name: metrics
+            containerPort: {{ .Values.exporter.port }}
+            protocol: TCP
+          - name: jmx
+            containerPort: 5555
+        livenessProbe:
+          tcpSocket:
+            port: {{ .Values.exporter.port }}
+        readinessProbe:
+          httpGet:
+            path: /metrics
+            port: {{ .Values.exporter.port }}
+          initialDelaySeconds: 20
+          timeoutSeconds: 45
+{{- end }}
       - name: {{ template "cassandra.name" . }}
         image: "{{ .Values.image.repo }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
@@ -94,7 +77,7 @@ spec:
         {{- $seed_size := default 1 .Values.config.seed_size | int -}}
         {{- $global := . }}
         - name: CASSANDRA_SEEDS
-          value: "{{- range $i, $e := until $seed_size }}{{ template "cassandra.name" $global }}-{{ $i }}.{{ template "cassandra.name" $global }}.{{ $global.Release.Namespace }}.svc.cluster.local,{{- end }}"
+          value: "{{- range $i, $e := until $seed_size }}{{ template "cassandra.name" $global }}-{{ $i }}.{{ template "cassandra.name" $global }}.{{ $global.Release.Namespace }}.svc.{{ $global.Values.config.cluster_domain }}{{- if (lt ( add1 $i ) $seed_size ) }},{{- end }}{{- end }}"
         - name: MAX_HEAP_SIZE
           value: {{ default "8192M" .Values.config.max_heap_size | quote }}
         - name: HEAP_NEWSIZE
@@ -113,6 +96,10 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
+        {{- range $key, $value := .Values.env }}
+        - name: {{ $key | quote }}
+          value: {{ $value | quote }}
+        {{- end }}
         livenessProbe:
           exec:
             command: [ "/bin/sh", "-c", "nodetool status" ]
@@ -163,18 +150,18 @@ spec:
 {{- if not .Values.persistence.enabled }}
         emptyDir: {}
 {{- else }}
-  volumeClaimTemplates:
-  - metadata:
-      name: data
-      labels:
-        app: {{ template "cassandra.name" . }}
-        chart: {{ template "cassandra.chart" . }}
-        release: {{ .Release.Name }}
-        heritage: {{ .Release.Service }}
-    spec:
-      accessModes:
-        - {{ .Values.persistence.accessMode | quote }}
-      resources:
-        requests:
-          storage: {{ .Values.persistence.size | quote }}
+        volumeClaimTemplates:
+          metadata:
+            name: data
+            labels:
+              app: {{ template "cassandra.name" . }}
+              chart: {{ template "cassandra.chart" . }}
+              release: {{ .Release.Name }}
+              heritage: {{ .Release.Service }}
+          spec:
+            accessModes:
+            - {{ .Values.persistence.accessMode | quote }}
+            resources:
+              requests:
+                storage: {{ .Values.persistence.size | quote }}
 {{- end }}

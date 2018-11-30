@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fdp-ad-trainingpod
+  labels:
+    app: fdp-ad-trainingpod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fdp-ad-trainingpod
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: fdp-ad-trainingpod
+    spec:
+      containers:
+      - name: trainingdata-ingestion
+        image: {{ .Values.image.trainingingest}}:{{.Values.image.version }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        - name: INFLUXDB_HOST
+          value: {{ .Values.configuration.influx.host}}
+        - name: INFLUXDB_PORT
+          value: "{{ .Values.configuration.influx.port}}"
+        - name: INGEST_INTERVAL
+          value: "{{ .Values.configuration.trainingdata.ingestion_interval}}"
+        - name: INGEST_THRESHOLD_COUNT
+          value: "{{ .Values.configuration.trainingdata.ingestion_threshold_count}}"
+        - name: LAST_TIMESTAMP_FILE_NAME
+          value: {{ .Values.configuration.trainingdata.last_timestamp_file_name}}
+        - name: HYPERPARAMS_FILE_NAME
+          value: {{ .Values.configuration.trainingdata.hyperparameters_file_name}}
+        - name: GENERATION_COMPLETE_FILE_NAME
+          value: {{ .Values.configuration.trainingdata.generation_complete_file_name}}
+        - name: DATA_FILE_NAME
+          value: {{ .Values.configuration.trainingdata.data_file_name}}
+        volumeMounts:
+        - mountPath: {{ .Values.configuration.storage.storageshare }}
+          name: data
+      - name: trainingdata-processing
+        image: {{ .Values.image.trainingprocess}}:{{.Values.image.version }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        - name: DATA_FILE_NAME
+          value: {{ .Values.configuration.trainingdata.data_file_name}}
+        - name: GENERATION_COMPLETE_FILE_NAME
+          value: {{ .Values.configuration.trainingdata.generation_complete_file_name}}
+        - name: MODEL_PB_FILE_NAME
+          value: {{ .Values.configuration.publishingmodel.pbFileName}}
+        - name: MODEL_ATTRIB_FILE_NAME
+          value: {{ .Values.configuration.publishingmodel.attributesFileName}}
+        - name: HYPERPARAMS_FILE_NAME
+          value: {{ .Values.configuration.trainingdata.hyperparameters_file_name}}
+        - name: TRAINING_COMPLETE_FILE_NAME
+          value: {{ .Values.configuration.trainingdata.training_complete_file_name}}
+        command: ["/bin/sh", "-c"]
+        args:
+          - ./analytics-zoo-0.3.0/bin/wait-and-start-training.sh
+        volumeMounts:
+        - mountPath: {{ .Values.configuration.storage.storageshare }}
+          name: data
+      - name: trainingdata-trainingpublish
+        image: {{ .Values.image.trainingpublish}}:{{.Values.image.version }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        - name: KAFKA_BROKERS
+          value: {{ .Values.configuration.kafka.brokerlist}}
+        - name: MODEL_PB_FILE_NAME
+          value: {{ .Values.configuration.publishingmodel.pbFileName}}
+        - name: MODEL_ATTRIB_FILE_NAME
+          value: {{ .Values.configuration.publishingmodel.attributesFileName}}
+        - name: HYPERPARAMS_FILE_NAME
+          value: {{ .Values.configuration.trainingdata.hyperparameters_file_name}}
+        - name: TRAINING_COMPLETE_FILE_NAME
+          value: {{ .Values.configuration.trainingdata.training_complete_file_name}}
+        command: ["/bin/sh", "-c"]
+        args:
+        - while true; do while [ ! -f $TRAINING_COMPLETE_FILE_NAME ]; do sleep 2; done; echo Got $TRAINING_COMPLETE_FILE_NAME; /training_model_publish/bin/trainingmodelpublish && rm $TRAINING_COMPLETE_FILE_NAME; done
+        volumeMounts:
+        - mountPath: {{ .Values.configuration.storage.storageshare }}
+          name: data
+      volumes:
+      - name: data
+        volumeClaimTemplates:
+          metadata:
+            name: data
+            labels:
+              chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+              release: {{ .Release.Name }}
+              heritage: {{ .Release.Service }}
+          spec:
+            accessModes: [ "ReadWriteOnce" ]
+            resources:
+              requests:
+                storage: {{ .Values.configuration.storage.localStorage | quote }}
+
+

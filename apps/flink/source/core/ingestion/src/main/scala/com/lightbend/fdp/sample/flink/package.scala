@@ -1,8 +1,8 @@
-package com.lightbend.fdp.sample.flink
+package com.lightbend.fdp.sample
 
 import java.nio.charset.Charset
 
-package object ingestion {
+package object flink {
   final val CHARSET = Charset.forName("UTF-8")
 
   implicit def asFiniteDuration(d: java.time.Duration) =

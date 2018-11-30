@@ -1,8 +1,12 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: {{ .Values.nfsServerServiceName }}
+  name: {{ template "name" . }}
   namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ template "name" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
 spec:
   ports:
     - name: nfs
@@ -12,4 +16,4 @@ spec:
     - name: rpcbind
       port: 111
   selector:
-    role: {{ .Values.nfsServerServiceName }}
+    app: {{ template "name" . }}

@@ -1,14 +1,36 @@
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: modelserverpublisher
+  name: fdp-ad-modelserverpublisher
+  labels:
+    app: fdp-ad-modelserverpublisher
 spec:
-  containers:
-  - name: modelserverpublisher
-    image: {{ .Values.image.publisher}}:{{.Values.image.version }}
-    imagePullPolicy: {{ .Values.image.pullPolicy }}
-    env:
-      - name: KAFKA_BROKERS_LIST
-        value: {{ .Values.configuration.kafka.brokerlist}}
-      - name: DATA_PUBLISH_INTERVAL
-        value: {{ .Values.configuration.publisher.data_publish_interval}}
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fdp-ad-modelserverpublisher
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: fdp-ad-modelserverpublisher
+    spec:
+      containers:
+      - name: fdp-ad-modelserverpublisher
+        image: {{ .Values.image.publisher}}:{{.Values.image.version }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+          - name: KAFKA_BROKERS
+            value: {{ .Values.configuration.kafka.brokerlist}}
+          - name: PUBLISHER_INTERVAL
+            value: {{ .Values.configuration.publisher.data_publish_interval}}
+          - name: GRAFANA_HOST
+            value: {{ .Values.configuration.grafana.host}}
+          - name: GRAFANA_PORT
+            value: "{{ .Values.configuration.grafana.port}}"
+          - name: INFLUXDB_HOST
+            value: {{ .Values.configuration.influx.host}}
+          - name: INFLUXDB_PORT
+            value: "{{ .Values.configuration.influx.port}}"
+

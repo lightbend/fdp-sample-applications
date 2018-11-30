@@ -3,17 +3,87 @@ import sbtassembly.MergeStrategy
 name in ThisBuild := "fdp-flink-taxiride"
 
 // global settings for this build
-version in ThisBuild := CommonSettings.version 
-organization in ThisBuild := CommonSettings.organization
+version in ThisBuild := "2.0.0"
+organization in ThisBuild := "lightbend"
 scalaVersion in ThisBuild := Versions.scalaVersion
 
+// base project settings
+def projectBase(id: String)(base: String = id) = Project(id, base = file(base))
+  .settings(
+    fork in run := true,
+
+    assemblyMergeStrategy in assembly := {
+      case PathList("META-INF", "MANIFEST.MF") => MergeStrategy.discard
+      case PathList("META-INF", xs @ _*) => MergeStrategy.last
+      case PathList("META-INF", "io.netty.versions.properties") => MergeStrategy.last
+      case PathList("org", "slf4j", xs@_*) => MergeStrategy.last
+      case x =>
+        val oldStrategy = (assemblyMergeStrategy in assembly).value
+        oldStrategy(x)
+    }
+  )
+
+// settings for a native-packager based docker project based on sbt-docker plugin
+def sbtdockerAppBase(id: String)(base: String = id) = projectBase(id)(base)
+  .enablePlugins(sbtdocker.DockerPlugin)
+  .settings(
+    dockerfile in docker := {
+      val appDir = stage.value
+      val targetDir = s"/$base"
+
+      new Dockerfile {
+        from("openjdk:8u151-jre")
+        entryPoint(s"$targetDir/bin/${executableScriptName.value}")
+        copy(appDir, targetDir)
+      }
+    },
+
+    // Set name for the image
+    imageNames in docker := Seq(
+      ImageName(namespace = Some(organization.value),
+        repository = name.value.toLowerCase,
+        tag = Some(version.value))
+    ),
+
+    buildOptions in docker := BuildOptions(cache = false)
+  )
+
+// settings for an assembly based docker project based on sbt-docker plugin
+def sbtdockerFlinkAppBase(id: String)(base: String = id) = projectBase(id)(base)
+  .enablePlugins(sbtdocker.DockerPlugin)
+  .settings(
+    dockerfile in docker := {
+
+      val artifact: File = assembly.value
+      val artifactTargetPath = s"/opt/flink/examples/streaming/${artifact.name}"
+
+      new Dockerfile {
+//        from ("mesosphere/dcos-flink:1.4.2-1.0")
+        from ("lightbend/flink:1.6.2")
+        add(artifact, artifactTargetPath)
+//        runRaw("mkdir -p /flink-1.4.2/app/jars")
+      }
+    },
+
+    // Set name for the image
+    imageNames in docker := Seq(
+      ImageName(namespace = Some(organization.value),
+        repository = name.value.toLowerCase, 
+        tag = Some(version.value))
+    ),
+
+    buildOptions in docker := BuildOptions(cache = false)
+  )
 
 // allow circular dependencies for test sources
 compileOrder in Test := CompileOrder.Mixed
 
 // standalone run of the data ingestion application
 // $ sbt run ..
-lazy val ingestRun = (project in file("./ingestion"))
+lazy val ingestRun = sbtdockerAppBase("fdp-flink-ingestion")("./ingestion")
+  
+  .settings(Common.settings: _*)
+  .enablePlugins(JavaAppPackaging)
   .settings(libraryDependencies ++= Dependencies.ingestion)
 
   .settings (
@@ -29,7 +99,8 @@ lazy val ingestRun = (project in file("./ingestion"))
 // packaged run of the data ingestion application
 // 1. $ sbt universal:packageZipTarball
 // 2. $ sbt docker
-lazy val ingestTaxiRidePackage = DockerProjectSpecificPackagerPlugin.sbtdockerPackagerBase("fdp-flink-ingestion", stage, executableScriptName)("build/ingestion")
+/*
+lazy val ingestTaxiRidePackage = sbtdockerAppBase("fdp-flink-ingestion")("build/ingestion")
   .enablePlugins(JavaAppPackaging)
   .settings(
     resourceDirectory in Compile := (resourceDirectory in (ingestRun, Compile)).value,
@@ -58,15 +129,16 @@ lazy val ingestTaxiRidePackage = DockerProjectSpecificPackagerPlugin.sbtdockerPa
     mainClass in Compile := Some("com.lightbend.fdp.sample.flink.ingestion.DataIngestion")
   )
   .dependsOn(ingestRun)
-
+*/
 
 
 // standalone run of the anomaly detection application
 // 1. $ sbt assembly 
 // 2. $ sbt docker 
 // 3. $ sbt run --broker-list localhost:9092 --inTopic taxiin --outTopic taxiOut
-lazy val taxiRideApp = DockerProjectSpecificAssemblyPlugin.sbtdockerAssemblyFlinkBase("fdp-flink-taxiride", assembly)("./app")
+lazy val taxiRideApp = sbtdockerFlinkAppBase("fdp-flink-taxiride")("./app")
 
+  .settings(Common.settings: _*)
   .settings(libraryDependencies ++= Dependencies.app)
 
   .settings (
@@ -90,4 +162,4 @@ lazy val taxiRideApp = DockerProjectSpecificAssemblyPlugin.sbtdockerAssemblyFlin
 
 
 lazy val root = (project in file(".")).
-    aggregate(ingestRun, ingestTaxiRidePackage, taxiRideApp)
+    aggregate(ingestRun, /*ingestTaxiRidePackage,*/ taxiRideApp)

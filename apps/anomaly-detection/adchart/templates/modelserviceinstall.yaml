@@ -1,38 +1,49 @@
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: speculativemodelserver
+  name: fdp-ad-speculativemodelserver
   labels:
-    app: speculativemodelserver
+    app: fdp-ad-speculativemodelserver
 spec:
-  containers:
-  - name: akkamodelserver
-    image: {{ .Values.image.akka }}:{{.Values.image.version }}
-    imagePullPolicy: {{ .Values.image.pullPolicy }}
-    ports:
-    - name: http
-      containerPort: {{ .Values.configuration.statelistener.port}}
-    env:
-      - name: KAFKA_BROKERS_LIST
-        value: {{ .Values.configuration.kafka.brokerlist}}
-      - name: GRAFANA_HOST
-        value: {{ .Values.configuration.grafana.host}}
-      - name: GRAFANA_PORT
-        value: "{{ .Values.configuration.grafana.port}}"
-      - name: INFLUXDB_HOST
-        value: {{ .Values.configuration.influx.host}}
-      - name: INFLUXDB_PORT
-        value: "{{ .Values.configuration.influx.port}}"
-      - name: MODEL_SERVER_PORT
-        value: "{{ .Values.configuration.statelistener.port}}"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fdp-ad-speculativemodelserver
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: fdp-ad-speculativemodelserver
+    spec:
+      containers:
+      - name: fdp-ad-speculativemodelserver
+        image: {{ .Values.image.akka }}:{{.Values.image.version }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.configuration.statelistener.port}}
+        env:
+          - name: KAFKA_BROKERS
+            value: {{ .Values.configuration.kafka.brokerlist}}
+          - name: GRAFANA_HOST
+            value: {{ .Values.configuration.grafana.host}}
+          - name: GRAFANA_PORT
+            value: "{{ .Values.configuration.grafana.port}}"
+          - name: INFLUXDB_HOST
+            value: {{ .Values.configuration.influx.host}}
+          - name: INFLUXDB_PORT
+            value: "{{ .Values.configuration.influx.port}}"
+          - name: MODEL_SERVER_PORT
+            value: "{{ .Values.configuration.statelistener.port}}"
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: speculativemodelserver
+  name: fdp-ad-speculativemodelserver
 spec:
   selector:
-    app: speculativemodelserver
+    app: fdp-ad-speculativemodelserver
   ports:
   - protocol: TCP
     port: {{ .Values.configuration.statelistener.port}}

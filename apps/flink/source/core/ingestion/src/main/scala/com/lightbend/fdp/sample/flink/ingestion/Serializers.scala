@@ -1,5 +1,4 @@
 package com.lightbend.fdp.sample.flink.ingestion
-package serializers
 
 import org.apache.kafka.common.serialization.{ Serde, Serdes, StringSerializer, StringDeserializer }
 

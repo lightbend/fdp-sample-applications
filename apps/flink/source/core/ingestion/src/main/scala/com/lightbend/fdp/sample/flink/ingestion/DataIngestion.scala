@@ -2,8 +2,7 @@ package com.lightbend.fdp.sample.flink.ingestion
 
 import java.nio.file.{ Path, FileSystems }
 
-import scala.util.{ Try, Success, Failure }
-import scala.concurrent.duration._
+import scala.util.{ Success, Failure }
 import sys.process._
 import com.typesafe.config.ConfigFactory
 
@@ -29,6 +28,7 @@ import serializers.Serializers
 import com.typesafe.scalalogging.LazyLogging
 
 object DataIngestion extends LazyLogging with Serializers {
+
   def main(args: Array[String]): Unit = {
 
     // get config info
@@ -36,6 +36,8 @@ object DataIngestion extends LazyLogging with Serializers {
       case Success(c)  => c
       case Failure(ex) => throw new Exception(ex)
     }
+
+    println(s"Starting data ingester, kafka ${config.brokers}, reading from directory ${config.directoryToWatch}")
 
     implicit val system = ActorSystem()
     implicit val materializer = ActorMaterializer()
@@ -45,9 +47,9 @@ object DataIngestion extends LazyLogging with Serializers {
     // whenever we find new / changed files in the configured location, we run data loading
     registerForIngestion(config)
 
-    val _ = system.scheduler.scheduleOnce(1 minute) {
+    val _ = system.scheduler.schedule(1 minute, 10 minute) {
       Seq("/bin/sh", "-c", s"touch ${config.directoryToWatch}/*.csv").!
-      ()
+      println("Updating data file")
     }
   }
 

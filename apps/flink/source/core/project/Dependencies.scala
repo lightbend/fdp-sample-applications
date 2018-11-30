@@ -12,8 +12,8 @@ object Dependencies {
   val cats                  =      "org.typelevel"                %%   "cats"                           % catsVersion
   val alpakka               =      "com.lightbend.akka"           %%   "akka-stream-alpakka-file"       % alpakkaFileVersion
   val reactiveKafka         =      "com.typesafe.akka"            %%   "akka-stream-kafka"              % reactiveKafkaVersion
-  val flinkScala            =      "org.apache.flink"             %%   "flink-scala"                    % flinkVersion % "provided"
-  val flinkStreamingScala   =      "org.apache.flink"             %%   "flink-streaming-scala"          % flinkVersion % "provided"
+  val flinkScala            =      "org.apache.flink"             %%   "flink-scala"                    % flinkVersion  % "provided"
+  val flinkStreamingScala   =      "org.apache.flink"             %%   "flink-streaming-scala"          % flinkVersion  % "provided"
   val flinkKafka            =      "org.apache.flink"             %%   "flink-connector-kafka-0.11"     % flinkVersion exclude("org.slf4j", "slf4j-log4j12") 
   val flinkKafkaBase        =      "org.apache.flink"             %%   "flink-connector-kafka-base"     % flinkVersion exclude("org.slf4j", "slf4j-log4j12") 
  

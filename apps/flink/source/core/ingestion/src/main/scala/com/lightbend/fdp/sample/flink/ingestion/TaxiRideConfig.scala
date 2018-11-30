@@ -1,6 +1,5 @@
 package com.lightbend.fdp.sample.flink.ingestion
 
-import cats._
 import cats.data._
 import cats.instances.all._
 
@@ -16,8 +15,7 @@ object TaxiRideConfig {
 
   private[TaxiRideConfig] case class KafkaSettings(
     brokers: String, 
-    zk: String, 
-    inTopic: String, 
+    inTopic: String,
     outTopic: String
   )
 
@@ -29,7 +27,6 @@ object TaxiRideConfig {
 
   case class ConfigData(ks: KafkaSettings, dls: DataLoaderSettings) {
     def brokers = ks.brokers
-    def zk = ks.zk
     def inTopic = ks.inTopic
     def outTopic = ks.outTopic
     def sourceTopic = dls.sourceTopic
@@ -43,7 +40,6 @@ object TaxiRideConfig {
     Try {
       KafkaSettings(
         config.getString("dcos.kafka.brokers"),
-        config.getString("dcos.kafka.zookeeper"),
         config.getString("dcos.kafka.intopic"),
         config.getString("dcos.kafka.outtopic")
       )

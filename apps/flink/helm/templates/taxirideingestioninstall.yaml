@@ -1,34 +1,45 @@
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1beta2
+kind: Deployment
 metadata:
-  name: taxirideingestionchart
+  name: fdp-taxiride-ingestion
+  labels:
+    app: fdp-taxiride-ingestion
 spec:
-  containers:
-  - name: taxirideingestion
-    image: {{ .Values.image.ingestion}}:{{.Values.image.version }}
-    imagePullPolicy: {{ .Values.image.pullPolicy }}
-    volumeMounts:
-    - name: datadir
-      mountPath: /usr/share
-    env:          
-    - name: "DIRECTORY_TO_WATCH"
-      value: "/usr/share"
-    - name: "KAFKA_BROKERS"
-      value: {{ .Values.configuration.kafka.brokerlist}}
-    - name: "ZOOKEEPER_URL"
-      value: {{ .Values.configuration.zk.url}}
-  # These container runs during pod initialization
-  initContainers:
-  - name: install
-    image: busybox
-    command:
-    - sh
-    - -c
-    - wget {{ .Values.data.datadirectory }} -O /data-dir/nycTaxiRides.csv.tgz; tar xvfz /data-dir/nycTaxiRides.csv.tgz -C /data-dir; ls -l /data-dir
-    volumeMounts:
-    - name: datadir
-      mountPath: "/data-dir"
-  dnsPolicy: Default
-  volumes:
-  - name: datadir
-    emptyDir: {}
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fdp-taxiride-ingestion
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: fdp-taxiride-ingestion
+    spec:
+      containers:
+      - name: taxirideingestion
+        image: {{ .Values.image.ingestion}}:{{.Values.image.version }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        volumeMounts:
+        - name: datadir
+          mountPath: {{ .Values.data.directorytomatch }}
+        env:
+        - name: "DIRECTORY_TO_WATCH"
+          value: {{ .Values.data.directorytomatch }}
+        - name: "KAFKA_BROKERS"
+          value: {{ .Values.configuration.kafka.brokerlist}}
+      # These container runs during pod initialization
+      initContainers:
+      - name: install
+        image: busybox
+        command:
+        - sh
+        - -c
+        - wget {{ .Values.data.datadirectory }} -O {{ .Values.data.directorytomatch }}/nycTaxiRides.csv.tgz; tar xvfz {{ .Values.data.directorytomatch }}/nycTaxiRides.csv.tgz -C {{ .Values.data.directorytomatch }}; ls -l {{ .Values.data.directorytomatch }}
+        volumeMounts:
+        - name: datadir
+          mountPath: {{ .Values.data.directorytomatch }}
+      dnsPolicy: Default
+      volumes:
+      - name: datadir
+        emptyDir: {}
