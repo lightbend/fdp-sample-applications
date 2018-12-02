@@ -1,6 +1,6 @@
-package com.lightbend.fdp.sample.flink.ingestion
+package com.lightbend.fdp.sample.flink.support
 
-import org.apache.kafka.common.serialization.{ Serde, Serdes, StringSerializer, StringDeserializer }
+import org.apache.kafka.common.serialization.{Serdes, StringDeserializer, StringSerializer}
 
 trait Serializers {
   final val stringSerializer = new StringSerializer()
@@ -9,6 +9,3 @@ trait Serializers {
   final val longSerde = Serdes.Long()
   final val byteArraySerde = Serdes.ByteArray()
 }
-
-
-

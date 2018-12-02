@@ -1,12 +1,9 @@
-package com.lightbend.fdp.sample.flink.app
+package com.lightbend.fdp.sample.flink.models
 
 import java.util.Locale
 
-import org.apache.flink.api.common.serialization.{DeserializationSchema, SerializationSchema}
-import org.apache.flink.api.common.typeinfo.TypeInformation
-import org.apache.flink.api.java.typeutils.TypeExtractor
 import org.joda.time.DateTime
-import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
+import org.joda.time.format.DateTimeFormat
 
 /**
   * A TaxiRide is a taxi ride event. There are two types of events, a taxi ride start event and a
@@ -89,14 +86,4 @@ object TaxiRide{
         throw new RuntimeException("Invalid record: " + line, nfe)
     }
   }
-}
-
-class TaxiRideSchema extends DeserializationSchema[TaxiRide] with SerializationSchema[TaxiRide] {
-  override def serialize(element: TaxiRide): Array[Byte] = element.toString.getBytes
-
-  override def deserialize(message: Array[Byte]): TaxiRide = TaxiRide.fromString(new String(message))
-
-  override def isEndOfStream(nextElement: TaxiRide) = false
-
-  override def getProducedType: TypeInformation[TaxiRide] = TypeExtractor.getForClass(classOf[TaxiRide])
 }

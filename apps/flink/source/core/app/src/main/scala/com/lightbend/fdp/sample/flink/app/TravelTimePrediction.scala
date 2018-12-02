@@ -4,6 +4,7 @@ import java.util.concurrent.TimeUnit
 import java.util.Properties
 
 import com.lightbend.fdp.sample.flink.app.utils.GeoUtils
+import com.lightbend.fdp.sample.flink.models.{PredictedTime, TaxiRide}
 import org.apache.flink.api.common.restartstrategy.RestartStrategies
 import org.apache.flink.api.common.time.Time
 import org.apache.flink.api.java.utils.ParameterTool

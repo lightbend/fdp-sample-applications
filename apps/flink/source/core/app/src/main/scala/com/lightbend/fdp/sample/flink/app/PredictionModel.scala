@@ -2,6 +2,7 @@ package com.lightbend.fdp.sample.flink.app
 
 import com.lightbend.fdp.sample.flink.app.model.TravelTimePredictionModel
 import com.lightbend.fdp.sample.flink.app.utils.GeoUtils
+import com.lightbend.fdp.sample.flink.models.{PredictedTime, TaxiRide}
 import org.apache.flink.api.common.functions.RichFlatMapFunction
 import org.apache.flink.api.common.state.{ValueState, ValueStateDescriptor}
 import org.apache.flink.api.common.typeinfo.TypeInformation
