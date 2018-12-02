@@ -13,6 +13,9 @@ spec:
     type: RollingUpdate
   template:
     metadata:
+      annotations:
+        prometheus.io/scrape: 'true'
+        prometheus.io/port: '9249'
       labels:
         app: fdp-taxiride-app
     spec:
@@ -23,10 +26,30 @@ spec:
         ports:
         - containerPort: 8081
           name: ui
-        - containerPort: 6123
-          name: rpc
-    # Here we are running a local Flink server
+        env:
+        - name: FLINK_CONF_DIR
+          value: /etc/flink
+     # Here we are running a local Flink server. We first start a local cluster and then run the job
         command:
         - sh
         - -c
         - "./bin/start-cluster.sh; ./bin/flink run  /opt/flink/examples/streaming/{{ .Values.taxiride.jar}} --broker-list {{ .Values.configuration.kafka.brokerlist}} --inTopic {{ .Values.configuration.kafka.intopic}} --outTopic {{ .Values.configuration.kafka.outtopic}}"
+        volumeMounts:
+        - name: taxiride-flink-config
+          mountPath: /etc/flink
+      volumes:
+      - name: taxiride-flink-config
+        configMap:
+          name: taxiride-flink-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fdp-taxiride-app
+spec:
+  ports:
+  - name: ui
+    port: 8081
+  selector:
+    app: fdp-taxiride-app
