@@ -3,7 +3,7 @@ organization := "lightbend"
 
 name := "sbt-common-settings"
 
-version := "0.0.1"
+version := "1.4.0"
 
 sbtPlugin := true
 
