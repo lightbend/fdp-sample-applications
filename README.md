@@ -4,7 +4,7 @@ This repository contains the sample applications for [Lightbend Fast Data Platfo
 
 > **Disclaimer:** These sample applications are provided as-is, without warranty. They are intended to illustrate techniques for implementing various scenarios using Fast Data Platform, but they have not gone through a robust validation process, nor do they use all the techniques commonly employed for highly-resilient, production applications. Please use them with appropriate caution.
 
-There are branches in this repository that correspond to Fast Data Platform releases. For example, `release/1.3.0` for the 1.3.0 release. The `develop` branch is the "bleeding edge", which is usually fine to use, but if you encounter problems, consider using the release branch for your installation.
+There are branches in this repository that correspond to Fast Data Platform releases. For example, `release/1.3.0` for the 1.3.0 release and `release/2.0.0-OpenShift` for the 2.0.0-OpenShift release, respectively. The `develop` branch is the "bleeding edge", which is usually fine to use, but if you encounter problems, consider using the release branch for your installation.
 
 The applications are organized in folders with each of them containing details of how to use and install them as part of your environment. Here's the list of the applications:
 
@@ -34,8 +34,8 @@ The following components must be installed and running on the cluster in advance
 * InfluxDB (required only for KillrWeather and network intrusion apps)
 * Grafana (required only for KillrWeather and network intrusion apps)
 
-For DC/OS this components can be installed from the the DC/OS catalog, for kubernetes/Openshift use the following 
-[helm charts](/supportingcharts) and [documentation](/supportingcharts/README.md). 
+For DC/OS this components can be installed from the the DC/OS catalog, for kubernetes/Openshift use the following
+[helm charts](/supportingcharts) and [documentation](/supportingcharts/README.md).
 
 ### Kubernetes and OpenShift
 
