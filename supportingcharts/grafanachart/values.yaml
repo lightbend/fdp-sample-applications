@@ -2,8 +2,8 @@ rbac:
   create: false
   pspEnabled: false
 serviceAccount:
-  create: false
-  name:
+  create: true
+  name: grafana-service-account
 
 replicas: 1
 

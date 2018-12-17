@@ -1,12 +1,12 @@
 package com.lightbend.fdp.sample.flink.app
 
-
+import com.lightbend.fdp.sample.flink.app.model.TravelTimePredictionModel
+import com.lightbend.fdp.sample.flink.app.utils.GeoUtils
+import com.lightbend.fdp.sample.flink.models.{PredictedTime, TaxiRide}
 import org.apache.flink.api.common.functions.RichFlatMapFunction
 import org.apache.flink.api.common.state.{ValueState, ValueStateDescriptor}
-import org.apache.flink.api.common.time.Time
-import org.apache.flink.api.common.typeinfo.{TypeHint, TypeInformation}
+import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.configuration.Configuration
-import org.apache.flink.streaming.api.scala._
 import org.apache.flink.util.Collector
 
 
@@ -33,29 +33,30 @@ class PredictionModel extends RichFlatMapFunction[(Int, TaxiRide), PredictedTime
   override def flatMap(in: (Int, TaxiRide), out: Collector[PredictedTime]): Unit = {
 
     // fetch operator state
-    val model: TravelTimePredictionModel = Option(modelState.value).getOrElse(new TravelTimePredictionModel)
-    val ride: TaxiRide = in._2
+    val model = Option(modelState.value).getOrElse(new TravelTimePredictionModel)
+    val ride = in._2
 
-    // compute distance and direction
-    val distance =
-      GeoUtils.getEuclideanDistance(ride.startLon, ride.startLat, ride.endLon, ride.endLat)
-    val direction =
-      GeoUtils.getDirectionAngle(ride.endLon, ride.endLat, ride.startLon, ride.startLat)
+    // compute distance, direction and travel time in minutes
+    val distance = GeoUtils.getEuclideanDistance(ride.startLon, ride.startLat, ride.endLon, ride.endLat)
+    val direction = GeoUtils.getDirectionAngle(ride.endLon, ride.endLat, ride.startLon, ride.startLat)
 
-    if (ride.isStart) {
-      // we have a start event: Predict travel time
-      val predictedTime: Int = model.predictTravelTime(direction, distance)
-      // emit prediction
-      out.collect( new PredictedTime(ride.rideId, predictedTime) )
-    }
-    else {
-      // we have an end event: Update model
-      // compute travel time in minutes
-      val travelTime = (ride.endTime.getMillis - ride.startTime.getMillis) / 60000.0
-      // refine model
-      model.refineModel(direction, distance, travelTime)
-      // update operator state
-      modelState.update(model)
+    // Process ride
+    ride.isStart match {
+      case true => // we have a start event: Predict travel time
+        model.predictTravelTime(direction, distance) match {
+          case predictedTime if(predictedTime < 0) => // No prediction
+//            println(s"Could not predict time for ride $ride")
+          case predictedTime => // Get the result
+            // emit prediction
+            println(s"Predicted time for ride ${ride.rideId}, predicted time $predictedTime")
+            out.collect( new PredictedTime(ride.rideId, predictedTime) )
+        }
+      case _ => // we have an end event: Update model
+        // refine model
+        val travelTime = (ride.endTime.getMillis - ride.startTime.getMillis) / 60000.0
+        model.refineModel(direction, distance, travelTime)
+        // update operator state
+        modelState.update(model)
     }
   }
 }

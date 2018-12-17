@@ -1,0 +1,25 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: fdp-taxiride-print
+  labels:
+    app: fdp-taxiride-print
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fdp-taxiride-print
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: fdp-taxiride-print
+    spec:
+      containers:
+      - name: taxirideingestion
+        image: {{ .Values.image.print}}:{{.Values.image.version }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        - name: "KAFKA_BROKERS"
+          value: {{ .Values.configuration.kafka.brokerlist}}

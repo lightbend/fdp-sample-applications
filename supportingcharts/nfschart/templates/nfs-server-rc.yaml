@@ -1,20 +1,24 @@
 apiVersion: v1
 kind: ReplicationController
 metadata:
-  name: {{ .Values.nfsServerServiceName }}
+  name: {{ template "name" . }}
   namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ template "name" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
 spec:
   replicas: 1
   selector:
-    role: {{ .Values.nfsServerServiceName }}
+    app: {{ template "name" . }}
   template:
     metadata:
       labels:
-        role: {{ .Values.nfsServerServiceName }}
+        app: {{ template "name" . }}
     spec:
-      serviceAccountName: {{ .Values.serviceAccountName }}
+#      serviceAccountName: nfs-service-account
       containers:
-      - name: {{ .Values.nfsServerServiceName }}
+      - name: {{ .Values.nfsImage }}
         image: k8s.gcr.io/volume-nfs:0.8
         ports:
           - name: nfs

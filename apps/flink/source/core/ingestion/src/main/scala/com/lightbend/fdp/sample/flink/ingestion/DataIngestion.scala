@@ -1,34 +1,32 @@
-package com.lightbend.fdp.sample.flink.ingestion
+package ingestion
 
-import java.nio.file.{ Path, FileSystems }
+import java.nio.file.{FileSystems, Path}
 
-import scala.util.{ Try, Success, Failure }
-import scala.concurrent.duration._
+import scala.util.{Failure, Success}
 import sys.process._
 import com.typesafe.config.ConfigFactory
-
-import akka.{ NotUsed, Done }
+import akka.{Done, NotUsed}
 import akka.util.ByteString
 import akka.actor.ActorSystem
-
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.{ Framing, Source }
+import akka.stream.scaladsl.{Framing, Source}
 import akka.stream.alpakka.file.DirectoryChange._
 import akka.stream.alpakka.file.scaladsl._
-
 import akka.kafka.ProducerSettings
 import akka.kafka.scaladsl.Producer
-
+import com.lightbend.fdp.sample.flink.config.TaxiRideConfig.ConfigData
 import org.apache.kafka.clients.producer.ProducerRecord
 
 import scala.concurrent.duration._
 import scala.concurrent.Future
-
-import TaxiRideConfig._
-import serializers.Serializers
+import com.lightbend.fdp.sample.flink.support.Serializers
 import com.typesafe.scalalogging.LazyLogging
+import com.lightbend.fdp.sample.flink.config.TaxiRideConfig._
+
 
 object DataIngestion extends LazyLogging with Serializers {
+
+
   def main(args: Array[String]): Unit = {
 
     // get config info
@@ -36,6 +34,8 @@ object DataIngestion extends LazyLogging with Serializers {
       case Success(c)  => c
       case Failure(ex) => throw new Exception(ex)
     }
+
+    println(s"Starting data ingester, kafka ${config.brokers}, reading from directory ${config.directoryToWatch}, writing to ${config.sourceTopic} topic")
 
     implicit val system = ActorSystem()
     implicit val materializer = ActorMaterializer()
@@ -45,9 +45,9 @@ object DataIngestion extends LazyLogging with Serializers {
     // whenever we find new / changed files in the configured location, we run data loading
     registerForIngestion(config)
 
-    val _ = system.scheduler.scheduleOnce(1 minute) {
+    val _ = system.scheduler.schedule(1 minute, 10 minute) {
       Seq("/bin/sh", "-c", s"touch ${config.directoryToWatch}/*.csv").!
-      ()
+      println("Updating data file")
     }
   }
 

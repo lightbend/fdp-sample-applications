@@ -3,13 +3,15 @@ package com.lightbend.fdp.sample.flink.app
 import java.util.concurrent.TimeUnit
 import java.util.Properties
 
+import com.lightbend.fdp.sample.flink.app.utils.GeoUtils
+import com.lightbend.fdp.sample.flink.models.{PredictedTime, TaxiRide}
 import org.apache.flink.api.common.restartstrategy.RestartStrategies
 import org.apache.flink.api.common.time.Time
 import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.streaming.api.TimeCharacteristic
-import org.apache.flink.streaming.api.windowing.time.{ Time => StreamingTime }
+import org.apache.flink.streaming.api.windowing.time.{Time => StreamingTime}
 import org.apache.flink.streaming.connectors.kafka.{FlinkKafkaConsumer011, FlinkKafkaProducer011}
 
 object TravelTimePrediction {
@@ -30,6 +32,8 @@ object TravelTimePrediction {
 
     // topic to write output to
     val outTopic = params.getRequired("outTopic")
+
+    println(s"Starting Flink Travel time prediction, brokers $brokers, reading from $inTopic, writing to $outTopic")
     
     // set up the execution environment
     val env = StreamExecutionEnvironment.getExecutionEnvironment
@@ -46,7 +50,7 @@ object TravelTimePrediction {
     kafkaProps.setProperty("group.id", RIDE_SPEED_GROUP)
 
     // always read the Kafka topic from the start
-    kafkaProps.setProperty("auto.offset.reset", "earliest")
+    kafkaProps.setProperty("auto.offset.reset", "latest")
 
     // create a Kafka consumer
     val consumer = new FlinkKafkaConsumer011[TaxiRide](
@@ -59,17 +63,9 @@ object TravelTimePrediction {
 
     // create a Kafka source
     // get the taxi ride data stream
-    val rides: DataStream[TaxiRide] = env.addSource(consumer)
-    /*
-    rides
-      .filter(r => GeoUtils.isInNYC(r.startLon, r.startLat) && GeoUtils.isInNYC(r.endLon, r.endLat))
-      .map(r => (GeoUtils.mapToGridCell(r.endLon, r.endLat), r))
-      .keyBy(_._1)
-      .flatMap(new PredictionModel())
-      .print()
-      */
-    
-    val filteredRides: DataStream[PredictedTime] = rides
+    val rides = env.addSource(consumer)
+
+    val filteredRides = rides
 
       // filter out rides that do not start and end in NYC
       .filter(r => GeoUtils.isInNYC(r.startLon, r.startLat) && GeoUtils.isInNYC(r.endLon, r.endLat))
@@ -91,8 +87,7 @@ object TravelTimePrediction {
         new PredictedTimeSchema))
 
     // run the prediction pipeline
-    env.execute("Travel Time Prediction")
-    ()
+    val _ = env.execute("Travel Time Prediction")
   }
 }
 
