@@ -35,7 +35,7 @@ object DockerProjectSpecificAssemblyPlugin extends AutoPlugin {
             add(artifact, artifactTargetPath)
             runRaw("mkdir -p /etc/hadoop/conf")
             runRaw("export HADOOP_CONF_DIR=/etc/hadoop/conf")
-//          }
+          }
 /*        } else {
           val artifactTargetPath = s"$baseImageJarPath/${artifact.name}"
   
