@@ -27,7 +27,7 @@ object DockerProjectSpecificAssemblyPlugin extends AutoPlugin {
     .settings(
       dockerfile in docker := {
         val artifact: File = assembly.value
-        if (System.getProperty("K8S_OR_DCOS") == "K8S") {
+//        if (System.getProperty("K8S_OR_DCOS") == "K8S") {
           val artifactTargetPath = s"$baseImageForK8sJarPath/${artifact.name}"
   
           new Dockerfile {
@@ -35,8 +35,8 @@ object DockerProjectSpecificAssemblyPlugin extends AutoPlugin {
             add(artifact, artifactTargetPath)
             runRaw("mkdir -p /etc/hadoop/conf")
             runRaw("export HADOOP_CONF_DIR=/etc/hadoop/conf")
-          }
-        } else {
+//          }
+/*        } else {
           val artifactTargetPath = s"$baseImageJarPath/${artifact.name}"
   
           new Dockerfile {
@@ -45,7 +45,7 @@ object DockerProjectSpecificAssemblyPlugin extends AutoPlugin {
             runRaw("mkdir -p /etc/hadoop/conf")
             runRaw("export HADOOP_CONF_DIR=/etc/hadoop/conf")
           }
-        }
+        } */
       },
   
       // Set name for the image
