@@ -20,14 +20,14 @@ object DockerProjectSpecificAssemblyPlugin extends AutoPlugin {
     assembly: TaskKey[sbt.File],
     dockerSparkBaseImage: String = "lightbend/spark:2.3.1-2.2.1-2-hadoop-2.6.5-01",
     baseImageJarPath: String = "/opt/spark/dist/jars", 
-    dockerSparkBaseImageForK8s: String = "gcr.io/ynli-k8s/spark:v2.3.0",
+    dockerSparkBaseImageForK8s: String = "lightbend/spark:2.0.0-OpenShift-2.4.0-ubuntu",
     baseImageForK8sJarPath: String = "/opt/spark/jars")(base: String = id) = projectBase(id)(base)
 
     .enablePlugins(sbtdocker.DockerPlugin)
     .settings(
       dockerfile in docker := {
         val artifact: File = assembly.value
-        if (System.getProperty("K8S_OR_DCOS") == "K8S") {
+//        if (System.getProperty("K8S_OR_DCOS") == "K8S") {
           val artifactTargetPath = s"$baseImageForK8sJarPath/${artifact.name}"
   
           new Dockerfile {
@@ -35,8 +35,8 @@ object DockerProjectSpecificAssemblyPlugin extends AutoPlugin {
             add(artifact, artifactTargetPath)
             runRaw("mkdir -p /etc/hadoop/conf")
             runRaw("export HADOOP_CONF_DIR=/etc/hadoop/conf")
-          }
-        } else {
+//          }
+/*        } else {
           val artifactTargetPath = s"$baseImageJarPath/${artifact.name}"
   
           new Dockerfile {
@@ -45,7 +45,7 @@ object DockerProjectSpecificAssemblyPlugin extends AutoPlugin {
             runRaw("mkdir -p /etc/hadoop/conf")
             runRaw("export HADOOP_CONF_DIR=/etc/hadoop/conf")
           }
-        }
+        } */
       },
   
       // Set name for the image
