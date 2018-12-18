@@ -39,7 +39,7 @@ lazy val commonSettings = Seq(
 // 2. $ sbt docker 
 // 3. $ sbt run --master local[4] -f /tmp/cifar-10-batches-bin --download /tmp -b 16
 lazy val bigdlSample = DockerProjectSpecificAssemblyPlugin.sbtdockerAssemblySparkBase("fdp-bigdl-vggcifar", 
-  assembly, dockerSparkBaseImageForK8s = "lightbend/spark:k8s-rc-ubuntu")(".")
+  assembly/*, dockerSparkBaseImageForK8s = "lightbend/spark:k8s-rc-ubuntu"*/)(".")
 
   .settings(commonSettings: _*)
 
