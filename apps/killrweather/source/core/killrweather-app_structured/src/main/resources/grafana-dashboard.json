@@ -22,14 +22,14 @@
     ],
     "annotations": {
       "list": [
-
+        
       ]
     },
     "editable": true,
     "hideControls": false,
-    "id": 2,
+    "id": null,
     "links": [
-
+      
     ],
     "refresh": "30s",
     "rows": [
@@ -44,7 +44,9 @@
               "rgba(237, 129, 40, 0.89)",
               "rgba(245, 54, 54, 0.9)"
             ],
-            "composites": [],
+            "composites": [
+              
+            ],
             "content": "graph LR\n\nA[Kafka Publisher]  --> E(Kafka)\nE  --> B[Spark Streaming App]\nC[gRPC Listener] --> E\nD[HTTP Listener]  --> E\nB-->F(InfluxDb)\nF-->G[Grafana]\nB-->N(Cassandra)\nN-->Z[Zeppelin]\nH[HTTP Publisher]  --HTTP --> D\nK[gRPC Publisher]  --gRPC --> C",
             "datasource": null,
             "decimals": 2,
@@ -105,15 +107,21 @@
               "show": true,
               "total": true
             },
-            "links": [],
+            "links": [
+              
+            ],
             "mappingType": 1,
             "maxDataPoints": 100,
             "maxWidth": false,
             "mermaidServiceUrl": "",
-            "metricCharacterReplacements": [],
+            "metricCharacterReplacements": [
+              
+            ],
             "mode": "content",
             "nullPointMode": "connected",
-            "seriesOverrides": [],
+            "seriesOverrides": [
+              
+            ],
             "targets": [
               {
                 "$$hashKey": "object:151",
@@ -150,7 +158,7 @@
         "panels": [
           {
             "aliasColors": {
-
+              
             },
             "bars": false,
             "datasource": "weather",
@@ -177,7 +185,7 @@
             "lines": true,
             "linewidth": 2,
             "links": [
-
+              
             ],
             "nullPointMode": "connected",
             "percentage": false,
@@ -185,7 +193,7 @@
             "points": false,
             "renderer": "flot",
             "seriesOverrides": [
-
+              
             ],
             "span": 4,
             "stack": false,
@@ -222,7 +230,7 @@
                   ]
                 ],
                 "tags": [
-
+                  
                 ]
               }
             ],
@@ -260,7 +268,7 @@
           },
           {
             "aliasColors": {
-
+              
             },
             "bars": false,
             "datasource": "weather",
@@ -287,7 +295,7 @@
             "lines": true,
             "linewidth": 2,
             "links": [
-
+              
             ],
             "nullPointMode": "connected",
             "percentage": false,
@@ -295,7 +303,7 @@
             "points": false,
             "renderer": "flot",
             "seriesOverrides": [
-
+              
             ],
             "span": 4,
             "stack": false,
@@ -332,7 +340,7 @@
                   ]
                 ],
                 "tags": [
-
+                  
                 ]
               }
             ],
@@ -370,7 +378,7 @@
           },
           {
             "aliasColors": {
-
+              
             },
             "bars": false,
             "datasource": "weather",
@@ -397,7 +405,7 @@
             "lines": true,
             "linewidth": 2,
             "links": [
-
+              
             ],
             "nullPointMode": "connected",
             "percentage": false,
@@ -405,7 +413,7 @@
             "points": false,
             "renderer": "flot",
             "seriesOverrides": [
-
+              
             ],
             "span": 4,
             "stack": false,
@@ -442,7 +450,7 @@
                   ]
                 ],
                 "tags": [
-
+                  
                 ]
               }
             ],
@@ -489,7 +497,7 @@
         "panels": [
           {
             "aliasColors": {
-
+              
             },
             "bars": false,
             "datasource": "weather",
@@ -516,7 +524,7 @@
             "lines": true,
             "linewidth": 2,
             "links": [
-
+              
             ],
             "nullPointMode": "connected",
             "percentage": false,
@@ -524,7 +532,7 @@
             "points": false,
             "renderer": "flot",
             "seriesOverrides": [
-
+              
             ],
             "span": 6,
             "stack": false,
@@ -561,7 +569,7 @@
                   ]
                 ],
                 "tags": [
-
+                  
                 ]
               },
               {
@@ -595,7 +603,7 @@
                   ]
                 ],
                 "tags": [
-
+                  
                 ]
               },
               {
@@ -629,7 +637,7 @@
                   ]
                 ],
                 "tags": [
-
+                  
                 ]
               }
             ],
@@ -667,7 +675,7 @@
           },
           {
             "aliasColors": {
-
+              
             },
             "bars": false,
             "datasource": "weather",
@@ -694,7 +702,7 @@
             "lines": true,
             "linewidth": 2,
             "links": [
-
+              
             ],
             "nullPointMode": "connected",
             "percentage": false,
@@ -702,7 +710,7 @@
             "points": false,
             "renderer": "flot",
             "seriesOverrides": [
-
+              
             ],
             "span": 6,
             "stack": false,
@@ -739,7 +747,7 @@
                   ]
                 ],
                 "tags": [
-
+                  
                 ]
               },
               {
@@ -773,7 +781,7 @@
                   ]
                 ],
                 "tags": [
-
+                  
                 ]
               },
               {
@@ -807,7 +815,7 @@
                   ]
                 ],
                 "tags": [
-
+                  
                 ]
               }
             ],
@@ -852,11 +860,11 @@
     "sharedCrosshair": false,
     "style": "dark",
     "tags": [
-
+      
     ],
     "templating": {
       "list": [
-
+        
       ]
     },
     "time": {
@@ -889,7 +897,6 @@
       ]
     },
     "timezone": "browser",
-    "id": null,
     "title": "Killrweather Data Ingestion",
     "version": 1
   }
