@@ -51,8 +51,11 @@ object DockerProjectSpecificAssemblyPlugin extends AutoPlugin {
       // Set name for the image
       imageNames in docker := Seq(
         ImageName(namespace = Some(organization.value),
-          repository = (if (System.getProperty("K8S_OR_DCOS") == "K8S") s"${name.value.toLowerCase}-k8s"
-            else name.value.toLowerCase), 
+          repository =
+//            (if (System.getProperty("K8S_OR_DCOS") == "K8S")
+              s"${name.value.toLowerCase}-k8s"
+//            else
+//              name.value.toLowerCase),
           tag = Some(version.value))
       ),
   
