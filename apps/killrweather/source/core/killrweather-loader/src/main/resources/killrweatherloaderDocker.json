@@ -9,7 +9,7 @@
       },
       "image": {
         "kind": "DOCKER",
-        "id": "lightbend/fdp-killrweather-loader:1.3.0",
+        "id": "lightbend/fdp-killrweather-loader:1.3.2",
         "forcePull": true
       },
       "volumeMounts": [
@@ -60,7 +60,7 @@
   "env": {
     "KAFKA_BROKERS": "broker.kafka.l4lb.thisdcos.directory:9092",
     "PUBLISH_INTERVAL" : "1 second",
-    "DATA_DIRECTORY" : "/usr/share/data/load/"
+    "DATA_DIRECTORY" : "/usr/share/data/load/",
     "DATA_BATCH_SIZE" : "10"
   }
 }
