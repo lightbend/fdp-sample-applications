@@ -123,10 +123,16 @@ Monitoring is done using InfluxDB and Grafana.
 
 For information about setting up Grafana and InfluxDB, see this [article](https://mesosphere.com/blog/monitoring-dcos-cadvisor-influxdb-grafana/).
 
-To open the Grafana UI, click the `grafana` service in the DC/OS _Services_ panel, then click the instance link.
+BAsically, you install InfluxDB using the Catalog view in the DC/OS console, https://leader.mesos/#/catalog/packages. You can install Grafana from there, too, but the Fast Data Platform release also has tools for installing Grafana with small configuration changes. See the https://developer.lightbend.com/docs/fast-data-platform/ for details.
+
+Once installed, to open the Grafana UI, click the `grafana` service in the DC/OS _Services_ panel, then click the instance link.
+
 Now click the URL for the `ENDPOINTS`.
 
-> **Note:** If you are in a DC/OS EE cluster, the link will open with `https`. If this fails to load, replace with `http`.
+> **Notes for DC/OS:**
+>
+> 1. If you are in a DC/OS EE cluster, the link will open with `https`. If this fails to load, replace with `http`.
+> 2. If the port shown does not work, note the actual node IP address where the task is running (in the _Services_ view for the `grafana` task), then go to the _Nodes_ view and click on that node. You'll see a list of apps running on that node. Click the link for Grafana and note the port it is running on. Suppose it's 4321 and the node IP address is 10.1.1.2, then open 10.1.1.2:4321 in your browser.
 
 In the Grafana UI, load the definitions in `./killrweather-app/src/main/resource/grafana.json`. (Click the upper-left-hand side Grafana icon, then _Dashboards_, then _Import_.) This will create a dashboard called _KillrWeather Data Ingestion_.
 
