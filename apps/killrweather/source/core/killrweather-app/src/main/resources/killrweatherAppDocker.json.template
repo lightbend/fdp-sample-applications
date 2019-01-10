@@ -2,7 +2,7 @@
   "id": "/killrweatherapp",
   "backoffFactor": 1.15,
   "backoffSeconds": 1,
-  "cmd": "export HADOOP_CONF_DIR=$MESOS_SANDBOX && /opt/spark/dist/bin/spark-submit --master mesos://leader.mesos:5050 --deploy-mode client --conf spark.mesos.executor.docker.image=lightbend/killrweatherapp:FDP_VERSION --conf spark.mesos.uris=http://api.hdfs.marathon.l4lb.thisdcos.directory/v1/endpoints/core-site.xml,http://api.hdfs.marathon.l4lb.thisdcos.directory/v1/endpoints/hdfs-site.xml --conf spark.executor.memory=2g --conf spark.executor.cores=2 --conf spark.cores.max=6 --conf driver.memory=2g  --class com.lightbend.killrweather.app.KillrWeather --conf 'spark.driver.extraJavaOptions=-Dconfig.resource=cluster.conf' --conf 'spark.executor.extraJavaOptions=-Dconfig.resource=cluster.conf' local:///opt/spark/jars/killrWeatherApp-assembly-FDP_VERSION.jar",
+  "cmd": "export HADOOP_CONF_DIR=$MESOS_SANDBOX && /opt/spark/dist/bin/spark-submit --master mesos://leader.mesos:5050 --deploy-mode client --conf spark.mesos.executor.docker.image=lightbend/fdp-killrweather-app:FDP_VERSION --conf spark.mesos.uris=http://api.hdfs.marathon.l4lb.thisdcos.directory/v1/endpoints/core-site.xml,http://api.hdfs.marathon.l4lb.thisdcos.directory/v1/endpoints/hdfs-site.xml --conf spark.executor.memory=2g --conf spark.executor.cores=2 --conf spark.cores.max=6 --conf driver.memory=2g  --class com.lightbend.killrweather.app.KillrWeather --conf 'spark.driver.extraJavaOptions=-Dconfig.resource=cluster.conf' --conf 'spark.executor.extraJavaOptions=-Dconfig.resource=cluster.conf' local:///opt/spark/jars/fdp-killrweather-app-assembly-FDP_VERSION.jar",
   "container": {
     "type": "DOCKER",
     "volumes": [],
