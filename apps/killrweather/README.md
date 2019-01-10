@@ -127,7 +127,7 @@ BAsically, you install InfluxDB using the Catalog view in the DC/OS console, htt
 
 Once installed, to open the Grafana UI, click the `grafana` service in the DC/OS _Services_ panel, then click the instance link.
 
-Now click the URL for the `ENDPOINTS`.
+Now click the URL for the `ENDPOINTS`. The login by default is `admin` and `admin`.
 
 > **Notes for DC/OS:**
 >
