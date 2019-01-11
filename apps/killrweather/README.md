@@ -89,7 +89,7 @@ dcos marathon app add killrweather-grpclient/src/main/resources/killrweatherHTTP
 Finally, run one of the apps, either,
 
 ```bash
-dcos marathon app add killrweather-app/src/main/resources/killrweatherAppDocker.json
+dcos marathon app add killrweather-app_structures/src/main/resources/killrweatherAppDocker.json
 ```
 
 or
