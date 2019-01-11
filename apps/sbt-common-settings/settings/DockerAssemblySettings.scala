@@ -5,7 +5,7 @@ object DockerProjectSpecificAssemblyPlugin extends AutoPlugin {
 
   import sbtdocker.DockerPlugin
   import DockerPlugin.autoImport._
-  
+
   override def trigger  = allRequirements
   override def requires = DockerPlugin
 
@@ -16,10 +16,11 @@ object DockerProjectSpecificAssemblyPlugin extends AutoPlugin {
     )
 
   // settings for a native-packager based docker project based on sbt-docker plugin
-  def sbtdockerAssemblySparkBase(id: String, 
+  def sbtdockerAssemblySparkBase(id: String,
     assembly: TaskKey[sbt.File],
-    dockerSparkBaseImage: String = "lightbend/spark:2.3.1-2.2.1-2-hadoop-2.6.5-01",
-    baseImageJarPath: String = "/opt/spark/dist/jars", 
+    dockerSparkBaseImage: String = "lightbend/spark:2.3.1-2.2.1-2-hadoop-2.7.3-01",
+    // dockerSparkBaseImage: String = "lightbend/spark:2.3.1-2.2.1-2-hadoop-2.6.5-01",
+    baseImageJarPath: String = "/opt/spark/dist/jars",
     dockerSparkBaseImageForK8s: String = "gcr.io/ynli-k8s/spark:v2.3.0",
     baseImageForK8sJarPath: String = "/opt/spark/jars")(base: String = id) = projectBase(id)(base)
 
@@ -29,7 +30,7 @@ object DockerProjectSpecificAssemblyPlugin extends AutoPlugin {
         val artifact: File = assembly.value
         if (System.getProperty("K8S_OR_DCOS") == "K8S") {
           val artifactTargetPath = s"$baseImageForK8sJarPath/${artifact.name}"
-  
+
           new Dockerfile {
             from (dockerSparkBaseImageForK8s)
             add(artifact, artifactTargetPath)
@@ -38,7 +39,7 @@ object DockerProjectSpecificAssemblyPlugin extends AutoPlugin {
           }
         } else {
           val artifactTargetPath = s"$baseImageJarPath/${artifact.name}"
-  
+
           new Dockerfile {
             from (dockerSparkBaseImage)
             add(artifact, artifactTargetPath)
@@ -47,15 +48,15 @@ object DockerProjectSpecificAssemblyPlugin extends AutoPlugin {
           }
         }
       },
-  
+
       // Set name for the image
       imageNames in docker := Seq(
         ImageName(namespace = Some(organization.value),
           repository = (if (System.getProperty("K8S_OR_DCOS") == "K8S") s"${name.value.toLowerCase}-k8s"
-            else name.value.toLowerCase), 
+            else name.value.toLowerCase),
           tag = Some(version.value))
       ),
-  
+
       buildOptions in docker := BuildOptions(cache = false)
     )
 
@@ -66,24 +67,24 @@ object DockerProjectSpecificAssemblyPlugin extends AutoPlugin {
     .enablePlugins(sbtdocker.DockerPlugin)
     .settings(
       dockerfile in docker := {
-  
+
         val artifact: File = assembly.value
         val artifactTargetPath = s"/flink-1.4.2/app/jars/${artifact.name}"
-  
+
         new Dockerfile {
           from ("mesosphere/dcos-flink:1.4.2-1.0")
           add(artifact, artifactTargetPath)
           runRaw("mkdir -p /flink-1.4.2/app/jars")
         }
       },
-  
+
       // Set name for the image
       imageNames in docker := Seq(
         ImageName(namespace = Some(organization.value),
-          repository = name.value.toLowerCase, 
+          repository = name.value.toLowerCase,
           tag = Some(version.value))
       ),
-  
+
       buildOptions in docker := BuildOptions(cache = false)
     )
 }
