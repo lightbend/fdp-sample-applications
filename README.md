@@ -1,6 +1,6 @@
 # FDP Sample Applications
 
-> **WARNING:** The `develop` branch works only for Fast Data Platform V2.X on OpenShift. To use these sample applicatinos on Fast Data Platform V1.X on DC/OS, use the branch corresponding to your release (e..g, `release/1.3.2`) or `develop-DCOS` for the latest updates.
+> **WARNING:** The `develop` branch works only for Fast Data Platform V2.X on OpenShift. To use these sample applications on Fast Data Platform V1.X on DC/OS, use the branch corresponding to your release (e..g, `release/1.3.2`) or `develop-DCOS` for the latest updates.
 
 This repository contains the sample applications for [Lightbend Fast Data Platform](https://www.lightbend.com/products/fast-data-platform), version 1.3.0 and later. For information about these applications, see the [Fast Data Platform documentation](https://developer.lightbend.com/docs/fast-data-platform/current/), specifically the [Sample Applications](https://developer.lightbend.com/docs/fast-data-platform/current/user-guide/sample-apps/index.html) chapter. In order to run these applications as is, you must install them in a Fast Data Platform cluster. The [documentation](https://developer.lightbend.com/docs/fast-data-platform/current/) provides more details.
 
