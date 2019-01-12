@@ -18,8 +18,8 @@ object DockerProjectSpecificAssemblyPlugin extends AutoPlugin {
   // settings for a native-packager based docker project based on sbt-docker plugin
   def sbtdockerAssemblySparkBase(id: String,
     assembly: TaskKey[sbt.File],
-    dockerSparkBaseImage: String = "lightbend/spark:2.3.1-2.2.1-2-hadoop-2.7.3-01",
-    // dockerSparkBaseImage: String = "lightbend/spark:2.3.1-2.2.1-2-hadoop-2.6.5-01",
+    dockerSparkBaseImage: String = "lightbend/spark:2.3.1-2.2.1-2-hadoop-2.6.5-01",
+
     baseImageJarPath: String = "/opt/spark/dist/jars",
     dockerSparkBaseImageForK8s: String = "gcr.io/ynli-k8s/spark:v2.3.0",
     baseImageForK8sJarPath: String = "/opt/spark/jars")(base: String = id) = projectBase(id)(base)

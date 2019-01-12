@@ -1,6 +1,6 @@
 {
   "serviceId" : "fdp-killrweather",
-  "versions" : [ "1.2.0" ],
+  "versions" : [ "1.3.2" ],
   "sections" : [ {
     "name" : "data",
     "label" : "Information about data (data)"
@@ -28,7 +28,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "http://s3-eu-west-1.amazonaws.com/fdp-killrweather-data/killrweather/data.zip",
-    "versions" : [ "1.2.0" ]
+    "versions" : [ "1.3.2" ]
   }, {
     "name" : "image|app",
     "section" : "image",
@@ -37,7 +37,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "lightbend/fdp-killrweather-app-k8s",
-    "versions" : [ "1.2.0" ]
+    "versions" : [ "1.3.2" ]
   }, {
     "name" : "image|appstructured",
     "section" : "image",
@@ -46,7 +46,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "lightbend/fdp-killrweather-structured-app-k8s",
-    "versions" : [ "1.2.0" ]
+    "versions" : [ "1.3.2" ]
   }, {
     "name" : "image|loader",
     "section" : "image",
@@ -55,7 +55,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "lightbend/fdp-killrweather-loader",
-    "versions" : [ "1.2.0" ]
+    "versions" : [ "1.3.2" ]
   }, {
     "name" : "image|http",
     "section" : "image",
@@ -64,7 +64,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "lightbend/fdp-killrweather-httpclient",
-    "versions" : [ "1.2.0" ]
+    "versions" : [ "1.3.2" ]
   }, {
     "name" : "image|grpc",
     "section" : "image",
@@ -73,7 +73,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "lightbend/fdp-killrweather-grpcclient",
-    "versions" : [ "1.2.0" ]
+    "versions" : [ "1.3.2" ]
   }, {
     "name" : "image|pullPolicy",
     "section" : "image",
@@ -82,7 +82,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "Always",
-    "versions" : [ "1.2.0" ]
+    "versions" : [ "1.3.2" ]
   }, {
     "name" : "image|version",
     "section" : "image",
@@ -90,8 +90,8 @@
     "description" : "Image version should correspond to the FDP version",
     "relevance" : "high",
     "type" : "text",
-    "default" : "1.2.0",
-    "versions" : [ "1.2.0" ]
+    "default" : "1.3.2",
+    "versions" : [ "1.3.2" ]
   }, {
     "name" : "app|jar",
     "section" : "app",
@@ -100,7 +100,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "fdp-killrweather-app-assembly",
-    "versions" : [ "1.2.0" ]
+    "versions" : [ "1.3.2" ]
   }, {
     "name" : "app|main",
     "section" : "app",
@@ -109,7 +109,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "com.lightbend.killrweather.app.KillrWeather",
-    "versions" : [ "1.2.0" ]
+    "versions" : [ "1.3.2" ]
   }, {
     "name" : "structured|jar",
     "section" : "structured",
@@ -118,7 +118,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "fdp-killrweather-structured-app-assembly",
-    "versions" : [ "1.2.0" ]
+    "versions" : [ "1.3.2" ]
   }, {
     "name" : "structured|main",
     "section" : "structured",
@@ -127,7 +127,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "com.lightbend.killrweather.app.structured.KillrWeatherStructured",
-    "versions" : [ "1.2.0" ]
+    "versions" : [ "1.3.2" ]
   }, {
     "name" : "components|app",
     "section" : "components",
@@ -136,7 +136,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "killrweather",
-    "versions" : [ "1.2.0" ]
+    "versions" : [ "1.3.2" ]
   }, {
     "name" : "components|http",
     "section" : "components",
@@ -145,7 +145,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "no",
-    "versions" : [ "1.2.0" ]
+    "versions" : [ "1.3.2" ]
   }, {
     "name" : "components|grpc",
     "section" : "components",
@@ -154,7 +154,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "no",
-    "versions" : [ "1.2.0" ]
+    "versions" : [ "1.3.2" ]
   }, {
     "name" : "configuration|checkpointing|pvc",
     "section" : "configuration",
@@ -163,7 +163,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "spark-checkpointing-pvc",
-    "versions" : [ "1.2.0" ]
+    "versions" : [ "1.3.2" ]
   }, {
     "name" : "configuration|streaming|batchInterval",
     "section" : "configuration",
@@ -172,7 +172,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "5 second",
-    "versions" : [ "1.2.0" ]
+    "versions" : [ "1.3.2" ]
   }, {
     "name" : "configuration|streaming|checkpointDir",
     "section" : "configuration",
@@ -181,7 +181,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "/usr/checkpoint/",
-    "versions" : [ "1.2.0" ]
+    "versions" : [ "1.3.2" ]
   }, {
     "name" : "configuration|kafka|brokerlist",
     "section" : "configuration",
@@ -190,7 +190,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "broker.kafka.l4lb.thisdcos.directory:9092",
-    "versions" : [ "1.2.0" ]
+    "versions" : [ "1.3.2" ]
   }, {
     "name" : "configuration|cassandra|hosts",
     "section" : "configuration",
@@ -199,7 +199,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "node-0-server.cassandra.autoip.dcos.thisdcos.directory, node-1-server.cassandra.autoip.dcos.thisdcos.directory, node-2-server.cassandra.autoip.dcos.thisdcos.directory",
-    "versions" : [ "1.2.0" ]
+    "versions" : [ "1.3.2" ]
   }, {
     "name" : "configuration|grafana|host",
     "section" : "configuration",
@@ -208,7 +208,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "grafana.marathon.l4lb.thisdcos.directory",
-    "versions" : [ "1.2.0" ]
+    "versions" : [ "1.3.2" ]
   }, {
     "name" : "configuration|grafana|port",
     "section" : "configuration",
@@ -217,7 +217,7 @@
     "relevance" : "high",
     "type" : "uint",
     "default" : "3000",
-    "versions" : [ "1.2.0" ]
+    "versions" : [ "1.3.2" ]
   }, {
     "name" : "configuration|influx|host",
     "section" : "configuration",
@@ -226,7 +226,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "http://influxdb.marathon.l4lb.thisdcos.directory",
-    "versions" : [ "1.2.0" ]
+    "versions" : [ "1.3.2" ]
   }, {
     "name" : "configuration|influx|port",
     "section" : "configuration",
@@ -235,7 +235,7 @@
     "relevance" : "high",
     "type" : "uint",
     "default" : "8086",
-    "versions" : [ "1.2.0" ]
+    "versions" : [ "1.3.2" ]
   }, {
     "name" : "configuration|loader|publish_interval",
     "section" : "configuration",
@@ -244,7 +244,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "1 second",
-    "versions" : [ "1.2.0" ]
+    "versions" : [ "1.3.2" ]
   }, {
     "name" : "configuration|loader|data_mount",
     "section" : "configuration",
@@ -253,7 +253,7 @@
     "relevance" : "high",
     "type" : "text",
     "default" : "/usr/share",
-    "versions" : [ "1.2.0" ]
+    "versions" : [ "1.3.2" ]
   }, {
     "name" : "configuration|loader|batch_size",
     "section" : "configuration",
@@ -262,6 +262,6 @@
     "relevance" : "high",
     "type" : "uint",
     "default" : "10",
-    "versions" : [ "1.2.0" ]
+    "versions" : [ "1.3.2" ]
   } ]
 }
