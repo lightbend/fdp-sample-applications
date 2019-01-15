@@ -1,4 +1,5 @@
 import Dependencies._
+import sbtassembly.AssemblyPlugin.autoImport.assemblyExcludedJars
 
 version in ThisBuild := CommonSettings.version 
 organization in ThisBuild := CommonSettings.organization
@@ -28,11 +29,17 @@ lazy val killrWeatherApp = DockerProjectSpecificAssemblyPlugin.sbtdockerAssembly
     assemblyMergeStrategy in assembly := {
       case PathList("META-INF", "MANIFEST.MF") => MergeStrategy.discard
       case PathList("META-INF", xs @ _*) => MergeStrategy.last
-      case PathList("META-INF", "io.netty.versions.properties") => MergeStrategy.last
       case x =>
         val oldStrategy = (assemblyMergeStrategy in assembly).value
         oldStrategy(x)
+    },
+    assemblyExcludedJars in assembly := {
+      val cp = (fullClasspath in assembly).value
+      cp filter { f =>
+        f.data.getName.contains("netty")
+      }
     }
+
   )
   .dependsOn(killrWeatherCore, protobufs)
 
@@ -51,10 +58,15 @@ lazy val killrWeatherApp_structured = DockerProjectSpecificAssemblyPlugin.sbtdoc
     assemblyMergeStrategy in assembly := {
       case PathList("META-INF", "MANIFEST.MF") => MergeStrategy.discard
       case PathList("META-INF", xs @ _*) => MergeStrategy.last
-      case PathList("META-INF", "io.netty.versions.properties") => MergeStrategy.last
       case x =>
         val oldStrategy = (assemblyMergeStrategy in assembly).value
         oldStrategy(x)
+    },
+    assemblyExcludedJars in assembly := {
+      val cp = (fullClasspath in assembly).value
+      cp filter { f =>
+        f.data.getName.contains("netty")
+      }
     }
   )
   .dependsOn(killrWeatherCore, protobufs)
