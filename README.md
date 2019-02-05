@@ -31,7 +31,7 @@ This repo is organized as follows:
 * `LICENSE` - Apache 2.0 license
 * `README.md` - This README
 * `apps` - location of the READMEs, source code, build files, etc. for the apps
-* `build.sh` - Global CI build script used by Lightbend, which you can use, too, if you want to build all the applications yourself. Run `build.sh --help` for details.
+* `build.sh` - Global CI build script used by Lightbend, which you can use, too, if you want to build some or all of the applications yourself. Run `build.sh --help` for details.
 * `process-templates.sh` - Sets the version string in templated config files; see `version.sh`.
 * `release` - Lightbend CI scripts for our builds. You can safely ignore this directory ;)
 * `supportingcharts` - Helm charts for installing third-party services used by the sample apps.
@@ -48,10 +48,10 @@ The directory structure for each application includes some or all of the followi
 * `release` - Part of the Lightbend CI toolchain.
 * `source/core` - The SBT project root, with the build files, source code, etc.
 * `test` - Other, non-unit tests.
-* `build.sh` and `Jenkinsfile` - Used for Lightbend's CI system. While you can use the `build.sh` script yourself, note that in most cases it builds Docker images _and uploads them to Docker Hub_. Hence, you'll need to change the `.../build.sbt` file in each app to point to your Docker Hub account or other compatible repository. The app READMEs provide more details.
+* `build.sh` and `Jenkinsfile` - Used for Lightbend's CI system. This is the easiest way to build individual apps, which drive the appropriate SBT tasks. Note that each takes an argument `--push-docker-images`, which will push any Docker images to Docker Hub! Hence, you'll need to change the `.../build.sbt` file in each app to point to your Docker Hub account or other compatible repository, if you use this option. The app READMEs provide more specific details.
 * `README.md` - Details about building and running this app.
 
-In a few cases, when the app contains several services (e.g., `akka-kafka-streams-model-server`), each service has its own directory instead of being nested under `source/core`. These projects will also have `build.sbt` and `project/` SBT files in the root directory, whereas they are under `source/core` for the other apps.
+In a few cases, when the app contains several services (e.g., `akka-kafka-streams-model-server`), each service has its own directory instead of being nested under `source/core`. These projects will also have `build.sbt` and `project/` SBT files in the root directory, whereas they are under `source/core` for the other apps. In all cases, the corresponding `build.sh` knows what to do...
 
 ## Installing the Prerequisites
 

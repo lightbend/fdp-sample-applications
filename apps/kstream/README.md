@@ -76,16 +76,32 @@ curl localhost:7070/weblog/access/check/world.std.com
 
 ## Deploying and running on OpenShift or Kubernetes
 
-You can use Lightbend's prebuilt Docker images or build your own, if you've made modifications. To build your own, start `sbt` in the `kstream/source/core/` directory:
+You can use Lightbend's prebuilt Docker images or build your own, if you've made modifications.
+
+Building the app can be done using the convenient `build.sh` or `sbt`.
+
+For `build.sh`, use one of the following commands:
 
 ```bash
+build.sh
+build.sh --push-docker-images
+```
+
+Both effectively run `sbt clean compile docker`, while the second variant also pushes the images to your Docker Hub account. _Only use this option_ if you first change `organization in ThisBuild := CommonSettings.organization` to `organization in ThisBuild := "myorg"` in `source/core/build.sbt`!
+
+To use `sbt` directly:
+
+```bash
+$ cd source/core
 $ sbt
 > docker
 ```
 
 This will create Docker images named `lightbend/fdp-kstream-dsl:X.Y.Z` and `lightbend/fdp-kstream-processor:X.Y.Z`, for the current version `X.Y.Z`. The name of the docker repository comes from the `organization` field in `build.sbt` and must be changed if you want to upload your image to a public repository. (It's also confusing if your version has code changes compared to the "official" Lightbend builds.).
 
-Once the docker image is created, you can push it to the repository at DockerHub. Note that the SBT task `dockerPush` can be used for this task.
+You can use the `sbt` target `dockerPush` to push the images to Docker Hub, but only after changing the `organization` as just described. You can publish to your local (machine) repo with the `docker:publishLocal` target.
+
+For IDE users, just import a project and use IDE commands.
 
 ## Deploying and Running on OpenShift or Kubernetes
 

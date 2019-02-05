@@ -44,11 +44,53 @@ All of the above modules are installed on a DC/OS pod as 3 images. The JSON that
 
 > This installation procedure assumes that the previous 2 installation steps have been completed and all prerequisites (Kafka and InfluxDB) running in the cluster.
 
+### Preparing All the Docker Images at Once
+
+Building all the app Docker images can be done using the convenient `build.sh` or `sbt`.
+
+For `build.sh`, use one of the following commands:
+
+```bash
+build.sh
+build.sh --push-docker-images
+```
+
+Both effectively run `sbt clean compile docker` for each nested project, while the second variant also pushes the images to your Docker Hub account. _Only use this option_ if you first change `organization in ThisBuild := CommonSettings.organization` to `organization in ThisBuild := "myorg"` in `source/core/build.sbt`!
+
+For `sbt`, the steps are as follows:
+
+```bash
+$ cd source/core
+$ pwd
+.../fdp-sample-applications/apps/anomaly-detection/source/core
+$ sbt
+sbt:AnomalyDetection> projects
+[info] In file: .../fdp-sample-applications/apps/anomaly-detection/
+[info]      fdp-ad-model-server
+[info]      fdp-ad-data-publisher
+[info]      fdp-ad-speculative-model-server
+[info]    * anomalyDetection
+[info]      configuration
+[info]      influxSupport
+[info]      kafkaSupport
+[info]      model
+[info]      protobufs
+[info]      fdp-ad-training-data-ingestion
+[info]      fdp-ad-trainingmodel-publish
+sbt:AnomalyDetection> docker
+...
+```
+
+You can use the `sbt` target `dockerPush` to push the images to Docker Hub, but only after changing the `organization` as just described. You can publish to your local (machine) repo with the `docker:publishLocal` target.
+
+For IDE users, just import a project and use IDE commands, but it is necessary to run `sbt clean compile` at least once to compile the `protobufs` subproject correctly.
+
 ### Preparing the Docker Image for the Data Ingester
 
-This can be done using `sbt`. The steps are as follows:
+If you want to work with the nested projects individually, use `sbt`:
 
-```
+```bash
+$ cd source/core
 $ pwd
 .../fdp-sample-applications/apps/anomaly-detection/source/core
 $ sbt
@@ -69,11 +111,9 @@ sbt:AnomalyDetection> project fdp-ad-training-data-ingestion
 [info] Set current project to fdp-ad-training-data-ingestion (in build file: ..)
 sbt:AnomalyDetection> docker
 ...
-sbt:AnomalyDetection> dockerPush
-
 ```
 
-The last command will push the Docker image to the repository specified in the build file. You need to change it for your own repository name.
+You can use the `sbt` target `dockerPush` to push the images to Docker Hub, as described in the previous section.
 
 ### Preparing the Docker Image for Model Training
 
@@ -81,9 +121,9 @@ The Docker image for model training uses Intel's Analytics Zoo and the image is 
 
 ### Preparing the Docker Image for the Model Publisher
 
-This can be done using `sbt`. The steps are as follows:
+If you want to work with the nested projects individually, use `sbt`:
 
-```
+```bash
 $ pwd
 .../fdp-sample-applications/apps/anomaly-detection
 $ sbt
@@ -104,10 +144,6 @@ sbt:AnomalyDetection> project fdp-ad-training-model-publish
 [info] Set current project to fdp-ad-training-model-publish (in build file: ..)
 sbt:AnomalyDetection> docker
 ...
-sbt:AnomalyDetection> dockerPush
-
 ```
 
-Again, the last step will push the docker image to the repository specified in the build file. You need to change it for your own repository name.
-
-Once all the Docker images are prepared, check if the image names tally with the ones in `training-pod.json`. Change any as required and deploy the pod to your DC/OS cluster.
+You can use the `sbt` target `dockerPush` to push the images to Docker Hub, as described in a previous section.

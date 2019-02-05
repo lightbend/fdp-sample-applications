@@ -8,7 +8,7 @@ This sample application stress tests the DC/OS cluster by running a training and
 
 > **NOTE:** This applications demonstrates using BigDL as a third-party library for machine learning. BigDL is not part of the Fast Data Platform distribution and Lightbend does not provide support for BigDL or applications that use it.
 
-## Running the application Locally
+## Running the Application Locally
 
 The application can be run locally or on the DC/OS cluster.
 
@@ -32,6 +32,17 @@ The first step in deploying the applications on a DC/OS cluster is to prepare a 
 
 ### Prepare Docker Images
 
+Building the app can be done using the convenient `build.sh` or `sbt`.
+
+For `build.sh`, use one of the following commands:
+
+```bash
+build.sh
+build.sh --push-docker-images
+```
+
+Both effectively run `sbt clean compile docker`, while the second variant also pushes the images to your Docker Hub account. _Only use this option_ if you first change `organization in ThisBuild := CommonSettings.organization` to `organization in ThisBuild := "myorg"` in `source/core/build.sbt`!
+
 In the `bigdl/source/core/` directory, run `sbt`:
 
 ```
@@ -41,9 +52,9 @@ $ sbt
 > docker
 ```
 
-This will create a docker image named `lightbend/bigdlvgg:X.Y.Z` (for the current version `X.Y.Z`) with the default settings. The name of the Docker user comes from the `organization` field in `build.sbt` and should be changed there for your environment.
+This will create a docker image named `lightbend/bigdlvgg:X.Y.Z` (for the current version `X.Y.Z`) with the default settings. You can use the `sbt` target `dockerPush` to push the images to Docker Hub, but only after changing the `organization` as just described. You can publish to your local (machine) repo with the `docker:publishLocal` target.
 
-Once the docker image is created, you can push it to the repository at DockerHub.
+For IDE users, just import a project and use IDE commands.
 
 ## Deploying to Kubernetes and OpenShift
 

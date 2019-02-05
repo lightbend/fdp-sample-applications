@@ -152,12 +152,27 @@ The `--master` argument (for Spark) is optional and will default to `local[*]`.
 
 ## Deploying and Running on OpenShift or Kubernetes
 
-You can use Lightbend's prebuilt Docker images or build your own. To build your own, run `sbt` in the `nwintrusion/source/core/` directory:
+You can use Lightbend's prebuilt Docker images or build your own.
+
+Building the app can be done using the convenient `build.sh` or `sbt`.
+
+For `build.sh`, use one of the following commands:
+
+```bash
+build.sh
+build.sh --push-docker-images
+```
+
+Both effectively run `sbt clean compile docker`, while the second variant also pushes the images to your Docker Hub account. _Only use this option_ if you first change `organization in ThisBuild := CommonSettings.organization` to `organization in ThisBuild := "myorg"` in `source/core/build.sbt`!
+
+You can also build directly with `sbt` commands. For historical reasons, there is a system property named `K8S_OR_DCOS` that configures the build for OpenShift/Kubernetes or DC/OS. Set the value to `K8S`. (This is done in `build.sh` for you.)
+
+Now change to the `nwintrusion/source/core/` directory and run these commands:
 
 ```bash
 $ pwd
 .../kstream/source/core
-$ sbt
+$ sbt -DK8S_OR_DCOS=K8S
 > projects
 [info] 	   fdp-nwintrusion-anomaly
 [info] 	   fdp-nwintrusion-batchkmeans
@@ -169,29 +184,13 @@ $ sbt
 
 This will create Docker images named `lightbend/fdp-nwintrusion-batchkmeans-k8s:X.Y.Z` and `lightbend/fdp-nwintrusion-anomaly-k8s:X.Y.Z` for the current version `X.Y.Z`. The name of the Docker user (`lightbend`) comes from the `organization` field in `build.sbt` and must be changed if you intend to upload your images to a public repo.
 
-Once the docker image is created, you can push it to the repository at DockerHub. Note that the SBT task `dockerPush` can be used for this task.
+You can use the `sbt` target `dockerPush` to push the images to Docker Hub, but only after changing the `organization` as just described. You can publish to your local (machine) repo with the `docker:publishLocal` target.
 
-Similarly we can prepare the docker images for the Spark applications. For Spark applications we need to build separate docker images for DC/OS as well as Kubernetes or OpenShift. The images for the 2 will be different.
+For IDE users, just import a project and use IDE commands.
 
-**In order to build docker images for Kubernetes or OpenShift you need to set the system property named `K8S_OR_DCOS` to `K8S` or else the image will be built for DC/OS.**
+You can also create individual Docker images for the specific nested projects (Spark applications), for example:
 
-```
-$ sbt
-> projects
-[info] In file:/Users/bucktrends/lightbend/fdp-sample-apps/nwintrusion/source/core/
-[info] 	   fdp-nwintrusion-anomaly
-[info] 	   fdp-nwintrusion-batchkmeans
-[info] 	   fdp-nwintrusion-ingestion
-[info] 	   ingestRun
-[info] 	 * root
-> project fdp-nwintrusion-anomaly
-> docker ## build docker image for DC/OS
-> ...
-> project fdp-nwintrusion-batchkmeans
-> docker ## build docker image for DC/OS
-```
-
-```
+```bash
 $ sbt -DK8S_OR_DCOS=K8S
 > projects
 [info] In file:/Users/bucktrends/lightbend/fdp-sample-apps/nwintrusion/source/core/
@@ -201,107 +200,26 @@ $ sbt -DK8S_OR_DCOS=K8S
 [info] 	   ingestRun
 [info] 	 * root
 > project fdp-nwintrusion-anomaly
-> docker ## build docker image for K8S
+> docker
 > ...
 > project fdp-nwintrusion-batchkmeans
-> docker ## build docker image for K8S
+> docker
 ```
 
-The image built for Kubernetes or OpenShift will be named with a suffix `-k8s`, e.g. for anomaly detection, the image will be named `lightbend/fdp-nwintrusion-anomaly-k8s:X.Y.Z`, while the one for DC/OS will not have the suffix. Here's an example:
+## Deploying and Running on OpenShift or Kubernetes
 
-```
-$ docker images
-REPOSITORY                           TAG                        IMAGE ID            CREATED             SIZE
-lightbend/fdp-nwintrusion-anomaly-k8s       X.Y.Z                      982adc4c3ae9        42 minutes ago      401MB
-lightbend/fdp-nwintrusion-anomaly           X.Y.Z                      5b43990ebfe6        7 hours ago         1.48GB
+Use the Helm Charts in the `helm` directory to deploy the applications. The following commands deploy all the components of `nwintrusion` into OpenShift or Kubernetes:
 
-```
-
-### Installing on DC/OS cluster
-
-The installation scripts are present in the `nwintrusion/bin` folder. The script that you need to run is `app-install.sh` which takes a properties file as configuration. The default one is named `app-install.properties`.
-
-```
-$ pwd
-.../nwintrusion/bin
-$ ./app-install.sh --help
-  Installs the network intrusion app. Assumes DC/OS authentication was successful
-  using the DC/OS CLI.
-
-  Usage: app-install.sh   [options]
-
-  eg: ./app-install.sh
-
-  Options:
-  --config-file               Configuration file used to lauch applications
-                              Default: ./app-install.properties
-  --start-none                Run no app, but set up the tools and data files.
-  --start-only X              Only start the following apps:
-                                transform-data      Performs data ingestion & transformation
-                                batch-k-means       Find the best K value.
-                                anomaly-detection   Find anomalies in the data.
-                              Repeat the option to run more than one.
-                              Default: runs all of them. See also --start-none.
-  -n | --no-exec              Do not actually run commands, just print them (for debugging).
-  -h | --help                 Prints this message.
-$ ./app-install.sh --start-only transform-data --start-only anomaly-detection --start-only batch-k-means
-```
-
-This will start all 3 applications at once. In case you feel like, you can start them separately, especially if you are low on the cluster resource.
-
-**Here are a few points that you need to keep in mind before starting the applications on your cluster:**
-
-1. Need to have done dcos authentication beforehand. Run `dcos auth login`.
-2. Need to have the cluster attached. Run `dcos cluster attach <cluster name>`.
-3. Need to have Kafka, Spark, InfluxDB and Grafana running on the cluster.
-
-Here's the default version of the configuration file that the installer uses:
-
-```
-## dcos kafka package
-kafka-dcos-package=kafka
-
-## dcos service name. Change this if you use a different service name in your
-## Kafka installation on DC/OS cluster
-kafka-dcos-service-name=kafka
-
-## whether to skip creation of kafka topics - valid values : true | false
-skip-create-topics=false
-
-## kafka topic partition : default 1
-kafka-topic-partitions=1
-
-## kafka topic replication factor : default 1
-kafka-topic-replication-factor=1
-```
-> **One version of all application images will already be in lightbend Dockerhub as part of the platform release**
-
-## Removing the application from DC/OS
-
-Just run `./app-remove.sh`.
-
-It also has a `--help` option to show available command-line options. For example, use `--skip-delete-topics` if your cluster does not support deleting topics.
-
-
-## Visualization of Anomaly Detection
-
-Anomaly detection application stores possible anomalies in an InfluxDB database, which can be visualized using Grafana. The data source is set up by the application for integrating with Grafana. Just log in to Grafana using the credentials `admin/admin` and proceed to the dashboard named *NetworkIntrusion*.
-
-**N.B.** In case you plan to re-deploy the anomaly detection application, you will need to manually remove the data source and dashboard from Grafana.
-
-## Deploying and running on Kubernetes or OpenShift
-
-The first step in running applications on Kubernetes or OpenShift is the step of containerization, which we discussed in the last section. Once the docker images are built we can use Helm Charts to deploy the applications. For Spark applications, the images that have a name suffixed with `-k8s` need to be deployed.
-
-All helm charts are created in the `bin/helm` folder of the respective application. Here's a sample of how to deploy all components of `nwintrusion` application into Kubernetes or OpenShift using the helm chart:
-
-```
+```bash
 $ pwd
 .../nwintrusion
-$ cd bin
 $ helm install --name nwintrusion ./helm
 ...
 $ kubectl logs <pod name where the application runs>
 ```
 
-Same technique can be used to deploy all the sample applications in Kubernetes or OpenShift.
+## Visualization of Anomaly Detection Results
+
+The Anomaly detection application stores possible anomalies in an InfluxDB database, which can be visualized using Grafana. The data source is set up by the application for integrating with Grafana. Just log in to Grafana using the credentials `admin/admin` and proceed to the dashboard named *NetworkIntrusion*.
+
+**N.B.** In case you plan to re-deploy the anomaly detection application, you will need to manually remove the data source and dashboard from Grafana.

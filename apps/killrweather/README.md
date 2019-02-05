@@ -53,14 +53,40 @@ First, run the following script to generate the config files from the templates.
 ./process-templates.sh VERSION
 ```
 
-Then use the provided SBT build in the `source/core` directory. It leverages the [SBT Docker plugin](https://github.com/marcuslonnberg/sbt-docker).
+Building the app can be done using the convenient `build.sh` or `sbt`.
 
-It supports several commands:
+For `build.sh`, use one of the following commands:
 
-* `sbt docker` builds Docker images locally
-* `sbt dockerPush` pushes images to Docker Hub
-* `sbt dockerBuildAndPush` builds images and pushes them to Docker Hub
+```bash
+build.sh
+build.sh --push-docker-images
+```
 
+Both effectively run `sbt clean compile docker`, while the second variant also pushes the images to your Docker Hub account. _Only use this option_ if you first change `organization in ThisBuild := CommonSettings.organization` to `organization in ThisBuild := "myorg"` in `source/core/build.sbt`!
+
+You can also use `sbt` itself. First change to the `source/core` directory.
+
+```bash
+$ sbt
+sbt:killrweather> projects
+...
+[info]      appLocalRunner
+[info]      appLocalRunnerstructured
+[info]      fdp-killrweather-app
+[info]      fdp-killrweather-grpcclient
+[info]      fdp-killrweather-httpclient
+[info]      fdp-killrweather-loader
+[info]      fdp-killrweather-structured-app
+[info]      killrWeatherApp_beam
+[info]      killrWeatherCore
+[info]    * killrweather
+[info]      protobufs
+sbt:killrweather> docker
+```
+
+You can use the `sbt` target `dockerPush` to push the images to Docker Hub, but only after changing the `organization` as just described. You can publish to your local (machine) repo with the `docker:publishLocal` target.
+
+For IDE users, just import a project and use IDE commands, but it is necessary to run `sbt clean compile` at least once to compile the `protobufs` subproject correctly.
 
 ## Installing KillrWeather on OpenShift or Kubernetes
 

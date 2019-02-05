@@ -97,17 +97,27 @@ Additionally, the following folders are used:
 * `data` - some data files for running the applications
 * `images` - diagrams used for this document
 
-The build is done via `sbt`
+Building the app can be done using the convenient `build.sh` or `sbt`.
 
-    cd source/core
-    sbt clean compile
+For `build.sh`, use one of the following commands:
 
-SBT is also configured for building Docker images, which is discussed below.
+```bash
+build.sh
+build.sh --push-docker-images
+```
 
-For IDE users, just import a project and use IDE commands, but
-it is necessary to run `sbt clean compile docker` at least once to compile the `protobufs` subproject correctly.
+Both effectively run `sbt clean compile docker`, while the second variant also pushes the images to your Docker Hub account. _Only use this option_ if you first change `organization in ThisBuild := CommonSettings.organization` to `organization in ThisBuild := "myorg"` in `source/core/build.sbt`!
 
-> **WARNING:** There is a convenient script in this directory called `build.sh`. However, it will attempt to build push the Docker images to Docker Hub. This script is used by Lightbend's CI process. See the _Packaging_ section below for more information on using Docker.
+To use `sbt`:
+
+```bash
+cd source/core
+sbt clean compile docker
+```
+
+You can use the `sbt` target `dockerPush` to push the images to Docker Hub, but only after changing the `organization` as just described. You can publish to your local (machine) repo with the `docker:publishLocal` target.
+
+For IDE users, just import a project and use IDE commands, but it is necessary to run `sbt clean compile` at least once to compile the `protobufs` subproject correctly.
 
 ## Package, Configure, Deploy, and Run
 
@@ -119,7 +129,9 @@ This project contains 3 executable modules:
 
 Each application can run either locally on your machine or in the cluster.
 
-### Packaging
+### Packaging with Docker
+
+We just described how to build the Docker images. Let's discuss in more detail.
 
 For this section, we assume you have a working Docker installation on your machine.
 
@@ -163,7 +175,16 @@ val dockerRepositoryUrl = "lightbend"
 
 Note that additional credentials might be required depending on the Docker registry provider (e.g., _Sonatype_). Please refer to your provider for credentials.
 
+Now either use the convenient `build.sh` or `sbt` to publish:
+
 ```bash
+build.sh --push-docker-images
+```
+
+or
+
+```bash
+cd source/core
 sbt docker:publish
 ```
 
