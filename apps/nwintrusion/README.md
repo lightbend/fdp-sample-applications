@@ -1,34 +1,31 @@
-# FDP sample application for network intrusion detection
+# Network Intrusion Detection Sample Application
 
-> **Disclaimer:** This sample application is provided as-is, without warranty. It is intended to illustrate techniques for implementing various scenarios using Fast Data Platform, but it has not gone through a robust validation process, nor does it use all the techniques commonly employed for highly-resilient, production applications. Please use it with appropriate caution.
+> **DISCLAIMER:** This sample application is provided as-is, without warranty. It is intended to illustrate techniques for implementing various scenarios using Fast Data Platform, but it has not gone through a robust validation process, nor does it use all the techniques commonly employed for highly-resilient, production applications. Please use it with appropriate caution.
 
-> **NOTE:** For a more complete version of these instructions, see the [online instructions](https://developer.lightbend.com/docs/fast-data-platform/latest/user-guide/developing-apps/index.html#streaming-k-means).
->
-This application runs under DC/OS and has the following components that form stages of a pipeline:
+This application has the following components that form stages of a pipeline:
 
 1. **Data Ingestion:** The first stage reads data from a folder which is configurable and watchable. You can put new files in the folder and the file watcher will kickstart the data ingestion process. The first ingestion is however automatic and will be started 1 minute after the application installs.
 2. **Data Transformation:** The second stage reads the data from the kafka topic populated in step 1, performs some transformations that will help in later stages of the data manipulation, and writes the transformed output into another Kafka topic. If there are any errors with specific records, these are recorded in a separate error Kafka topic. Stages 1 and 2 are implemented as a Kafka Streams application.
 3. **Online Analytics and ML:** This stage of the pipeline reads data from the Kafka topic populated by stage 2, sets up a streaming context in Spark, and uses it to do streaming K-means clustering to detect network intrusion. A challenge is to determine the optimal value for K in a streaming context, i.e., by training the model, then testing with a different set of data. (More on this below.)
 4. **An implementation of batch k-means:** Using this application, the user can iterate on the number of clusters (`k`) that should be used for the online anomaly detection part. The application accepts a batch duration and for all data that it receives in that duration it runs k-means clustering in batch for all values of `k` that fall within the range as specified by the user. The user can specify the starting and ending values of `k` and the increment step size as command line arguments and the application will run k-means for the entire range and report the cluster score (mean squared error). The optimal value of `k` can then be found using the elbow method.
 
-*In the current implementation, Stages 1 and 2 are packaged together in a single application that runs under Marathon.*
+*In the current implementation, Stages 1 and 2 are packaged together in a single application that runs in the same pod.*
 
+## Data for the Application
 
-## Data for the application
+The application uses the dataset from [KDD Cup 1999](https://kdd.ics.uci.edu/databases/kddcup99/kddcup99.html), which asked competitors to develop a network intrusion detector. The reason for using this data set is that it makes a good case study for clustering and intrusion detection is a common use for streaming platforms like Fast Data Platform.
 
-The application uses the dataset from [KDD Cup 1999](https://kdd.ics.uci.edu/databases/kddcup99/kddcup99.html), which asked competitors to develop a network intrusion detector. The reason for using this data set is that it makes a good case study for clustering and intrusion detection is a common use for streaming platforms like FDP.
+## Running the Applications Locally
 
-## Running the applications Locally
+All the applications can be run locally or on OpenShift or Kubernetes.
 
-All the applications can be run locally, on the DC/OS cluster using Marathon, on Kubernetes or on OpenShift.
+> **Note:** Kubernetes or OpenShift support is currently experimental and the approach used may change in future releases of Fast Data Platform.
 
-> **Note:** Kubernetes or OpenShift support is currently experimental and the approach can change in the future versions.
-
-`sbt` will be used to run applications on your local machine. The following examples demonstrate how to run the individual components from the `sbt` console.
+For local execution, `sbt` is used to run the applications. The following examples demonstrate how to run the individual components from the `sbt` console.
 
 ### Running the Data Ingestion and Transformation application
 
-```
+```bash
 $ sbt
 > projects
 [info] In file:/Users/bucktrends/lightbend/fdp-sample-apps/nwintrusion/source/core/
@@ -41,7 +38,7 @@ $ sbt
 > ingest
 ```
 
-This will run the data ingestion and transformation application on the local machine. Before running the application, please ensure the configuration files are set up appropriately for the local environment. Here's the default setup of `application.conf` within the `ingestion` folder of the project:
+These commands switch to the nested `ingestRun` project, then run the data ingestion and transformation application locally. Before running the application, please ensure the configuration files are set up appropriately for the local environment. Here's the default setup of `application.conf` within the `ingestion` folder of the project:
 
 ```
 dcos {
@@ -79,11 +76,11 @@ dcos {
 }
 ```
 
-All values can be set through environment variables as well. This is done when we deploy to the DC/OS cluster. For local running just change the settings to the values of your local environment.
+All values can be set through environment variables as well. This is done when we deploy to cluster environments. For running locally, just change the settings to the values of your local environment.
 
-### Running Anomaly Detection application
+### Running the Anomaly Detection application
 
-```
+```bash
 $ sbt
 > projects
 [info] In file:/Users/bucktrends/lightbend/fdp-sample-apps/nwintrusion/source/core/
@@ -95,12 +92,12 @@ $ sbt
 > project fdp-nwintrusion-anomaly
 > run --master local[*] --read-topic nwout --kafka-broker localhost:9092 --micro-batch-secs 60 --cluster-count 100
 ```
-The `--master` argument is optional and will default to `local[*]`. There is another optional argument `--with-influx` which uses Influx DB and Grafana to store and display anomalies. In case you decide to use this option, you need to set up the influx configuration by changing appropriate settings in the config file `application.conf` within `anomaly` folder of the project based on your local environment. Here's the default settings of the file:
+
+The `--master` argument (for Spark) is optional and will default to `local[*]`. There is another optional argument `--with-influx` which uses InfluxDB and Grafana to store and display anomalies. If you decide to use this option, you need to set up the InfluxDB configuration first by changing the appropriate settings in the config file `application.conf` within the `anomaly` folder of the project, based on your local environment. Here are the default settings in this file:
 
 ```
 visualize {
   influxdb {
-    server = "http://influxdb.marathon.l4lb.thisdcos.directory"
     # server = "http://localhost"
     server = ${?INFLUXDB_SERVER}
 
@@ -121,7 +118,6 @@ visualize {
   }
 
   grafana {
-    server="grafana.marathon.l4lb.thisdcos.directory"
     # server="localhost"
     server=${?GRAFANA_SERVER}
 
@@ -137,9 +133,9 @@ visualize {
 }
 ```
 
-### Running Batch K-Means application
+### Running Batch K-Means Application
 
-```
+```bash
 $ sbt
 > projects
 [info] In file:/Users/bucktrends/lightbend/fdp-sample-apps/nwintrusion/source/core/
@@ -151,17 +147,16 @@ $ sbt
 > project fdp-nwintrusion-batchkmeans
 > run --master local[*] --read-topic nwout --kafka-broker localhost:9092 --micro-batch-secs 60 --from-cluster-count 40 --to-cluster-count 100 --increment 10
 ```
-The `--master` argument is optional and will default to `local[*]`.
 
-## Deploying and running on DC/OS cluster
+The `--master` argument (for Spark) is optional and will default to `local[*]`.
 
-The first step in deploying the applications on DC/OS cluster is to prepare docker images of all the applications. This can be done from within sbt.
+## Deploying and Running on OpenShift or Kubernetes
 
-### Prepare docker images
+You can use Lightbend's prebuilt Docker images or build your own. To build your own, run `sbt` in the `nwintrusion/source/core/` directory:
 
-In the `nwintrusion/source/core/` directory:
-
-```
+```bash
+$ pwd
+.../kstream/source/core
 $ sbt
 > projects
 [info] 	   fdp-nwintrusion-anomaly
@@ -169,15 +164,12 @@ $ sbt
 [info] 	   fdp-nwintrusion-ingestion
 [info] 	   ingestRun
 [info] 	 * root
-> project fdp-nwintrusion-ingestion
-> universal:packageZipTarball
-> ...
 > docker
 ```
 
-This will create a docker image named `lightbend/fdp-nwintrusion-ingestion:X.Y.Z` (for the current version `X.Y.Z`) with the default settings. The name of the docker user comes from the `organization` field in `build.sbt` and can be changed there for alternatives. If the user name is changed, then the value of `$DOCKER_USERNAME` also needs to be changed in `nwintrusion/bin/utils.sh`. The version of the image comes from `<PROJECT_HOME>/version.sh`. Change there if you wish to deploy a different version.
+This will create Docker images named `lightbend/fdp-nwintrusion-batchkmeans-k8s:X.Y.Z` and `lightbend/fdp-nwintrusion-anomaly-k8s:X.Y.Z` for the current version `X.Y.Z`. The name of the Docker user (`lightbend`) comes from the `organization` field in `build.sbt` and must be changed if you intend to upload your images to a public repo.
 
-Once the docker image is created, you can push it to the repository at DockerHub.
+Once the docker image is created, you can push it to the repository at DockerHub. Note that the SBT task `dockerPush` can be used for this task.
 
 Similarly we can prepare the docker images for the Spark applications. For Spark applications we need to build separate docker images for DC/OS as well as Kubernetes or OpenShift. The images for the 2 will be different.
 

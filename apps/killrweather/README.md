@@ -1,10 +1,10 @@
 # KillrWeather
 
-KillrWeather is a reference application (which is adopted from Datastax's https://github.com/killrweather/killrweather) showing how to easily leverage and integrate [Apache Spark](http://spark.apache.org), [Apache Cassandra](http://cassandra.apache.org), [Apache Kafka](http://kafka.apache.org), [Akka](https://akka.io), and [InfluxDB](https://www.influxdata.com/) for fast, streaming computations. This application focuses on the use case of **[time series data](https://github.com/killrweather/killrweather/wiki/4.-Time-Series-Data-Model)**.
+KillrWeather is a reference application that is adopted from Datastax's https://github.com/killrweather/killrweather. It shows how to easily leverage and integrate [Apache Spark](http://spark.apache.org), [Apache Cassandra](http://cassandra.apache.org), [Apache Kafka](http://kafka.apache.org), [Akka](https://akka.io), and [InfluxDB](https://www.influxdata.com/) for fast, streaming computations. This application focuses on the use case of [time series data](https://github.com/killrweather/killrweather/wiki/4.-Time-Series-Data-Model), specifically weather data.
 
-This application also can be viewed as a prototypical IoT (or sensors) data collection application, which stores data in the form of a time series.
+This application also can be viewed as a prototypical IoT (e.g., sensors) data collection application, which stores data in the form of a time series.
 
-> **Disclaimer:** This sample application is provided as-is, without warranty. It is intended to illustrate techniques for implementing various scenarios using Fast Data Platform, but it has not gone through a robust validation process, nor does it use all the techniques commonly employed for highly-resilient, production applications. Please use it with appropriate caution.
+> **DISCLAIMER:** This sample application is provided as-is, without warranty. It is intended to illustrate techniques for implementing various scenarios using Fast Data Platform, but it has not gone through a robust validation process, nor does it use all the techniques commonly employed for highly-resilient, production applications. Please use it with appropriate caution.
 
 ## Sample Use Case
 
@@ -15,10 +15,12 @@ The application does not quite do that, it stops at capturing real-time and cumu
 ## Reference Application
 
 There are several versions this application:
-* [KillrWeather App](https://github.com/killrweather/killrweather/tree/master/killrweather-app/src/main/scala/com/datastax/killrweather) is based on Spark Streaming.
-* [KillrWeather App Structured](https://github.com/lightbend/fdp-killrweather/blob/master/killrweather-app_structured/src/main/scala/com/lightbend/killrweather/app/structured/KillrWeatherStructured.scala) is a version of the same, based on Spark Structured Streaming.
-* [KillrWeather Beam](https://github.com/lightbend/fdp-killrweather/blob/master/killrweather-beam/src/main/scala/com/lightbend/killrweater/beam/KillrWeatherBeam.scala) experimental version of the same application based on [Apache Beam](https://beam.apache.org/).
-This version only runs locally (using embedded Kafka). Cluster version is coming soon
+* [KillrWeather App](https://github.com/lightbend/fdp-sample-applications/tree/develop/apps/killrweather/source/core/killrweather-app/) is based on Spark Streaming.
+* [KillrWeather App Local](https://github.com/lightbend/fdp-sample-applications/tree/develop/apps/killrweather/source/core/killrweather-app-local/) provides configuration files for running locally.
+* [KillrWeather App Structured](https://github.com/lightbend/fdp-sample-applications/tree/develop/apps/killrweather/source/core/killrweather-app_structured/) is a version of `killrweather-app`, but using Spark Structured Streaming.
+* [KillrWeather Beam](https://github.com/lightbend/fdp-sample-applications/tree/develop/apps/killrweather/source/core/killrweather-app-beam/) experimental version of the same application based on [Apache Beam](https://beam.apache.org/). This version only runs locally, using embedded Kafka. A cluster version is coming soon.
+
+There are a few other variants of these apps, as well as support apps for data loading, etc., as discussed below.
 
 ## Time Series Data
 
@@ -30,167 +32,63 @@ There are many flavors of time series data. Some are windows into the stream, ot
 
 In addition to Cassandra, the application also demonstrates integration with InfluxDB and Grafana. This toolset is typically used for DevOps monitoring purposes, but it can also be very useful for real-time visualization of stream processing. Data is written to influxDB as it gets ingested in the application and Grafana is used to provide a real time view of temperature, pressure, and dewpoint values, as the reports come in. Additionally, the application provides results of data rollups - daily and monthly mean, low, and high values.
 
-## Start Here
+## For More Background Information
 
-The original [KillrWeather Wiki](https://github.com/killrweather/killrweather/wiki) is still a great source of information.
+The original [KillrWeather Wiki](https://github.com/killrweather/killrweather/wiki) is still a great source of background information.
 
 ## Using the Applications
 
-We foresee 2 groups of users:
+We foresee two groups of users:
 
 * Users who just want to see how application runs. We provide prebuilt Docker images.
 * Users who want to use this project as a starting point for their own applications, so they'll want to build the code themselves.
 
-## Building and configuring applications
+## Building and Configuring the Applications
 
-The Docker images already exist, but if you want to build the applications yourself, perhaps because you've made changes, then use the provided SBT build here in the source distribution. It leverages the [SBT Docker plugin](https://github.com/marcuslonnberg/sbt-docker).
+The Docker images already exist, but if you want to build the applications yourself.
 
-It supports several commands:
-
-* `sbt docker` builds a docker image locally
-* `sbt dockerPush` pushes an image to the dockerHub
-* `sbt dockerBuildAndPush` builds image and pushes it to the dockerHub
-
-
-
-## Deploying The applications to FDP
-The following templates for deploying application to DC/OS are provided:
-
-* KillrWeather App: `killrweather-app/src/main/resources/killrweatherAppDocker.json.template`
-* KillrWeather App (Structured): `killrweather-app_structured/src/main/resources/killrweatherApp_structuredDocker.json.template`
-* GRPC Clicent: `./killrweather-grpclient/src/main/resources/killrweatherGRPCClientDocker.json.template`
-* HTTP Clicent: `./killrweather-grpclient/src/main/resources/killrweatherHTTPClientDocker.json.template`
-* Data Loader: `killrweather-loader/src/main/resources/killrweatherloaderDocker.json.template`
-
-From the git repo itself, then run the following script to generate the JSON files from the templates, using an appropriate value for `VERSION`, e.g., `1.2.0`:
+First, run the following script to generate the config files from the templates. The substitutions made include using an appropriate value for `VERSION`, e.g., `1.2.0`:
 
 ```bash
 ./process-templates.sh VERSION
 ```
 
-Now you can deploy these apps to Fast Data Platform, starting with the loader. Note that the loader is actually deployed as a _pod_:
+Then use the provided SBT build in the `source/core` directory. It leverages the [SBT Docker plugin](https://github.com/marcuslonnberg/sbt-docker).
+
+It supports several commands:
+
+* `sbt docker` builds Docker images locally
+* `sbt dockerPush` pushes images to Docker Hub
+* `sbt dockerBuildAndPush` builds images and pushes them to Docker Hub
+
+
+## Installing KillrWeather on OpenShift or Kubernetes
+
+These are step by step instructions for installing Killrweather on OpenShift or Kubernetes. We'll use the OpenShift CLI command `oc`, but substitute with `kubectl` for Kubernetes.
+
+The installation is done in a separate project, which we'll call `sample`. First create it, if it does not exist:
 
 ```bash
-dcos marathon pod add killrweather-loader/src/main/resources/killrweatherloaderDocker.json
-```
-
-The loader writes everything directly to Kafka. The two provided clients are alternative, which listen for connections and then write to Kafak. Here is how you would run them, although you don't need them if you're running the loader:
-
-```bash
-dcos marathon app add killrweather-grpclient/src/main/resources/killrweatherGRPCClientDocker.json
-```
-
-or
-
-```bash
-dcos marathon app add killrweather-grpclient/src/main/resources/killrweatherHTTPClientDocker.json
-```
-
-Finally, run one of the apps, either,
-
-```bash
-dcos marathon app add killrweather-app/src/main/resources/killrweatherAppDocker.json
-```
-
-or
-
-```bash
-dcos marathon app add killrweather-app/src/main/resources/killrweatherApp_structuredDocker.json
-```
-
-## See What's Going On...
-
-Go to the Spark Web console for this job at http://killrweatherapp.marathon.mesos:4040/jobs/
-or http://killrweatherappstructured.marathon.mesos:4040/jobs/ (if the structured streaming version is used)
-to see the minibatch and other jobs that are executed as part of this Spark Streaming job.
-
-Go to http://leader.mesos/mesos/#/frameworks and search for `killrweatherapp` or `killrweatherappstructured` to get more info about the corresponding executors.
-
-## Loading data
-
-The application can use three different loaders, which are local client applications that can communicate with the corresponding cluster services or clients to send weather reports.:
-
-1. Direct Kafka loader `com.lightbend.killrweather.loader.kafka.KafkaDataIngester` pushes data directly to the Kafka queue
-that an application is listening on.
-2. HTTP loader `com.lightbend.killrweather.loader.kafka.KafkaDataIngesterRest` writes data to KillrWeather HTTP client.
-3. GRPC loader `com.lightbend.killrweather.loader.kafka.KafkaDataIngesterGRPC` writes data to KillrWeather GRPC client.
-
-Use the commands we saw previously for data loading to run these commands locally.
-
-## Monitoring and Viewing Results
-
-Monitoring is done using InfluxDB and Grafana.
-
-For information about setting up Grafana and InfluxDB, see this [article](https://mesosphere.com/blog/monitoring-dcos-cadvisor-influxdb-grafana/).
-
-To open the Grafana UI, click the `grafana` service in the DC/OS _Services_ panel, then click the instance link.
-Now click the URL for the `ENDPOINTS`.
-
-> **Note:** If you are in a DC/OS EE cluster, the link will open with `https`. If this fails to load, replace with `http`.
-
-In the Grafana UI, load the definitions in `./killrweather-app/src/main/resource/grafana.json`. (Click the upper-left-hand side Grafana icon, then _Dashboards_, then _Import_.) This will create a dashboard called _KillrWeather Data Ingestion_.
-
-Once set up and once data is flowing through the system, you can view activity in this dashboard.
-
-Applications themselves currently implement setup. So this information is here just for reference.
-
-To view execution results, a Zeppelin notebook is used, configured for [Cassandra in Zeppelin](https://zeppelin.apache.org/docs/0.7.2/interpreter/cassandra.html).
-
-Unfortunately, the version of Zeppelin in the DC/OS Catalog is very old. Lightbend has built an up-to-date Docker image with Zeppelin 0.7.2, which you should use. See the section _Installing Zeppelin_ in `fdp-package-sample-apps-X.Y.Z/README.md` for details.
-
-After installing Zeppelin, configure it for use with the Cassandra SQL interpreter (available already as a Zeppelin plugin in the package). The most important settings are these:
-
-```
-name	                   value
-cassandra.cluster        cassandra
-cassandra.hosts	         node.cassandra.l4lb.thisdcos.directory
-cassandra.native.port	   9042
-```
-
-Create a notebook. Try the following, one per notebook cell:
-
-```
-%cassandra
-use isd_weather_data;
-
-%cassandra
-select day, wsid, high, low, mean,stdev,variance from daily_aggregate_temperature WHERE year=2008 and month=6 allow filtering;
-
-%cassandra
-select wsid, day, high, low, mean,stdev,variance from daily_aggregate_pressure  WHERE year=2008 and month=6 allow filtering;
-
-%cassandra
-select wsid, month, high, low, mean,stdev,variance from monthly_aggregate_temperature WHERE year=2008  allow filtering;
-
-%cassandra
-select wsid, month, high, low, mean,stdev,variance from monthly_aggregate_pressure WHERE year=2008  allow filtering;
-
-```
-
-## Installing KillrWeather on Kubernetes/Openshift
-
-These are step by step instructions for installing Killrweather on Openshift.
-Installation is done in a separate project - sample. First create, if does not exist, a project:
-````
 oc new-project sample
-````
+```
 
-### Installing prerequisites
+### Installing Prerequisites
 
 Killrweather depends on the following components:
-* Kafka - for communications
+* Kafka for communications
 * Cassandra for final storage
 * NFS for Spark checkpointing
 * InfluxDB for real time data storage
 * Grafana for viewing real time results
 * Zeppelin for viewing of the content of Cassandra
 
-Follow [this documentation](../../supportingcharts/README.md) for installation of these components
+Follow [this documentation](../../supportingcharts/README.md) for installation of these components.
 
 ### Installing Killrweather
 
-In order for original [helm chart](helm-pvc) has to be extended with the role and role binding definition:
-````   
+The PVC plus GlusterFS [Helm chart](helm-pvc) has to be extended with the role and role binding definitions:
+
+```yaml
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
@@ -214,8 +112,73 @@ roleRef:
    kind: ClusterRole
    name: spark-role
    apiGroup: rbac.authorization.k8s.io
-````   
-Which grants containers the ability to watch for pods.
-After this was added, the chart deploys killrweather application.  
-   
-*Note*: One of the things that make Openshift “special” is a more rigorous requirement to placing ‘ around content of --conf content. Without ‘ execution of config is unpredictable.
+```
+
+These settings grant containers the ability to watch for pods.
+
+After this is added, the chart deploys the `killrweather` application.
+
+This Helm chart uses [GlusterFS](https://docs.gluster.org/en/v3/Administrator%20Guide/GlusterFS%20Introduction/)) as the backing store for checkpointing. To use HDFS for Spark checkpointing, use the HDFS [Helm chart](helm-hdfs).
+
+> **Note:** One of the things that make OpenShift “special” is a more rigorous requirement to placing ‘ around content of --conf content. Without ‘ execution of config is unpredictable.
+
+### To See What's Going On...
+
+Go to the Spark Web console for this job at http://host:4040/jobs/, for either the Spark Streaming or Structured Streaming versions of the app.
+
+## Loading Data
+
+The application can use three different loaders, which are local client applications that can communicate with the corresponding cluster services or clients to send weather reports.:
+
+1. Direct Kafka loader `com.lightbend.killrweather.loader.kafka.KafkaDataIngester` pushes data directly to the Kafka queue that an application is listening on.
+2. HTTP loader `com.lightbend.killrweather.loader.kafka.KafkaDataIngesterRest` writes data to KillrWeather HTTP client.
+3. GRPC loader `com.lightbend.killrweather.loader.kafka.KafkaDataIngesterGRPC` writes data to KillrWeather GRPC client.
+
+Use the commands we saw previously for data loading to run these commands locally.
+
+## Monitoring and Viewing Results
+
+Monitoring is done using InfluxDB and Grafana.
+
+For information about setting up Grafana, InfluxDB, Cassandra, and optionally Zeppelin, see the [project's README](../../README.md).
+
+To open the Grafana UI, click the `grafana` service in the OpenShift or Kubernetes GUI. The login credentials are configured to be `admin`/`admin` for simplicity.
+
+In the Grafana UI, load the definitions in `./killrweather-app/src/main/resource/grafana.json`. (Click the upper-left-hand side Grafana icon, then _Dashboards_, then _Import_.) This will create a dashboard called _KillrWeather Data Ingestion_.
+
+Once set up and once data is flowing through the system, you can view activity in this dashboard.
+
+Applications themselves currently implement setup of databases in Cassandra (if present) and InfluxDB and dashboards in Grafana. So this information is here just for reference.
+
+To view execution results that are stored in Cassandra, a Zeppelin notebook can be used, configured for [Cassandra in Zeppelin](https://zeppelin.apache.org/docs/0.7.2/interpreter/cassandra.html).
+
+After installing Zeppelin, configure it for use with the Cassandra SQL interpreter (available already as a Zeppelin plugin in the package). The most important settings are these:
+
+```
+name	                   value
+cassandra.cluster        cassandra
+cassandra.hosts	         <host_name>
+cassandra.native.port	   9042
+```
+
+(for the appropriate `<host_name>`).
+
+Create a notebook. Try the following, one per notebook cell:
+
+```
+%cassandra
+use isd_weather_data;
+
+%cassandra
+select day, wsid, high, low, mean,stdev,variance from daily_aggregate_temperature WHERE year=2008 and month=6 allow filtering;
+
+%cassandra
+select wsid, day, high, low, mean,stdev,variance from daily_aggregate_pressure  WHERE year=2008 and month=6 allow filtering;
+
+%cassandra
+select wsid, month, high, low, mean,stdev,variance from monthly_aggregate_temperature WHERE year=2008  allow filtering;
+
+%cassandra
+select wsid, month, high, low, mean,stdev,variance from monthly_aggregate_pressure WHERE year=2008  allow filtering;
+
+```
