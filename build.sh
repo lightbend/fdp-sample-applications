@@ -6,6 +6,7 @@ HERE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 
 . "$HERE/version.sh"
 
+# TODO: ADD THE ANOMALY DETECTION!!
 root_dirs=( ${HERE}/apps/bigdl ${HERE}/apps/nwintrusion ${HERE}/apps/flink ${HERE}/apps/kstream ${HERE}/apps/killrweather ${HERE}/apps/akka-kafka-streams-model-server)
 
 # The only allowed arguments are the optional version string (no flag) and the
