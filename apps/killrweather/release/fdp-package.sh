@@ -124,6 +124,6 @@ fi
 
 echo "$0: Building $PROJECT and docker images, and pushing the images to DockerHub: $ROOT_DIR/build.sh"
 
-$ROOT_DIR/build.sh $VERSION
+VERSION=$VERSION $ROOT_DIR/build.sh --push-docker-images
 
 echo "$0: NOTE: If successful, new Docker images were pushed to DockerHub!"
