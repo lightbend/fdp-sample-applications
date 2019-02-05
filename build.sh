@@ -20,6 +20,8 @@ function help {
   -v | --version VERSION      Use VERSION. (default: value set in version.sh)
   app1 ...                    Process just these apps. The names have to match the directories under
                               "apps" directory, e.g., "killrweather". (default: build all of them)
+
+  Run this script with "NOOP=echo build.sh ..." to have it echo commands, but not run them.
 EOF
 }
 
@@ -53,6 +55,7 @@ do
       ;;
     -v|--version*)
       shift
+      [[ $# -eq 0 ]] || [[ -z $1 ]] && error "No value specified for the version!"
       VERSION=$1
       ;;
     -*)
@@ -112,5 +115,5 @@ info "Using version $VERSION"
 for d in ${root_dirs[@]}
 do
   info "Running: VERSION=$VERSION $d/build.sh $push_docker_images"
-  [[ -z $NOOP ]] && VERSION=$VERSION $d/build.sh $push_docker_images
+  NOOP=$NOOP VERSION=$VERSION $d/build.sh $push_docker_images
 done
