@@ -235,7 +235,9 @@ requires the following configuration parameters:
 
 ## Running Locally
 
-You can run the complete application from source, from the Docker images, or with a combination of the two, depending of your goals.
+You can run the complete application locally on your machine from source, from the Docker images, or with a combination of the two, depending of your goals. This is of course most convenient while testing.
+
+For this to work, you'll also need to run Kafka locally or be able to reach Kafka brokers in a cluster where network access is enabled, e.g., a small test Kafka cluster.
 
 For example, to test the end-to-end execution, run all processes in Docker containers. If you are in the middle of a _develop-run-test_ cycle of the _model serving_ part, for example, you could run the `producer` Docker image, while executing the server code from `sbt` or your IDE of choice.
 
@@ -245,8 +247,8 @@ Note that when running against services installed in a cluster with _virtual IP 
 
 ### Publisher: Running Locally
 
-To run the _Publisher_ component, we need first to have the IP address for the Kafka broker.
-Those dependencies can run in an external cluster or can be installed and executed locally.
+To run the _Publisher_ component, we need first to have the IP address for the Kafka broker, either an external cluster or installed and executed locally on your machine.
+
 See this guide for a quick-start local installation: [Kafka Quick Start](https://kafka.apache.org/quickstart).
 
 #### Running from `sbt` (or an IDE)

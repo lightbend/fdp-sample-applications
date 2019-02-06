@@ -1,4 +1,4 @@
-{
+  {
   "name": "serving",
   "type": "influxdb",
   "typeLogoUrl": "public/app/plugins/datasource/influxdb/img/influxdb_logo.svg",

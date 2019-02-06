@@ -79,7 +79,7 @@ You can also get information about any installed clusters under the `lightbend` 
 oc get kafka -n lightbend
 ```
 
-Programmatic access to the Kafka cluster inside the OpenShift or Kubernetes cluster is through the service `sample-cluster-kafka-brokers` using host `sample-cluster-kafka-brokers.lightbend.svc`  and port `9092`
+Programmatic access to the Kafka cluster inside the OpenShift or Kubernetes cluster is through the service `sample-cluster-kafka-brokers` using host `sample-cluster-kafka-brokers.lightbend.svc`  and port `9092`. If you aren't using the `lightbend` namespace, change the host accordingly.
 
 ## Cassandra Installation
 
@@ -119,7 +119,7 @@ reaper_db  system_schema  system_auth  system  system_distributed  system_traces
 cqlsh> exit;
 ```
 
-Programmatic access to Cassandra is through the service `cassandra` using host `cassandra.sample.svc` and port `9042`.
+Programmatic access to Cassandra is through the service `cassandra` using host `cassandra.sample.svc` and port `9042`. If you used a different namespace than `sample`, change the host accordingly.
 
 ### Using the Cassandra Chart (OpenShift)
 
@@ -134,6 +134,8 @@ Programmatic access to Cassandra is through the service `cassandra` using host `
 ## NFS Installation
 
 NFS installation uses the [`nfschart` helm chart](./nfschart). This chart requires privileged user access. (Yes, its a security risk, but okay for sample applications). This can be achieved using the following command:
+
+> **Note:** While this is a simple way to provide distributed file system access, Lightbend recommends GlusterFS for production scenarios. See the [storage discussion](https://developer.lightbend.com/docs/fast-data-platform/current/#_conclusion_storage_recommendations_for_fast_data_platform) in the Fast Data Platform docs for more information.
 
 ```bash
 oc adm policy add-scc-to-user privileged -nsample -z default

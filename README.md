@@ -6,7 +6,7 @@
 
 This repository contains the sample applications for [Lightbend Fast Data Platform](https://www.lightbend.com/products/fast-data-platform), version 1.3.0 and later. For information about these applications, see the [Fast Data Platform documentation](https://developer.lightbend.com/docs/fast-data-platform/current/), specifically the [Sample Applications](https://developer.lightbend.com/docs/fast-data-platform/current/#sample-apps) section. In order to run these applications as is, you must install them in a Fast Data Platform cluster. The [documentation](https://developer.lightbend.com/docs/fast-data-platform/current/) provides more details.
 
-> **Note:** At this time, some of the applications are not yet ported to OpenShift and Kubernetes, i.e., they still require DC/OS. Each app README provides details. A future release of Fast Data Platform for OpenShift and Kubernetes will remove this limitation.
+> **Note:** At the time of this release, some of the applications were not yet completely ported to OpenShift and Kubernetes from DC/OS. They are the `bigdl`, `nwintrusion`, and `kstreams` apps. Each app's README describes what is already working. A future release of Fast Data Platform for OpenShift and Kubernetes will remove this limitation.
 
 The applications are organized in folders with each of them containing details of how to use and install them as part of your environment. Here's the list of applications:
 
@@ -72,8 +72,8 @@ The Fast Data Platform [installation instructions](https://developer.lightbend.c
 In addition, several [certified](https://developer.lightbend.com/docs/fast-data-platform/current/#overview) components are needed by some of the applications:
 
 * Cassandra: required for KillrWeather
-* InfluxDB: required for KillrWeather and network intrusion
-* Grafana: required for KillrWeather and network intrusion
+* InfluxDB: required for KillrWeather, anomaly detection, and network intrusion
+* Grafana: required for KillrWeather, anomaly detection, and network intrusion
 
 (Additional optional, _certified_ components are described by each component's documentation.)
 
