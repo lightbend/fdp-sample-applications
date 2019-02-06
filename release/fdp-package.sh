@@ -112,8 +112,8 @@ then
   exit 0
 fi
 
-echo "$0: Build the sample apps and docker images: $ROOT_DIR/build.sh"
-$ROOT_DIR/build.sh $VERSION
+echo "$0: Build the sample apps and Docker images: $ROOT_DIR/build.sh"
+$ROOT_DIR/build.sh --version $VERSION --push-docker-images
 
 echo "$PWD: $0: NOTE: The Docker images should have been published to DockerHub!"
 

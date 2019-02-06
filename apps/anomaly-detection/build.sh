@@ -20,9 +20,6 @@ do
 done
 
 cd ${HERE}/source/core
-for i in fdp-kstream-dsl fdp-kstream-processor
-do
-  $NOOP sbt -no-colors "set version in ThisBuild := \"$VERSION\"" "show version" $i/clean $i/$docker_task
-done
+$NOOP sbt -no-colors "set version in ThisBuild := \"$VERSION\"" clean $docker_task
 
 echo "$PWD: built package and Docker images. $push_msg"
