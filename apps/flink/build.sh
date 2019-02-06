@@ -1,23 +1,29 @@
 #!/usr/bin/env bash
 
 set -eu
+: ${NOOP:=}
 
 HERE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 
 docker_task="docker"
-case $1 in
-   --push|--push-docker-images)
-    docker_task="dockerBuildAndPush"
-    push_msg="Pushed the docker images."
-    ;;
-  *) ;;
-esac
+push_msg=
+while [[ $# -gt 0 ]]
+do
+  case $1 in
+     --push|--push-docker-images)
+      docker_task="dockerBuildAndPush"
+      push_msg="Pushed the docker images."
+      ;;
+    *) ;;
+  esac
+  shift
+done
 
 cd ${HERE}
-bats test/bin/*.bats
+$NOOP bats test/bin/*.bats
 
 cd ${HERE}/source/core
-for i in fdp-flink-ingestion fdp-flink-taxiride
+for i in fdp-flink-ingestion fdp-flink-taxiride fdp-flink-resultprinter
 do
   $NOOP sbt -no-colors "set version in ThisBuild := \"$VERSION\"" "show version" $i/clean $i/$docker_task
 done

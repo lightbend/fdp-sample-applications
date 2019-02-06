@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 set -eu
+: ${NOOP:=}
 
 HERE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 
@@ -39,6 +40,7 @@ function info {
 # Note that because VERSION is exported in version.sh, its value will be propagated
 # to the subsequent build.sh script invocations.
 print_docker_image_names=false
+push_docker_images=
 apps=()
 while [[ $# -gt 0 ]]
 do
