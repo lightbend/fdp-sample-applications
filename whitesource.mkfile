@@ -1,7 +1,7 @@
 SHELL := bash
 whitesource-jar := whitesource-fs-agent.jar
 whitesource-jar-url := https://raw.githubusercontent.com/whitesource/fs-agent-distribution/master/standAlone/${whitesource-jar}
-config-file := .ws.conf
+config-file := whitesource-fs-agent.config
 
 ifndef VERSION
 $(error VERSION is not defined; either define it while invoking make or use run.sh)
