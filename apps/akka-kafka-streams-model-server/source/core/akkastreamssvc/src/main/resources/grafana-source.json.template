@@ -1,9 +1,9 @@
-{
+  {
   "name": "serving",
   "type": "influxdb",
   "typeLogoUrl": "public/app/plugins/datasource/influxdb/img/influxdb_logo.svg",
   "access": "proxy",
-  "url": "http://influx-db.marathon.l4lb.thisdcos.directory:8086",
+  "url": "http://INFLUXDB_HOST:8086",
   "password": "root",
   "user": "root",
   "database": "serving",

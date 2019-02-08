@@ -1,12 +1,14 @@
-# Training VGG network on CIFAR-10 data
+# Training a VGG network on CIFAR-10 Data
 
-> **Disclaimer:** This sample application is provided as-is, without warranty. It is intended to illustrate techniques for implementing various scenarios using Fast Data Platform, but it has not gone through a robust validation process, nor does it use all the techniques commonly employed for highly-resilient, production applications. Please use it with appropriate caution.
+This application is currently only supported on DC/OS. It is being ported to OpenShift and Kubernetes.
+
+> **DISCLAIMER:** This sample application is provided as-is, without warranty. It is intended to illustrate techniques for implementing various scenarios using Fast Data Platform, but it has not gone through a robust validation process, nor does it use all the techniques commonly employed for highly-resilient, production applications. Please use it with appropriate caution.
 
 This sample application stress tests the DC/OS cluster by running a training and validation of a VGG network on a large dataset from [CIFAR-10](https://www.cs.toronto.edu/~kriz/cifar.html) image dataset. The application reports the loss for every epoch during training and validation. It uses [Intel's BigDL](https://github.com/intel-analytics/BigDL) library for deep learning on Spark.
 
-> **NOTE:** This applications demonstrates using BigDL as a third-party library for machine learning. BigDL is not part of the FDP distribution and Lightbend does not provide support for BigDL or applications that use it.
+> **NOTE:** This applications demonstrates using BigDL as a third-party library for machine learning. BigDL is not part of the Fast Data Platform distribution and Lightbend does not provide support for BigDL or applications that use it.
 
-## Running the application Locally
+## Running the Application Locally
 
 The application can be run locally or on the DC/OS cluster.
 
@@ -24,13 +26,24 @@ This will run the application for training the CIFAR-10 dataset on a VGG network
 
 The `--master` argument is optional and is required only for the local run of the application.
 
-## Deploying and running on DC/OS cluster
+## Deploying and Running on a DC/OS Cluster
 
-The first step in deploying the applications on DC/OS cluster is to prepare a docker image of the application. This can be done from within sbt.
+The first step in deploying the applications on a DC/OS cluster is to prepare a docker image of the application. This can be done from within `sbt`.
 
-### Prepare docker images
+### Prepare Docker Images
 
-In the `bigdl/source/core/` directory:
+Building the app can be done using the convenient `build.sh` or `sbt`.
+
+For `build.sh`, use one of the following commands:
+
+```bash
+build.sh
+build.sh --push-docker-images
+```
+
+Both effectively run `sbt clean compile docker`, while the second variant also pushes the images to your Docker Hub account. _Only use this option_ if you first change `organization in ThisBuild := CommonSettings.organization` to `organization in ThisBuild := "myorg"` in `source/core/build.sbt`!
+
+In the `bigdl/source/core/` directory, run `sbt`:
 
 ```
 $ sbt
@@ -39,54 +52,16 @@ $ sbt
 > docker
 ```
 
-This will create a docker image named `lightbend/bigdlvgg:X.Y.Z` (for the current version `X.Y.Z`) with the default settings. The name of the docker user comes from the `organization` field in `build.sbt` and can be changed there for alternatives. If the user name is changed, then the value of `$DOCKER_USERNAME` also needs to be changed in `bigdl/bin/app-install.sh`. The version of the image comes from `<PROJECT_HOME>/version.sh`. Change there if you wish to deploy a different version.
+This will create a docker image named `lightbend/bigdlvgg:X.Y.Z` (for the current version `X.Y.Z`) with the default settings. You can use the `sbt` target `dockerPush` to push the images to Docker Hub, but only after changing the `organization` as just described. You can publish to your local (machine) repo with the `docker:publishLocal` target.
 
-Once the docker image is created, you can push it to the repository at DockerHub.
-
-### Installing on DC/OS cluster
-
-The installation scripts are present in the `bigdl/bin` folder. The script that you need to run is `app-install.sh`.
-
-```
-$ pwd
-.../bigdl/bin
-$ ./app-install.sh --help
-
-  Installs the BigDL sample app. Assumes DC/OS authentication was successful
-  using the DC/OS CLI.
-
-  Usage: app-install.sh   [options]
-
-  eg: ./app-install.sh
-
-  Options:
-
-  -n | --no-exec              Do not actually run commands, just print them (for debugging).
-  -h | --help                 Prints this message.
-$ ./app-install.sh
-```
-**Here are a few points that you need to keep in mind before starting the applications on your cluster:**
-
-1. Need to have done dcos authentication beforehand. Run `dcos auth login`.
-2. Need to have the cluster attached. Run `dcos cluster attach <cluster name>`.
-3. Need to have Spark running on the cluster.
-
-> **One version of all application images will already be in lightbend Dockerhub as part of the platform release**
-
-### Removing the Application
-
-If you want to remove the application, do the following from `$PROJECT_HOME/bigdl/bin`:
-
-```bash
-./app-remove.sh
-```
+For IDE users, just import a project and use IDE commands.
 
 ## Deploying to Kubernetes and OpenShift
 
-For Kubernetes and OpenShift the project provides `vggcifarchart` chart. See [this](https://docs.bitnami.com/kubernetes/how-to/create-your-first-helm-chart/#values) for Helm intro.
+For Kubernetes and OpenShift the project provides `vggcifarchart` chart. (See [this](https://docs.bitnami.com/kubernetes/how-to/create-your-first-helm-chart/#values) for an introduction to Helm, if you need it.)
 
 This chart has `chart.yaml` and `values.yaml` defining the content and values used in the chart.
-It also has 1 deployment yaml file, `vggcifar.yaml`.
+It also has one deployment yaml file, `vggcifar.yaml`.
 
 ## Running a Custom Image on Kubernetes or OpenShift
 

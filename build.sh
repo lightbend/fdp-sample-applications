@@ -10,13 +10,13 @@ HERE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 function help {
   cat <<EOF
   $0: Build all sample apps.
-  usage: $0 [-h|--help] [-p|--push-docker-images] [--print|--print-docker-images] [-w|--whitesource] [-v|--version VERSION] [app1 ...]
+  usage: $0 [-h|--help] [-w|--whitesource] [-p|--push-docker-images] [--print|--print-docker-images] [-v|--version VERSION] [app1 ...]
   where:
   -h | --help                 Show this help and exit.
+  -w | --whitesource          Also run the Whitesource report. To just run this report, use --whitesource --no-build.
   -p | --push-docker-images   Do the regular build, including Docker images, then push the images
                               to Docker Hub. Ignored if --print-docker-images is specified.
                               (default: build, but don't push the images). Ignored if --no-build specified.
-  -w | --whitesource          Also run the Whitesource report. To just run this report, use --whitesource --no-build.
   --print | --print-docker-images
                               Only print the names of the Docker images that would be built. Implies --no-build.
   -v | --version VERSION      Use VERSION. (default: value set in version.sh)
@@ -54,11 +54,11 @@ do
     --print|--print-docker-image*)
       print_docker_image_names=true
       ;;
-    -w|--white*)
-      whitesource=true
-      ;;
     -p|--push*)
       push_docker_images=--push-docker-images
+      ;;
+    -w|--white*)
+      whitesource=true
       ;;
     -v|--version*)
       shift
