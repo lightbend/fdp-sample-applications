@@ -13,7 +13,6 @@ endif
 all: clean whitesource
 
 clean:
-	rm -f ${config-file}
 
 help: ${whitesource-jar}
 	@java -jar ${whitesource-jar} -h
