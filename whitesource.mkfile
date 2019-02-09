@@ -10,7 +10,14 @@ ifndef WHITESOURCE_API_KEY
 $(error WHITESOURCE_API_KEY is not defined.)
 endif
 
-all: clean whitesource
+all: preamble clean whitesource
+
+preamble:
+	@echo '#############################################################'
+	@echo
+	@echo Starting Whitesource check.
+	@echo
+	@echo '#############################################################'
 
 clean:
 
