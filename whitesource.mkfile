@@ -15,16 +15,16 @@ all: clean whitesource
 clean:
 
 help: ${whitesource-jar}
-  @java -jar ${whitesource-jar} -h
+	@java -jar ${whitesource-jar} -h
 
 whitesource: ${config-file} ${whitesource-jar}
-  @echo java -jar ${whitesource-jar} -apiKey ... -c ${config-file}
-  @java -jar ${whitesource-jar} -apiKey ${WHITESOURCE_API_KEY} \
-    -productVersion ${VERSION} -projectVersion ${VERSION} -c ${config-file}
+	@echo java -jar ${whitesource-jar} -apiKey ... -c ${config-file}
+	@java -jar ${whitesource-jar} -apiKey ${WHITESOURCE_API_KEY} \
+		-productVersion ${VERSION} -projectVersion ${VERSION} -c ${config-file}
 
 ${config-file}:
-  @echo "ERROR: $@ doesn't exist"
-  @exit 1
+	@echo "ERROR: $@ doesn't exist"
+	@exit 1
 
 ${whitesource-jar}:
-  curl -LJO ${whitesource-jar-url}
+	curl -LJO ${whitesource-jar-url}
