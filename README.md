@@ -36,6 +36,7 @@ This repo is organized as follows:
 * `release` - Lightbend CI scripts for our builds. You can safely ignore this directory ;)
 * `supportingcharts` - Helm charts for installing third-party services used by the sample apps.
 * `version.sh` - The global version used to build the application artifacts, like Docker images.
+* `whitesource.mkfile` and `wss-unified-agent.config` used by Lightbend for [Whitesource](https://www.whitesourcesoftware.com/) checking of Docker images. More information below.
 
 ### General Structure for each Application
 
@@ -92,3 +93,21 @@ helm install apps/<app>/helm
 ```
 
 Some of the applications (e.g., the deep learning-based anomaly detection application, `anomaly-detection`) have more complex installation steps. Consult each application's `README.md` for specific details.
+
+## Whitesource Notes
+
+Lightbend uses [Whitesource](https://www.whitesourcesoftware.com/) to check the constructed Docker images for known vulnerabilities, etc.
+
+The `build.sh` script has a `--whitesource` option to run this check, but it can only be run if you have a Whitesource account and an API key. Hence, non-Lightbend users of this software should ignore this feature.
+
+Note that the check is configured using `wss-unified-agent.config`. Around line 200, under the section `# SCAN MODE: Docker images`, is a regular expression list of Docker image names to check, repeated here:
+
+* `.*fdp-akka-.*`
+* `.*fdp-ad-.*`
+* `.*fdp-bigdl-.*`
+* `.*fdp-flink-.*`
+* `.*fdp-killrweather-.*`
+* `.*fdp-kstream-.*`
+* `.*fdp-nwintrusion-.*
+
+If new Docker images are added with names that don't match these expressions, update `wss-unified-agent.config`!
