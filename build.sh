@@ -10,10 +10,9 @@ HERE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 function help {
   cat <<EOF
   $0: Build all sample apps.
-  usage: $0 [-h|--help] [-w|--whitesource] [-p|--push-docker-images] [--print|--print-docker-images] [-v|--version VERSION] [app1 ...]
+  usage: $0 [-h|--help] [-p|--push-docker-images] [--print|--print-docker-images] [-v|--version VERSION] [app1 ...]
   where:
   -h | --help                 Show this help and exit.
-  -w | --whitesource          Also run the Whitesource report. To just run this report, use --whitesource --no-build.
   -p | --push-docker-images   Do the regular build, including Docker images, then push the images
                               to Docker Hub. Ignored if --print-docker-images is specified.
                               (default: build, but don't push the images). Ignored if --no-build specified.
@@ -41,7 +40,6 @@ function info {
 # Note that because VERSION is exported in version.sh, its value will be propagated
 # to the subsequent build.sh script invocations.
 print_docker_image_names=false
-whitesource=false
 push_docker_images=
 apps=()
 while [[ $# -gt 0 ]]
@@ -56,9 +54,6 @@ do
       ;;
     -p|--push*)
       push_docker_images=--push-docker-images
-      ;;
-    -w|--white*)
-      whitesource=true
       ;;
     -v|--version*)
       shift
@@ -124,9 +119,3 @@ do
   info "Running: VERSION=$VERSION $d/build.sh $push_docker_images"
   NOOP=$NOOP VERSION=$VERSION $d/build.sh $push_docker_images || error "Failed building $d"
 done
-
-if $whitesource
-then
-  make -f whitesource.mkfile all || error "Whitesource report generation failed!"
-fi
-
