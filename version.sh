@@ -1,2 +1,2 @@
-: ${VERSION:=2.0.1-OpenShift}
+: ${VERSION:=2.0.2-OpenShift}
 export VERSION
