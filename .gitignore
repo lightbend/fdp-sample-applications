@@ -48,3 +48,5 @@ apps/killrweather/helm-spark-checkpointing-pvc-creation/values.yaml
 apps/killrweather/helm-spark-checkpointing-pvc-creation/Chart.yaml
 apps/akka-kafka-streams-model-server/helm/values.yaml
 apps/akka-kafka-streams-model-server/helm/Chart.yaml
+apps/anomaly-detection/helm/values.yaml 
+apps/anomaly-detection/helm/Chart.yaml

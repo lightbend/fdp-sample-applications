@@ -5,8 +5,9 @@ set -eu
 
 HERE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 
-. "$HERE/version.sh"
+. "$HERE/common.sh"
 
+# This definition overrides the one in common.sh
 function help {
   cat <<EOF
   $0: Build all sample apps.
@@ -22,17 +23,8 @@ function help {
   app1 ...                    Process just these apps. The names have to match the directories under
                               "apps" directory, e.g., "killrweather". (default: build all of them)
 
-  Run this script with "NOOP=echo build.sh ..." to have it echo commands, but not run them.
+  Run this script with "NOOP=info2 build.sh ..." to have it echo commands, but not run them.
 EOF
-}
-
-function error {
-  echo "ERROR: $0: $@" 1>&2
-  help 1>&2
-  exit 1
-}
-function info {
-  echo "INFO: $0: $@"
 }
 
 # The only allowed arguments are the optional version string (no flag) and the
@@ -57,8 +49,7 @@ do
       ;;
     -v|--version*)
       shift
-      [[ $# -eq 0 ]] || [[ -z $1 ]] && error "No value specified for the version!"
-      VERSION=$1
+      VERSION=$(get_version $@)
       ;;
     -*)
       error "Unrecognized argument $1"
@@ -70,6 +61,7 @@ do
 done
 
 [[ -n $VERSION ]] || error "Version string can't be empty!"
+info2 "Using version $VERSION"
 
 function list_app_dirs {
   for app in ${HERE}/apps/*
@@ -112,10 +104,11 @@ then
   exit $?
 fi
 
-info "Using version $VERSION"
+info2 "Process templates for config files to set the version string to $VERSION:"
+$NOOP $HERE/process-templates.sh $VERSION
 
 for d in ${root_dirs[@]}
 do
-  info "Running: VERSION=$VERSION $d/build.sh $push_docker_images"
-  NOOP=$NOOP VERSION=$VERSION $d/build.sh $push_docker_images || error "Failed building $d"
+  info2 "Running: NOOP=$NOOP $d/build.sh --version $VERSION $push_docker_images"
+  NOOP=$NOOP $d/build.sh --version $VERSION $push_docker_images || error "Failed building $d"
 done
