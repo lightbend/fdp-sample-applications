@@ -1,7 +1,0 @@
-apiVersion: v1
-appVersion: 2.0.0
-description: Anomaly detection sample application
-maintainers:
-- name: Boris Lublinsky
-name: Anomaly detection sample application
-version: 2.0.0

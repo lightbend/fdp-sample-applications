@@ -31,7 +31,7 @@ This repo is organized as follows:
 * `LICENSE` - Apache 2.0 license
 * `README.md` - This README
 * `apps` - location of the READMEs, source code, build files, etc. for the apps
-* `build.sh` - Global CI build script used by Lightbend, which you can use, too, if you want to build some or all of the applications yourself. Run `build.sh --help` for details.
+* `build.sh` - Global CI build script used by Lightbend, which you can use, too, if you want to build some or all of the applications yourself. Run `build.sh --help` for details and discussion below.
 * `process-templates.sh` - Sets the version string in templated config files; see `version.sh`.
 * `release` - Lightbend CI scripts for our builds. You can safely ignore this directory ;)
 * `supportingcharts` - Helm charts for installing third-party services used by the sample apps.
@@ -92,4 +92,20 @@ helm install apps/<app>/helm
 ```
 
 Some of the applications (e.g., the deep learning-based anomaly detection application, `anomaly-detection`) have more complex installation steps. Consult each application's `README.md` for specific details.
+
+## Building the Applications Yourself
+
+As discussed above, there is a top-level `build.sh` that will build all the applications:
+
+```bash
+./build.sh
+```
+
+This script builds the archives, Docker images, and updates the Helm charts with the current version set in `version.sh`. Pass the `--help` option for command-line options. For example, the version can be overridden with `--version 1.2.3`.
+
+This script does global setup, like generating YAML files from templates with the correct version string, but you can also build each application individually, as all of them have their own `build.sh` and each one also has a `--help` option.
+
+These scripts are the easiest way to build individual apps, which drive the appropriate `sbt` tasks. Note that each one accepts an argument `--push-docker-images`, which will push any Docker images to Docker Hub! Hence, you'll need to change the `.../build.sbt` file in each app to point to your Docker Hub account or other compatible repository, if you use this option. The app READMEs provide more specific details.
+
+> **Note:** Obviously `bash` is required for these scripts. If you're on Windows without access to `bash`, you can run the `sbt` and `docker` commands directly that these shell scripts invoke to build the artifacts, etc.
 
