@@ -83,7 +83,7 @@ object TaxiRide{
       new TaxiRide(rideId, times._1, times._2, times._3, startLon, startLat, endLon, endLat, passengerCnt)
     } catch {
       case nfe: NumberFormatException =>
-        throw new RuntimeException("Invalid record: " + line, nfe)
+        throw new RuntimeException(s"Invalid record: $line with error $nfe")
     }
   }
 }

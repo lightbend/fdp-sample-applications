@@ -55,13 +55,12 @@ def sbtdockerFlinkAppBase(id: String)(base: String = id) = projectBase(id)(base)
     dockerfile in docker := {
 
       val artifact: File = assembly.value
-      val artifactTargetPath = s"/opt/flink/examples/streaming/${artifact.name}"
+      // This location is fixed. the jar has to go there so that Flink can load it
+      val artifactTargetPath = s"/opt/flink/lib/${artifact.name}"
 
       new Dockerfile {
-//        from ("mesosphere/dcos-flink:1.4.2-1.0")
-        from ("lightbend/flink:1.6.2")
+        from ("lightbend/flink:1.7.1-scala_2.11")
         add(artifact, artifactTargetPath)
-//        runRaw("mkdir -p /flink-1.4.2/app/jars")
       }
     },
 
@@ -119,7 +118,7 @@ lazy val taxiRideApp = sbtdockerFlinkAppBase("fdp-flink-taxiride")("./app")
   .settings (
 
     mainClass in Compile := Some("com.lightbend.fdp.sample.flink.app.TravelTimePrediction"),
-
+    dependencyOverrides += "org.apache.kafka" % "kafka-clients"  % "2.1.0",
     javaOptions in run ++= Seq(
       "-Dconfig.file=" + (resourceDirectory in Compile).value / "application.conf",
       "-Dlogback.configurationFile=" + (resourceDirectory in Compile).value / "logback.xml")

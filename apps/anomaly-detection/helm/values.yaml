@@ -13,12 +13,12 @@ configuration:
     localStorage: 1Gi
     storageshare: "/usr/data"
   kafka:
-    brokerlist : "my-cluster-kafka-brokers.strimzi.svc:9092"
+    brokerlist : "sample-cluster-kafka-brokers.fdp.svc:9092"
   grafana :
-    host: "grafana.sample.svc"
+    host: "grafana.fdp.svc"
     port: "80"
   influx :
-    host : "influxdb.sample.svc"
+    host : "influxdb.fdp.svc"
     port : 8086
   statelistener :
     port : 5500

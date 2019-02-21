@@ -1,4 +1,4 @@
-package ingestion
+package com.lightbend.fdp.sample.flink.ingestion
 
 import java.nio.file.{FileSystems, Path}
 
@@ -19,12 +19,12 @@ import org.apache.kafka.clients.producer.ProducerRecord
 
 import scala.concurrent.duration._
 import scala.concurrent.Future
-import com.lightbend.fdp.sample.flink.support.Serializers
 import com.typesafe.scalalogging.LazyLogging
 import com.lightbend.fdp.sample.flink.config.TaxiRideConfig._
+import org.apache.kafka.common.serialization.{ByteArraySerializer, StringSerializer}
 
 
-object DataIngestion extends LazyLogging with Serializers {
+object DataIngestion extends LazyLogging {
 
 
   def main(args: Array[String]): Unit = {
@@ -75,7 +75,7 @@ object DataIngestion extends LazyLogging with Serializers {
     val MAX_CHUNK_SIZE = 25000
     val POLLING_INTERVAL = 250 millis
 
-    val producerSettings = ProducerSettings(system, byteArraySerde.serializer, stringSerializer)
+    val producerSettings = ProducerSettings(system, new ByteArraySerializer, new StringSerializer)
       .withBootstrapServers(config.brokers)
     
     val logLines: Source[String, NotUsed] =

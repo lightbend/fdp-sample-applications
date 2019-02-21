@@ -52,6 +52,7 @@ class PredictionModel extends RichFlatMapFunction[(Int, TaxiRide), PredictedTime
             out.collect( new PredictedTime(ride.rideId, predictedTime) )
         }
       case _ => // we have an end event: Update model
+//        println(s"Processing end record $ride")
         // refine model
         val travelTime = (ride.endTime.getMillis - ride.startTime.getMillis) / 60000.0
         model.refineModel(direction, distance, travelTime)

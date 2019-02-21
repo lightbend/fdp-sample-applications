@@ -12,7 +12,7 @@ import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrderness
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.streaming.api.TimeCharacteristic
 import org.apache.flink.streaming.api.windowing.time.{Time => StreamingTime}
-import org.apache.flink.streaming.connectors.kafka.{FlinkKafkaConsumer011, FlinkKafkaProducer011}
+import org.apache.flink.streaming.connectors.kafka.{FlinkKafkaConsumer, FlinkKafkaProducer}
 
 object TravelTimePrediction {
 
@@ -42,7 +42,7 @@ object TravelTimePrediction {
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
 
     // try to restart 60 times with 10 seconds delay (10 Minutes)
-    env.setRestartStrategy(RestartStrategies.fixedDelayRestart(60, Time.of(10, TimeUnit.SECONDS)))
+    env.setRestartStrategy(RestartStrategies.fixedDelayRestart(5, Time.of(10, TimeUnit.SECONDS)))
 
     // configure Kafka consumer
     val kafkaProps = new Properties
@@ -53,14 +53,13 @@ object TravelTimePrediction {
     kafkaProps.setProperty("auto.offset.reset", "latest")
 
     // create a Kafka consumer
-    val consumer = new FlinkKafkaConsumer011[TaxiRide](
+    val consumer = new FlinkKafkaConsumer[TaxiRide](
       inTopic,
       new TaxiRideSchema,
       kafkaProps)
 
     // configure timestamp and watermark assigner
     consumer.assignTimestampsAndWatermarks(new TaxiRideTSAssigner)
-
     // create a Kafka source
     // get the taxi ride data stream
     val rides = env.addSource(consumer)
@@ -81,7 +80,7 @@ object TravelTimePrediction {
 
     // output the predictions
     filteredRides.addSink(
-      new FlinkKafkaProducer011[PredictedTime](
+      new FlinkKafkaProducer[PredictedTime](
         brokers,
         outTopic,
         new PredictedTimeSchema))
