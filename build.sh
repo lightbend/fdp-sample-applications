@@ -5,15 +5,15 @@ set -eu
 
 HERE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 
-. "$HERE/version.sh"
+. "$HERE/common.sh"
 
+# This definition overrides the one in common.sh
 function help {
   cat <<EOF
   $0: Build all sample apps.
-  usage: $0 [-h|--help] [-w|--whitesource] [-p|--push-docker-images] [--print|--print-docker-images] [-v|--version VERSION] [app1 ...]
+  usage: $0 [-h|--help] [-p|--push-docker-images] [--print|--print-docker-images] [-v|--version VERSION] [app1 ...]
   where:
   -h | --help                 Show this help and exit.
-  -w | --whitesource          Also run the Whitesource report. To just run this report, use --whitesource --no-build.
   -p | --push-docker-images   Do the regular build, including Docker images, then push the images
                               to Docker Hub. Ignored if --print-docker-images is specified.
                               (default: build, but don't push the images). Ignored if --no-build specified.
@@ -23,17 +23,8 @@ function help {
   app1 ...                    Process just these apps. The names have to match the directories under
                               "apps" directory, e.g., "killrweather". (default: build all of them)
 
-  Run this script with "NOOP=echo build.sh ..." to have it echo commands, but not run them.
+  Run this script with "NOOP=info2 build.sh ..." to have it echo commands, but not run them.
 EOF
-}
-
-function error {
-  echo "ERROR: $0: $@" 1>&2
-  help 1>&2
-  exit 1
-}
-function info {
-  echo "INFO: $0: $@"
 }
 
 # The only allowed arguments are the optional version string (no flag) and the
@@ -41,7 +32,6 @@ function info {
 # Note that because VERSION is exported in version.sh, its value will be propagated
 # to the subsequent build.sh script invocations.
 print_docker_image_names=false
-whitesource=false
 push_docker_images=
 apps=()
 while [[ $# -gt 0 ]]
@@ -57,13 +47,9 @@ do
     -p|--push*)
       push_docker_images=--push-docker-images
       ;;
-    -w|--white*)
-      whitesource=true
-      ;;
     -v|--version*)
       shift
-      [[ $# -eq 0 ]] || [[ -z $1 ]] && error "No value specified for the version!"
-      VERSION=$1
+      VERSION=$(get_version $@)
       ;;
     -*)
       error "Unrecognized argument $1"
@@ -75,6 +61,7 @@ do
 done
 
 [[ -n $VERSION ]] || error "Version string can't be empty!"
+info2 "Using version $VERSION"
 
 function list_app_dirs {
   for app in ${HERE}/apps/*
@@ -117,16 +104,11 @@ then
   exit $?
 fi
 
-info "Using version $VERSION"
+info2 "Process templates for config files to set the version string to $VERSION:"
+$NOOP $HERE/process-templates.sh $VERSION
 
 for d in ${root_dirs[@]}
 do
-  info "Running: VERSION=$VERSION $d/build.sh $push_docker_images"
-  NOOP=$NOOP VERSION=$VERSION $d/build.sh $push_docker_images || error "Failed building $d"
+  info2 "Running: NOOP=$NOOP $d/build.sh --version $VERSION $push_docker_images"
+  NOOP=$NOOP $d/build.sh --version $VERSION $push_docker_images || error "Failed building $d"
 done
-
-if $whitesource
-then
-  make -f whitesource.mkfile all || error "Whitesource report generation failed!"
-fi
-
