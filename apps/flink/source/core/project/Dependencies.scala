@@ -13,8 +13,8 @@ object Dependencies {
   val reactiveKafka         =      "com.typesafe.akka"            %%   "akka-stream-kafka"              % reactiveKafkaVersion
   val flinkScala            =      "org.apache.flink"             %%   "flink-scala"                    % flinkVersion % "provided"
   val flinkStreamingScala   =      "org.apache.flink"             %%   "flink-streaming-scala"          % flinkVersion % "provided"
-  val flinkKafka            =      "org.apache.flink"             %%   "flink-connector-kafka"          % flinkVersion exclude("org.slf4j", "slf4j-log4j12") 
- 
+  val flinkKafka            =      "org.apache.flink"             %%   "flink-connector-kafka"          % flinkVersion exclude("org.slf4j", "slf4j-log4j12")
+
   val common = Seq(jodaTime, jodaConvert, scalaLogging, logback, config, cats)
   val ingestion = Seq(alpakka, reactiveKafka)
   val app = Seq(flinkScala, flinkStreamingScala, flinkKafka)
