@@ -1,6 +1,5 @@
-import sbt._
-import Keys._
 import Versions._
+import sbt._
 
 object Dependencies {
   val jodaTime              =      "joda-time"                     %   "joda-time"                      % jodaTimeVersion
@@ -11,10 +10,10 @@ object Dependencies {
   val cats                  =      "org.typelevel"                %%   "cats"                           % catsVersion
   val alpakka               =      "com.lightbend.akka"           %%   "akka-stream-alpakka-file"       % alpakkaFileVersion
   val reactiveKafka         =      "com.typesafe.akka"            %%   "akka-stream-kafka"              % reactiveKafkaVersion
-  val flinkScala            =      "org.apache.flink"             %%   "flink-scala"                    % flinkVersion % "provided"
-  val flinkStreamingScala   =      "org.apache.flink"             %%   "flink-streaming-scala"          % flinkVersion % "provided"
-  val flinkKafka            =      "org.apache.flink"             %%   "flink-connector-kafka"          % flinkVersion exclude("org.slf4j", "slf4j-log4j12")
-
+  val flinkScala            =      "org.apache.flink"             %%   "flink-scala"                    % flinkVersion
+  val flinkStreamingScala   =      "org.apache.flink"             %%   "flink-streaming-scala"          % flinkVersion
+  val flinkKafka            =      "org.apache.flink"             %%   "flink-connector-kafka"          % flinkVersion exclude("org.slf4j", "slf4j-log4j12") 
+ 
   val common = Seq(jodaTime, jodaConvert, scalaLogging, logback, config, cats)
   val ingestion = Seq(alpakka, reactiveKafka)
   val app = Seq(flinkScala, flinkStreamingScala, flinkKafka)

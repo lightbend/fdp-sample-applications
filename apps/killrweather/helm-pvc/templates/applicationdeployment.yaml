@@ -11,7 +11,7 @@ spec:
     - sh
     - -c
     - "/opt/spark/bin/spark-submit
-        --master k8s://https://lightshift.lightbend.com/
+        --master k8s://https://ibm.lightbend.com/
         --deploy-mode cluster
         --name killrweather
         --class {{ .Values.app.main }}
