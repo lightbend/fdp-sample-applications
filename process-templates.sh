@@ -34,6 +34,7 @@ do
       VERSION=$1
       ;;
   esac
+  shift
 done
 echo "$0: Using version $VERSION"
 
