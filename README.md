@@ -76,8 +76,8 @@ The Fast Data Platform [installation instructions](https://developer.lightbend.c
 In addition, several [certified](https://developer.lightbend.com/docs/fast-data-platform/current/#overview) components are needed by some of the applications:
 
 * Cassandra: required for KillrWeather
-* InfluxDB: required for KillrWeather, anomaly detection, and network intrusion
-* Grafana: required for KillrWeather, anomaly detection, and network intrusion
+* InfluxDB: required for KillrWeather and anomaly detection
+* Grafana: required for KillrWeather and anomaly detection
 
 (Additional optional, _certified_ components are described by each component's documentation.)
 

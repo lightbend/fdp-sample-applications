@@ -1,1 +1,0 @@
-Network Intrusion application components ( {{ .Values.image.transform}}, {{ .Values.image.anomaly}} and {{ .Values.image.kmeans}} ) are installed

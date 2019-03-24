@@ -1,1 +1,0 @@
-VGG Training on CIFAR component for .Values.image.vggcifar is installed
