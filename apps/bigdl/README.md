@@ -4,13 +4,13 @@ This application is currently only supported on DC/OS. It is being ported to Ope
 
 > **DISCLAIMER:** This sample application is provided as-is, without warranty. It is intended to illustrate techniques for implementing various scenarios using Fast Data Platform, but it has not gone through a robust validation process, nor does it use all the techniques commonly employed for highly-resilient, production applications. Please use it with appropriate caution.
 
-This sample application stress tests the DC/OS cluster by running a training and validation of a VGG network on a large dataset from [CIFAR-10](https://www.cs.toronto.edu/~kriz/cifar.html) image dataset. The application reports the loss for every epoch during training and validation. It uses [Intel's BigDL](https://github.com/intel-analytics/BigDL) library for deep learning on Spark.
+This sample application stress tests the cluster by running a training and validation of a VGG network on a large dataset from [CIFAR-10](https://www.cs.toronto.edu/~kriz/cifar.html) image dataset. The application reports the loss for every epoch during training and validation. It uses [Intel's BigDL](https://github.com/intel-analytics/BigDL) library for deep learning on Spark.
 
 > **NOTE:** This applications demonstrates using BigDL as a third-party library for machine learning. BigDL is not part of the Fast Data Platform distribution and Lightbend does not provide support for BigDL or applications that use it.
 
 ## Running the Application Locally
 
-The application can be run locally or on the DC/OS cluster.
+The application can be run locally or on a cluster.
 
 `sbt` will be used to run applications on your local machine. The following examples demonstrate how to run the individual components from the `sbt` console.
 
@@ -26,9 +26,9 @@ This will run the application for training the CIFAR-10 dataset on a VGG network
 
 The `--master` argument is optional and is required only for the local run of the application.
 
-## Deploying and Running on a DC/OS Cluster
+## Deploying and Running on a Cluster
 
-The first step in deploying the applications on a DC/OS cluster is to prepare a docker image of the application. This can be done from within `sbt`.
+The first step in deploying the applications on a cluster is to prepare a docker image of the application. This can be done from within `sbt`.
 
 ### Prepare Docker Images
 

@@ -54,7 +54,7 @@ The build is done via SBT
     sbt compile
     # For IntelliJ users, just import a project and use IntelliJ commands
 
-By default `KillrWeather` defaults to looking for Kafka, Cassandra, and Spark using standard DC/OS domain names local to each cluster. It also assumes you want to use InfluxDB. So, to run the application locally, you have to pass several flags to the command:
+By default `KillrWeather` defaults to looking for Kafka, Cassandra, and Spark using standard DC/OS or Kubernetes domain names local to each cluster (as appropriate). It also assumes you want to use InfluxDB. So, to run the application locally, you have to pass several flags to the command:
 
 * `--master local[*]`: You need to specify the Spark master.
 * `--without-influxdb`: so it doesn't try to write to InfluxDB, which is the default behavior. (For "symmetry", there is a `--with-influxdb` flag, too, but it's the default.)
