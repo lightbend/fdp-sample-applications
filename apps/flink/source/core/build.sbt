@@ -59,7 +59,7 @@ def sbtdockerFlinkAppBase(id: String)(base: String = id) = projectBase(id)(base)
       val artifactTargetPath = s"/opt/flink/lib/${artifact.name}"
 
       new Dockerfile {
-        from ("lightbend/flink:1.7.2-scala_2.11")
+        from ("lightbend/flink:1.8.0_scala_2.11_debian")
         add(artifact, artifactTargetPath)
       }
     },
