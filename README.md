@@ -112,4 +112,3 @@ This script does global setup, like generating YAML files from templates with th
 These scripts are the easiest way to build individual apps, which drive the appropriate `sbt` tasks. Note that each one accepts an argument `--push-docker-images`, which will push any Docker images to Docker Hub! Hence, you'll need to change the `.../build.sbt` file in each app to point to your Docker Hub account or other compatible repository, if you use this option. The app READMEs provide more specific details.
 
 > **Note:** Obviously `bash` is required for these scripts. If you're on Windows without access to `bash`, you can run the `sbt` and `docker` commands directly that these shell scripts invoke to build the artifacts, etc.
-
