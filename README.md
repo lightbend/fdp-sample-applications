@@ -16,17 +16,21 @@ The applications are organized in folders with each of them containing details o
 
 * [Akka, Kafka Streams, and Kafka-based Model Server](apps/akka-kafka-streams-model-server/README.md): A sample application that demonstrates one way to update and serve machine learning models in a streaming context, using either Akka Streams or Kafka Streams with Kafka used for data exchange.
 
+<!--
 * [Network Intrusion](apps/nwintrusion/README.md): A network intrusion detector application that ingests network traffic data from Kafka and runs an online clustering algorithm using Spark Streaming to detect anomalies.
 
 * [VGG Training on CIFAR-10 data using BigDL](apps/bigdl/README.md): This is a demonstration of using a Spark based deep learning library on Fast Data Platform. We use [Intel BigDL](https://github.com/intel-analytics/BigDL) library and train a VGG Network on CIFAR-10 data set.
+-->
 
 * [Taxiride Application using Flink](apps/flink/README.md): This is an adaptation of the publicly available [Flink training example from dataArtisans](http://training.data-artisans.com/). The application uses Flink as the streaming platform to train a regression classifier that predicts taxi travel times on a data set from New York City.
 
+<!--
 * [Processing Web Logs with Kafka Streams](apps/kstream/README.md): This example uses the Kafka Streams APIs to process weblogs. It shows the power of both the higher level DSLs as well as the lower level Processor based APIs.
+-->
 
-## General Structure of this Repo
+## General Structure of this Repository
 
-This repo is organized as follows:
+This repository is organized as follows:
 
 * `LICENSE` - Apache 2.0 license
 * `README.md` - This README
@@ -72,8 +76,8 @@ The Fast Data Platform [installation instructions](https://developer.lightbend.c
 In addition, several [certified](https://developer.lightbend.com/docs/fast-data-platform/current/#overview) components are needed by some of the applications:
 
 * Cassandra: required for KillrWeather
-* InfluxDB: required for KillrWeather, anomaly detection, and network intrusion
-* Grafana: required for KillrWeather, anomaly detection, and network intrusion
+* InfluxDB: required for KillrWeather and anomaly detection
+* Grafana: required for KillrWeather and anomaly detection
 
 (Additional optional, _certified_ components are described by each component's documentation.)
 

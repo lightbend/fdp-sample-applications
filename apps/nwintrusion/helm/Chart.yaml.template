@@ -1,6 +1,0 @@
-apiVersion: v1
-description: Network intrusion application
-maintainers:
-- name: Fast Data Team
-name: Network intrusion application
-version: FDP_VERSION

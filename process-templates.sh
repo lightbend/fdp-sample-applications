@@ -7,8 +7,35 @@ cd $HERE
 
 . ./version.sh
 
-# The only allowed argument is the optional version string
-[[ $# -gt 0 ]] && VERSION=$1
+help() {
+  cat <<EOF
+Change the version string in all places where it's needed.
+
+$0 [-h | --help] [VERSION]
+where:
+-h | --help   Show this help message
+VERSION       If not provided, uses the value defined in ./version.sh
+EOF
+}
+
+while [[ $# -gt 0 ]]
+do
+  case $1 in
+    -h|--h*)
+      help
+      exit 0
+      ;;
+    -*)
+      echo "$0: ERROR: Unrecognized argument $1"
+      help
+      exit 1
+      ;;
+    *)
+      VERSION=$1
+      ;;
+  esac
+  shift
+done
 echo "$0: Using version $VERSION"
 
 function process_templates {

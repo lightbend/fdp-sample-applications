@@ -1,27 +1,40 @@
 # Default values for modelserverchart.
 # This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
 
 # docker images
 image:
   akka: lightbend/fdp-ad-speculativemodelserver
   publisher: lightbend/fdp-ad-publisher
+  trainingpublish: lightbend/trainingmodelpublish
+  trainingingest: lightbend/trainingdataingestion
+  trainingprocess: lightbend/amomaly-detection-intel-bigdl
   pullPolicy: Always
   version: FDP_VERSION
 # Configuration parameters for an application
 configuration:
+  storage:
+    localStorage: 1Gi
+    storageshare: "/usr/data"
   kafka:
-    brokerlist : "broker.kafka.l4lb.thisdcos.directory:9092"
+    brokerlist : "sample-cluster-kafka-brokers.fdp.svc:9092"
   grafana :
-    host : grafana.marathon.l4lb.thisdcos.directory
-    port : 3000
+    host: "grafana.fdp.svc"
+    port: "80"
   influx :
-    host : influxdb.marathon.l4lb.thisdcos.directory
+    host : "influxdb.fdp.svc"
     port : 8086
   statelistener :
     port : 5500
   publisher :
-    data_publish_interval : 2 second
-# Ingress class used
-ingress:
-  class: traefik
+    data_publish_interval : "2 second"
+  trainingdata :
+    ingestion_interval : "10 minutes"
+    ingestion_threshold_count : "1024"
+    data_file_name : "/usr/data/CPU_examples.csv"
+    generation_complete_file_name : "/usr/data/data_preparation_complete.txt"
+    last_timestamp_file_name : "/usr/data/last_timestamp.txt"
+    training_complete_file_name : "/usr/data/training_complete.txt"
+    hyperparameters_file_name : "/usr/data/hyperparams.properties"
+  publishingmodel :
+    pbFileName: "/usr/data/model.pb"
+    attributesFileName: "/usr/data/model-attributes.properties"

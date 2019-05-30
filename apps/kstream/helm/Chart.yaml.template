@@ -1,6 +1,0 @@
-apiVersion: v1
-appVersion: FDP_VERSION
-description: KStream Application
-name: kKStream Application
-version: FDP_VERSION
-
