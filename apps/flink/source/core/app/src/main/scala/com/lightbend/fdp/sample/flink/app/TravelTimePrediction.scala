@@ -10,7 +10,7 @@ import org.apache.flink.api.common.time.Time
 import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor
 import org.apache.flink.streaming.api.scala._
-import org.apache.flink.streaming.api.TimeCharacteristic
+import org.apache.flink.streaming.api.{CheckpointingMode, TimeCharacteristic}
 import org.apache.flink.streaming.api.windowing.time.{Time => StreamingTime}
 import org.apache.flink.streaming.connectors.kafka.{FlinkKafkaConsumer, FlinkKafkaProducer}
 
@@ -40,6 +40,12 @@ object TravelTimePrediction {
 
     // operate in Event-time
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
+
+    // Enable checkpointing
+    env.enableCheckpointing(60000 )   // 1 min
+    env.getCheckpointConfig.setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE)
+    env.getCheckpointConfig.setMaxConcurrentCheckpoints(1)
+
 
     // try to restart 60 times with 10 seconds delay (10 Minutes)
     env.setRestartStrategy(RestartStrategies.fixedDelayRestart(5, Time.of(10, TimeUnit.SECONDS)))
