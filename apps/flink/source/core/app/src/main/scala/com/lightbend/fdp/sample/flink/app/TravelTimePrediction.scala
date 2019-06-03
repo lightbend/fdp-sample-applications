@@ -8,6 +8,8 @@ import com.lightbend.fdp.sample.flink.models.{PredictedTime, TaxiRide}
 import org.apache.flink.api.common.restartstrategy.RestartStrategies
 import org.apache.flink.api.common.time.Time
 import org.apache.flink.api.java.utils.ParameterTool
+import org.apache.flink.runtime.state.filesystem.FsStateBackend
+import org.apache.flink.streaming.api.environment.CheckpointConfig.ExternalizedCheckpointCleanup
 import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.streaming.api.{CheckpointingMode, TimeCharacteristic}
@@ -45,6 +47,9 @@ object TravelTimePrediction {
     env.enableCheckpointing(60000 )   // 1 min
     env.getCheckpointConfig.setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE)
     env.getCheckpointConfig.setMaxConcurrentCheckpoints(1)
+    env.getCheckpointConfig.enableExternalizedCheckpoints(ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION)
+    val checkpointingBackend = new FsStateBackend("file:///flink/checkpoints", true)
+    env.setStateBackend(checkpointingBackend)
 
 
     // try to restart 60 times with 10 seconds delay (10 Minutes)
